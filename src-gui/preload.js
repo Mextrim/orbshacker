@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('orbshacker', {
     return () => ipcRenderer.removeListener('rpc:event', handler);
   },
   minimize: () => ipcRenderer.invoke('window:minimize'),
+  maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
 });

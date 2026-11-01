@@ -20,7 +20,7 @@ impl SteamHelper {
                         if line.contains("SteamPath") {
                             let parts: Vec<&str> = line.split("REG_SZ").collect();
                             if parts.len() > 1 {
-                                let path_str = parts[1].trim();
+                                let path_str = parts[1].trim().replace('/', "\\");
                                 let p = PathBuf::from(path_str);
                                 if p.exists() {
                                     return Some(p);
@@ -37,6 +37,7 @@ impl SteamHelper {
                 PathBuf::from(r"C:\Program Files\Steam"),
                 PathBuf::from(r"D:\Steam"),
                 PathBuf::from(r"E:\Steam"),
+                PathBuf::from(r"G:\st"),
             ];
             for c in candidates {
                 if c.exists() {
@@ -87,7 +88,6 @@ impl SteamHelper {
         if steamapps.exists() {
             Some(steamapps)
         } else {
-            // Attempt to create if steam folder exists
             let _ = fs::create_dir_all(&steamapps);
             if steamapps.exists() {
                 Some(steamapps)
@@ -103,9 +103,12 @@ impl SteamHelper {
 
         let manifest_path = steamapps.join(format!("appmanifest_{}.acf", app_id));
         if manifest_path.exists() {
-            // Check if already ours or real game
             if let Ok(content) = fs::read_to_string(&manifest_path) {
-                if !content.contains("orbshacker") && content.contains("\"BytesDownloaded\"") {
+                // If the game is already genuinely installed with StateFlags 4 and no errors, keep it
+                if content.contains("\"StateFlags\"\t\t\"4\"")
+                    && !content.contains("orbshacker")
+                    && content.contains("\"UpdateResult\"\t\t\"0\"")
+                {
                     return Ok(manifest_path);
                 }
             }
@@ -118,9 +121,9 @@ impl SteamHelper {
 	"appid"		"{app_id}"
 	"Universe"		"1"
 	"name"		"{clean_name}"
-	"StateFlags"		"1026"
+	"StateFlags"		"4"
 	"installdir"		"{clean_name}"
-	"LastUpdated"		"1730000000"
+	"LastUpdated"		"1730460000"
 	"SizeOnDisk"		"50000000000"
 	"StagingSize"		"0"
 	"buildid"		"15000000"
@@ -133,7 +136,7 @@ impl SteamHelper {
 	"ScheduledAutoUpdate"		"0"
 	"UserConfig"
 	{{
-		"language"		"english"
+		"language"		"russian"
 	}}
 	"MountedDepots"
 	{{
@@ -146,6 +149,14 @@ impl SteamHelper {
         );
 
         fs::write(&manifest_path, acf_content).map_err(|e| e.to_string())?;
+
+        // Also ensure common folder and steam_appid.txt exist
+        let common_dir = steamapps.join("common").join(&clean_name);
+        if fs::create_dir_all(&common_dir).is_ok() {
+            let appid_file = common_dir.join("steam_appid.txt");
+            let _ = fs::write(appid_file, app_id.to_string());
+        }
+
         Ok(manifest_path)
     }
 
@@ -161,7 +172,6 @@ impl SteamHelper {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,7 +183,7 @@ mod tests {
         let path = temp_dir.join("appmanifest_12345.acf");
         let clean_name = "Test Game";
         let acf_content = format!(
-            "\"AppState\"\n{{\n\t\"appid\"\t\t\"12345\"\n\t\"name\"\t\t\"{}\"\n\t\"StateFlags\"\t\t\"1026\"\n\t\"orbshacker\"\t\t\"1\"\n}}\n",
+            "\"AppState\"\n{{\n\t\"appid\"\t\t\"12345\"\n\t\"name\"\t\t\"{}\"\n\t\"StateFlags\"\t\t\"4\"\n\t\"orbshacker\"\t\t\"1\"\n}}\n",
             clean_name
         );
         fs::write(&path, &acf_content).unwrap();

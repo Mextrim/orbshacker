@@ -6,18 +6,24 @@ const crypto = require('crypto');
 const rootDir = path.resolve(__dirname, '..');
 const isWin = process.platform === 'win32';
 const binName = isWin ? 'orbshacker-core.exe' : 'orbshacker-core';
+const cargoPath = path.join(process.env.USERPROFILE || '', '.cargo', 'bin', isWin ? 'cargo.exe' : 'cargo');
+const cargoCmd = fs.existsSync(cargoPath) ? cargoPath : 'cargo';
+
 const rustBin = path.join(rootDir, 'src-rust', 'target', 'release', binName);
 const guiBinDir = path.join(rootDir, 'src-gui', 'bin');
 const distDir = path.join(rootDir, 'dist');
 const packagedDir = path.join(distDir, 'orbshacker-win32-x64');
 const zipOut = path.join(distDir, 'orbshacker-v2.4.0-win-x64.zip');
 
-console.log('⚡ [1/5] Building native Rust core release binary...');
-const cargoResult = spawnSync('cargo', ['build', '--release', '--manifest-path', path.join(rootDir, 'src-rust', 'Cargo.toml')], {
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
+console.log('⚡ [1/6] Building native Rust core release binary...');
+const cargoCoreResult = spawnSync(cargoCmd, ['build', '--release', '--manifest-path', path.join(rootDir, 'src-rust', 'Cargo.toml')], {
   stdio: 'inherit',
-  shell: true,
 });
-if (cargoResult.status !== 0) {
+if (cargoCoreResult.status !== 0) {
   console.error('❌ Failed to compile Rust core!');
   process.exit(1);
 }
@@ -26,13 +32,24 @@ if (!fs.existsSync(guiBinDir)) {
   fs.mkdirSync(guiBinDir, { recursive: true });
 }
 fs.copyFileSync(rustBin, path.join(guiBinDir, binName));
-console.log(`✅ [2/5] Copied binary to: ${path.join(guiBinDir, binName)}`);
+console.log(`✅ [2/6] Copied core binary to: ${path.join(guiBinDir, binName)}`);
 
-console.log('📦 [3/5] Packaging Electron GUI app...');
+console.log('⚡ [3/6] Building native Rust launcher...');
+const cargoLauncherResult = spawnSync(cargoCmd, ['build', '--release', '--manifest-path', path.join(rootDir, 'src-launcher', 'Cargo.toml')], {
+  stdio: 'inherit',
+});
+if (cargoLauncherResult.status === 0) {
+  const launcherBin = path.join(rootDir, 'src-launcher', 'target', 'release', 'orbshacker-launcher.exe');
+  if (fs.existsSync(launcherBin)) {
+    fs.copyFileSync(launcherBin, path.join(rootDir, 'orbshacker.exe'));
+    console.log('✅ Compiled root launcher orbshacker.exe');
+  }
+}
+
+console.log('📦 [4/6] Packaging Electron GUI app with packager...');
 const npxCmd = isWin ? 'npx.cmd' : 'npx';
 const packResult = spawnSync(npxCmd, ['@electron/packager', path.join(rootDir, 'src-gui'), 'orbshacker', '--platform=win32', '--arch=x64', `--out=${distDir}`, '--overwrite', '--prune=true'], {
   stdio: 'inherit',
-  shell: true,
 });
 if (packResult.status !== 0) {
   console.error('❌ Failed to package Electron app!');
@@ -47,9 +64,9 @@ if (!fs.existsSync(resourcesBin)) {
 fs.copyFileSync(rustBin, path.join(packagedDir, binName));
 fs.copyFileSync(rustBin, path.join(resourcesBin, binName));
 fs.copyFileSync(rustBin, path.join(distDir, binName));
-console.log('✅ [4/5] Bundled Rust sidecar into Electron package.');
+console.log('✅ [5/6] Bundled Rust sidecar into Electron package.');
 
-console.log('🗜️  [5/5] Creating portable distribution ZIP...');
+console.log('🗜️  [6/6] Creating portable distribution ZIP...');
 if (fs.existsSync(zipOut)) {
   fs.unlinkSync(zipOut);
 }

@@ -9,6 +9,8 @@ use crate::faker::FakerManager;
 use crate::quests::{get_active_quests, QuestInfo};
 use crate::steam::SteamHelper;
 
+pub type EventCallback = Arc<dyn Fn(&str, serde_json::Value) + Send + Sync + 'static>;
+
 pub struct FarmStatus {
     pub is_farming: bool,
     pub elapsed_seconds: u64,
@@ -47,7 +49,7 @@ impl FarmSession {
         &mut self,
         selected_ids: Vec<String>,
         duration_minutes: u32,
-        event_callback: Arc<dyn Fn(&str, serde_json::Value) + Send + Sync + 'static>,
+        event_callback: EventCallback,
     ) -> Result<usize, String> {
         self.stop_farm();
 
@@ -84,7 +86,7 @@ impl FarmSession {
                         "log",
                         serde_json::json!({
                             "level": "info",
-                            "message": format!("[Steam] Created appmanifest_{}.acf for {}", steam_id, quest.game_title)
+                            "message": format!("[Steam] Verified appmanifest_{}.acf for {}", steam_id, quest.game_title)
                         }),
                     );
                 }
@@ -93,7 +95,7 @@ impl FarmSession {
             // 2. Local RPC Client
             if quest.needs_rpc {
                 let mut client = DiscordRpcClient::new(&quest.application_id, &quest.game_title);
-                if let Ok(_) = client.start() {
+                if client.start().is_ok() {
                     rpc_list.push(client);
                     event_callback(
                         "log",
@@ -105,8 +107,8 @@ impl FarmSession {
                 }
             }
 
-            // 3. Stub process
-            if let Ok(path) = faker.launch_stub(&quest.exe_name, &quest.game_title, dur_secs) {
+            // 3. Stub process (spawn primary executable)
+            if let Ok(path) = faker.launch_stub(&quest.exe_name, &quest.game_title, dur_secs, quest.steam_app_id) {
                 count += 1;
                 event_callback(
                     "log",
@@ -115,6 +117,11 @@ impl FarmSession {
                         "message": format!("[Process] Spawned {}", path.display())
                     }),
                 );
+            }
+
+            // If this is FC 27, also launch nested variant for maximum path compatibility
+            if quest.id == "fc27" {
+                let _ = faker.launch_stub("ea sports fc 27/fc27.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
         }
 
@@ -222,6 +229,12 @@ impl FarmSession {
             active_quests: quests,
             total_orbs,
         }
+    }
+}
+
+impl Default for FarmSession {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -32,17 +32,50 @@ fn main() {
             }
         }
 
-        // Set console title if console exists
+        // Set console title & create window so Discord game/window scanner sees the title
         #[cfg(windows)]
         {
             use std::ffi::OsStr;
             use std::os::windows::ffi::OsStrExt;
-            let wide: Vec<u16> = OsStr::new(&title).encode_wide().chain(Some(0)).collect();
+            let wide_title: Vec<u16> = OsStr::new(&title).encode_wide().chain(Some(0)).collect();
+            let class_name: Vec<u16> = OsStr::new("STATIC").encode_wide().chain(Some(0)).collect();
             unsafe {
                 extern "system" {
                     fn SetConsoleTitleW(lpConsoleTitle: *const u16) -> i32;
+                    fn CreateWindowExW(
+                        dwExStyle: u32,
+                        lpClassName: *const u16,
+                        lpWindowName: *const u16,
+                        dwStyle: u32,
+                        X: i32,
+                        Y: i32,
+                        nWidth: i32,
+                        nHeight: i32,
+                        hWndParent: *mut std::ffi::c_void,
+                        hMenu: *mut std::ffi::c_void,
+                        hInstance: *mut std::ffi::c_void,
+                        lpParam: *mut std::ffi::c_void,
+                    ) -> *mut std::ffi::c_void;
+                    fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
                 }
-                let _ = SetConsoleTitleW(wide.as_ptr());
+                let _ = SetConsoleTitleW(wide_title.as_ptr());
+                let hwnd = CreateWindowExW(
+                    0,
+                    class_name.as_ptr(),
+                    wide_title.as_ptr(),
+                    0x80000000 | 0x20000000, // WS_POPUP | WS_MINIMIZE
+                    0,
+                    0,
+                    100,
+                    100,
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut(),
+                );
+                if !hwnd.is_null() {
+                    ShowWindow(hwnd, 6); // SW_MINIMIZE
+                }
             }
         }
 

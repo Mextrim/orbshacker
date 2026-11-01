@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::quests::get_active_quests;
-use crate::session::FarmSession;
+use crate::session::{EventCallback, FarmSession};
 
 #[derive(Deserialize)]
 struct RpcRequest {
@@ -36,7 +36,7 @@ pub fn run_json_rpc_service() {
     let stdout = Arc::new(Mutex::new(io::stdout()));
 
     let emit_stdout = stdout.clone();
-    let event_callback: Arc<dyn Fn(&str, Value) + Send + Sync + 'static> =
+    let event_callback: EventCallback =
         Arc::new(move |event_name: &str, data: Value| {
             let evt = RpcEvent {
                 event: event_name.to_string(),
@@ -82,6 +82,10 @@ pub fn run_json_rpc_service() {
         match req.method.as_str() {
             "ping" => {
                 res = Some(serde_json::json!({ "pong": true }));
+            }
+            "check_discord_status" => {
+                let connected = crate::discord_rpc::is_discord_available();
+                res = Some(serde_json::json!({ "connected": connected }));
             }
             "get_quests" => {
                 let quests = get_active_quests();

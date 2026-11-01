@@ -40,9 +40,19 @@ impl FakerManager {
         exe_name: &str,
         game_title: &str,
         duration_secs: u64,
+        steam_app_id: Option<u64>,
     ) -> Result<PathBuf, String> {
         let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
         let target_exe = self.target_dir.join(exe_name);
+
+        if let Some(parent) = target_exe.parent() {
+            let _ = fs::create_dir_all(parent);
+            if let Some(appid) = steam_app_id {
+                let appid_path = parent.join("steam_appid.txt");
+                let _ = fs::write(&appid_path, appid.to_string());
+                self.created_files.push(appid_path);
+            }
+        }
 
         if !target_exe.exists() {
             fs::copy(&current_exe, &target_exe).map_err(|e| e.to_string())?;

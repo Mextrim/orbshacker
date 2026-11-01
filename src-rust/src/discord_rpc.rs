@@ -1,14 +1,13 @@
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 #[cfg(unix)]
+use std::os::unix::net::UnixStream;
+#[cfg(unix)]
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
-
-#[cfg(unix)]
-use std::os::unix::net::UnixStream;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub struct DiscordRpcClient {
     application_id: String,
@@ -54,6 +53,10 @@ impl Drop for DiscordRpcClient {
     fn drop(&mut self) {
         self.stop();
     }
+}
+
+pub fn is_discord_available() -> bool {
+    PipeStream::connect().is_ok()
 }
 
 enum PipeStream {
@@ -135,8 +138,11 @@ impl PipeStream {
 
         let opcode = u32::from_le_bytes(header[0..4].try_into().unwrap());
         let len = u32::from_le_bytes(header[4..8].try_into().unwrap()) as usize;
-        let mut body = vec![0u8; len];
+        if len > 10 * 1024 * 1024 {
+            return Err("Packet payload too large".to_string());
+        }
 
+        let mut body = vec![0u8; len];
         match self {
             #[cfg(windows)]
             PipeStream::Windows(f) => {
@@ -154,60 +160,113 @@ impl PipeStream {
 }
 
 fn rpc_worker_loop(application_id: &str, game_title: &str, stop: Arc<AtomicBool>) {
-    let mut stream = match PipeStream::connect() {
-        Ok(s) => s,
-        Err(_) => return,
-    };
-
-    // 1. Handshake (opcode 0)
-    let handshake_payload = format!(r#"{{"v":1,"client_id":"{}"}}"#, application_id);
-    if stream.write_packet(0, &handshake_payload).is_err() {
-        return;
-    }
-
-    // Read handshake response
-    if stream.read_packet().is_err() {
-        return;
-    }
-
     let pid = std::process::id();
-    let escaped_title = game_title.replace('"', "\\\"");
+    let start_timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
 
-    // 2. Initial SET_ACTIVITY (opcode 1)
-    let activity_payload = format!(
-        r#"{{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":{{"name":"{}","application_id":"{}","platform":"desktop","instance":true}}}},"nonce":"{}"}}"#,
-        pid, escaped_title, application_id, pid
-    );
-
-    if stream.write_packet(1, &activity_payload).is_err() {
-        return;
-    }
-    let _ = stream.read_packet();
-
-    // 3. Heartbeat loop (every 20s until stopped)
     while !stop.load(Ordering::SeqCst) {
-        for _ in 0..40 {
+        // Attempt connection (retry every 2 seconds if Discord not running yet)
+        let mut stream = match PipeStream::connect() {
+            Ok(s) => s,
+            Err(_) => {
+                for _ in 0..4 {
+                    if stop.load(Ordering::SeqCst) {
+                        return;
+                    }
+                    thread::sleep(Duration::from_millis(500));
+                }
+                continue;
+            }
+        };
+
+        // 1. Handshake (opcode 0)
+        let handshake_payload = format!(r#"{{"v":1,"client_id":"{}"}}"#, application_id);
+        if stream.write_packet(0, &handshake_payload).is_err() {
+            thread::sleep(Duration::from_secs(1));
+            continue;
+        }
+
+        // Read handshake response
+        if stream.read_packet().is_err() {
+            thread::sleep(Duration::from_secs(1));
+            continue;
+        }
+
+        // 2. Initial SET_ACTIVITY (opcode 1) with type 0 (Playing) and unix start timestamp
+        let activity_json = serde_json::json!({
+            "cmd": "SET_ACTIVITY",
+            "args": {
+                "pid": pid,
+                "activity": {
+                    "name": game_title,
+                    "type": 0,
+                    "application_id": application_id,
+                    "details": "Playing Match",
+                    "state": "Ultimate Team",
+                    "timestamps": {
+                        "start": start_timestamp
+                    },
+                    "instance": true
+                }
+            },
+            "nonce": format!("act_{}", start_timestamp)
+        });
+
+        let activity_payload = activity_json.to_string();
+        if stream.write_packet(1, &activity_payload).is_err() {
+            continue;
+        }
+        let _ = stream.read_packet();
+
+        // 3. Keep-alive heartbeat loop (every 15s)
+        while !stop.load(Ordering::SeqCst) {
+            for _ in 0..30 {
+                if stop.load(Ordering::SeqCst) {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(500));
+            }
+
             if stop.load(Ordering::SeqCst) {
                 break;
             }
-            thread::sleep(Duration::from_millis(500));
+
+            // Keep-alive refresh
+            let refresh_json = serde_json::json!({
+                "cmd": "SET_ACTIVITY",
+                "args": {
+                    "pid": pid,
+                    "activity": {
+                        "name": game_title,
+                        "type": 0,
+                        "application_id": application_id,
+                        "details": "Playing Match",
+                        "state": "Ultimate Team",
+                        "timestamps": {
+                            "start": start_timestamp
+                        },
+                        "instance": true
+                    }
+                },
+                "nonce": format!("act_{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs())
+            });
+
+            if stream.write_packet(1, &refresh_json.to_string()).is_err() {
+                break; // Broken pipe: break inner loop and reconnect in outer loop
+            }
+            let _ = stream.read_packet();
         }
 
+        // 4. Clear activity on shutdown
         if stop.load(Ordering::SeqCst) {
+            let clear_payload = format!(
+                r#"{{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":null}},"nonce":"clear"}}"#,
+                pid
+            );
+            let _ = stream.write_packet(1, &clear_payload);
             break;
         }
-
-        // Send keep-alive SET_ACTIVITY
-        if stream.write_packet(1, &activity_payload).is_err() {
-            break;
-        }
-        let _ = stream.read_packet();
     }
-
-    // 4. Clear activity on shutdown
-    let clear_payload = format!(
-        r#"{{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":null}},"nonce":"{}"}}"#,
-        pid, pid
-    );
-    let _ = stream.write_packet(1, &clear_payload);
 }

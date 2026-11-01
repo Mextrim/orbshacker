@@ -30,7 +30,9 @@
         <option value="de">🇩🇪 Deutsch</option>
         <option value="fr">🇫🇷 Français</option>
       </select>
+      <button id="btnSettings" class="win-btn" title="Настройки">&#9881;</button>
       <button id="btnMinimize" class="win-btn" title="Свернуть">&#8211;</button>
+      <button id="btnMaximize" class="win-btn" title="Развернуть">&#9633;</button>
       <button id="btnClose" class="win-btn close" title="Закрыть">&#10005;</button>
     </div>
   </div>
@@ -99,6 +101,33 @@
       <div id="telemetryLogs" class="telemetry-logs">
         <div class="log-entry info">[Engine] Native Rust Core v2.4.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal Dialog -->
+  <div id="modalSettings" class="modal-overlay">
+    <div class="modal-content" style="text-align: left; max-width: 380px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-title" style="font-size: 16px;" data-i18n="settings_title">Настройки фарма</div>
+        <button id="btnSettingsClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+        <label style="font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;">
+          <span>Длительность фарма: <b id="settingsDurationVal" style="color: var(--accent-green);">15 мин</b></span>
+          <input type="range" id="settingsDurationInput" min="5" max="30" value="15" step="1" style="cursor: pointer; width: 100%;">
+        </label>
+        <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="settingsSoundToggle" checked style="cursor: pointer;">
+          <span>Звуковой сигнал при завершении</span>
+        </label>
+        <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="settingsAutoDiscordToggle" checked style="cursor: pointer;">
+          <span>Автоматически опрашивать Discord IPC</span>
+        </label>
+      </div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button id="btnSettingsSave" class="btn btn-primary" style="padding: 6px 18px; font-size: 12px;" data-i18n="save">Применить</button>
       </div>
     </div>
   </div>
