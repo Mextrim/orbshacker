@@ -4,3 +4,10 @@ version = "2.5.0"
 edition = "2021"
 authors = ["Mextrim"]
 description = "Native lightweight launcher for orbshacker"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
