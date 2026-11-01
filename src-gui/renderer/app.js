@@ -498,6 +498,29 @@
     }
   }
 
+  function formatRemainingTime(seconds) {
+    if (!seconds || seconds <= 0) return '';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return ` [осталось ${h}ч ${m}м]`;
+    if (m > 0) return ` [осталось ${m}м ${s.toString().padStart(2, '0')}с]`;
+    return ` [осталось ${s}с]`;
+  }
+
+  function highlightFarmingGame(gameName) {
+    if (!detectableGamesGrid || !gameName) return;
+    const cleanName = gameName.trim().toLowerCase();
+    detectableGamesGrid.querySelectorAll('.game-item-chip').forEach((chip) => {
+      const nameEl = chip.querySelector('.game-item-name');
+      if (nameEl && nameEl.textContent.trim().toLowerCase() === cleanName) {
+        chip.classList.add('farming');
+      } else {
+        chip.classList.remove('farming');
+      }
+    });
+  }
+
   function renderDetectableGames(filterText = '') {
     if (!detectableGamesGrid) return;
     detectableGamesGrid.innerHTML = '';
@@ -619,6 +642,9 @@
     btnFarmNext2.disabled = false;
     btnStopBadges.style.display = 'none';
     badgeCountProgressBox.style.display = 'none';
+    if (detectableGamesGrid) {
+      detectableGamesGrid.querySelectorAll('.game-item-chip.farming').forEach((c) => c.classList.remove('farming'));
+    }
   }
 
   btnFarmAll100.addEventListener('click', () => startBadgeCount(105, 0));
@@ -761,10 +787,11 @@
     } else if (event === 'badge_tick') {
       if (data.mode === 'count' || data.mode === 'single') {
         const remaining = Math.max(0, data.target_seconds - data.elapsed_seconds);
-        const remStr = remaining > 0 ? ` [осталось ${remaining}с]` : '';
+        const remStr = formatRemainingTime(remaining);
         badgeCountStatusText.textContent = `[${data.current_index}/${data.total_games}] Игра: ${data.current_game}${remStr}`;
         badgeCountPercentText.textContent = `${data.progress_percent}%`;
         badgeCountProgressFill.style.width = `${data.progress_percent}%`;
+        highlightFarmingGame(data.current_game);
       } else if (data.mode === 'hours') {
         const el = data.elapsed_seconds;
         const h = Math.floor(el / 3600).toString().padStart(2, '0');

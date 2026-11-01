@@ -148,22 +148,30 @@
     <div id="panelBadges" class="tab-panel">
       <!-- Section 1: Detectable Games Count (100+ Games Badge) -->
       <div class="badge-feature-card">
-        <div class="badge-header-row">
+        <div class="badge-card-header">
           <div class="badge-title-group">
-            <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
+            <div class="badge-title-with-pill">
+              <span class="badge-header-icon">🎮</span>
+              <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
+              <span class="badge-counter-pill">105 игр</span>
+            </div>
             <p data-i18n="badge_games_desc">Запуск каталога из 100+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
           </div>
-          <div class="hero-actions">
-            <button id="btnFarmAll100" class="btn btn-primary">
+          <div class="badge-action-bar">
+            <button id="btnFarmAll100" class="btn btn-primary btn-glow">
+              <span class="btn-icon">✨</span>
               <span data-i18n="farm_all_100_btn">Фармить ВСЕ 100+ игр (Значок Универсал)</span>
             </button>
             <button id="btnFarmNext10" class="btn btn-secondary">
+              <span class="btn-icon">⚡</span>
               <span data-i18n="farm_next_10_btn">Фармить +10 игр</span>
             </button>
             <button id="btnFarmNext2" class="btn btn-secondary">
+              <span class="btn-icon">🎯</span>
               <span data-i18n="farm_next_2_btn">Фармить +2 игры</span>
             </button>
             <button id="btnStopBadges" class="btn btn-danger" style="display: none;">
+              <span class="btn-icon">⏹</span>
               <span data-i18n="stop_badge_btn">Остановить</span>
             </button>
           </div>
@@ -193,8 +201,11 @@
 
         <!-- Searchable Detectable Games Catalog -->
         <div class="games-filter-bar">
-          <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 100+ играм (CS2, GTA V, Dota 2, Rust...)" />
-          <span id="catalogCountLabel" style="font-size: 11px; color: var(--text-dim); white-space: nowrap;">105 игр готово</span>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 100+ играм (CS2, GTA V, Dota 2, Rust...)" />
+          </div>
+          <span id="catalogCountLabel" class="catalog-badge">105 игр готово</span>
         </div>
         <div id="detectableGamesGrid" class="detectable-games-grid">
           <!-- Injected by app.js -->
@@ -203,19 +214,26 @@
 
       <!-- Section 2: Playtime Hours Booster (Up to 5000+ Hours Badge) -->
       <div class="badge-feature-card">
-        <div class="badge-header-row">
+        <div class="badge-card-header">
           <div class="badge-title-group">
-            <h3 data-i18n="badge_hours_title">Наиграйте больше часов в играх на ПК</h3>
+            <div class="badge-title-with-pill">
+              <span class="badge-header-icon">⏱</span>
+              <h3 data-i18n="badge_hours_title">Наиграйте больше часов в играх на ПК</h3>
+              <span class="badge-counter-pill">До 5 000+ часов</span>
+            </div>
             <p data-i18n="badge_hours_desc">Фарм игрового времени в фоне с нулевой нагрузкой на ПК (вплоть до «Вечный игрок: 5 000+ часов»)</p>
           </div>
-          <div class="hero-actions">
-            <button id="btnStartHoursFarm" class="btn btn-primary">
+          <div class="badge-action-bar">
+            <button id="btnStartHoursFarm" class="btn btn-primary btn-glow">
+              <span class="btn-icon">▶</span>
               <span data-i18n="farm_hours_btn">Запустить фарм часов</span>
             </button>
             <button id="btnStartAfkFarm" class="btn btn-secondary">
+              <span class="btn-icon">♾</span>
               <span data-i18n="farm_afk_btn">Бесконечный AFK-фарм (онлайн)</span>
             </button>
             <button id="btnStopHoursFarm" class="btn btn-danger" style="display: none;">
+              <span class="btn-icon">⏹</span>
               <span data-i18n="stop_badge_btn">Остановить</span>
             </button>
           </div>
