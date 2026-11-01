@@ -3,233 +3,487 @@
 
 <br/>
 
+[![Version](https://img.shields.io/github/v/release/Mextrim/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Python](https://img.shields.io/badge/Python-3.10+-3572A5?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker)
-[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20RU%20%7C%20ES%20%7C%20PT%20%7C%20DE%20%7C%20FR-blueviolet?style=for-the-badge)](https://github.com/Mextrim/orbshacker)
-[![Discord](https://img.shields.io/badge/Discord-Game%20Spoofer-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
+[![Languages](https://img.shields.io/badge/Languages-RU%20%7C%20EN%20%7C%20ES%20%7C%20PT%20%7C%20DE%20%7C%20FR-blueviolet?style=for-the-badge)](https://github.com/Mextrim/orbshacker)
+[![Discord](https://img.shields.io/badge/Discord-Orbs%20%26%20Quests-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
 [![License](https://img.shields.io/badge/License-GPL%20v3-c0392b?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Version](https://img.shields.io/github/v/release/Mextrim/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/Mextrim/orbshacker/releases)
+[![Tests](https://img.shields.io/badge/Tests-152%20passed-success?style=for-the-badge&logo=pytest&logoColor=white)](https://github.com/Mextrim/orbshacker)
 
 <br/>
 
-### ⬇️ **[Скачать orbshacker.exe (v2.3.0)](https://github.com/Mextrim/orbshacker/releases/download/v2.3.0/orbshacker.exe)**
+### ⬇️ **[Скачать orbshacker.exe (v2.3.1 для Windows)](https://github.com/Mextrim/orbshacker/releases/download/v2.3.1/orbshacker.exe)** &nbsp;|&nbsp; **[GitHub Releases](https://github.com/Mextrim/orbshacker/releases)**
 
 <br/>
 
-*Because who has time to install 500GB of games just for some orbs.*
+*Автоматический фарм квестов Discord и сбор Orbs без скачивания сотен гигабайт игр.*  
+*Automated Discord Quests spoofer & Orbs collector without installing hundreds of gigabytes.*
 
 <br/>
 
-[Get Started](#installation) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Steam Mode](#steam-quest-mode) &nbsp;·&nbsp; [Usage](#usage) &nbsp;·&nbsp; [Structure](#project-structure) &nbsp;·&nbsp; [Legal](#legal-notice)
+**🌐 Выберите язык / Select language:**  
+[🇷🇺 **Русский**](#-русский-гайд-и-описание) &nbsp;•&nbsp; 
+[🇬🇧 **English**](#-english-guide--documentation) &nbsp;•&nbsp; 
+[🇪🇸 **Español**](#-español-guía-rápida) &nbsp;•&nbsp; 
+[🇩🇪 **Deutsch**](#-deutsch-kurzanleitung) &nbsp;•&nbsp; 
+[🇫🇷 **Français**](#-français-guide-rapide) &nbsp;•&nbsp; 
+[🇵🇹 **Português**](#-português-guia-rápido)
 
 </div>
 
 <br/>
 
-<div align="center">
-<img width="340" alt="image" src="https://github.com/user-attachments/assets/1db237b0-2f57-428f-a004-d707f98a416e" style="border-radius: 16px"/>
-</div>
-
-## What is this
-
-orbshacker is a Windows tool that creates fake game processes for Discord Orb quests without installing the actual games. It reads Discord's own public API to get the exact process names Discord expects, copies a base executable, renames it, and launches it in the background. Discord scans your process list, sees what it's looking for, and marks the quest as active.
-
-No client modification. No code injection. No suspicious network traffic. Just a process name sitting in your task list, which is all Discord ever checks.
-
-> **Educational purposes only.** This tool is provided to study how Discord's game detection system works and to explore process manipulation techniques. Use at your own risk and in compliance with all applicable terms of service.
+---
 
 <br/>
 
-## 🚨 Steam Quest Mode
+# 🇷🇺 Русский (Гайд и описание)
 
-Some games use a more advanced detection method. Discord doesn't just check the process name it also verifies that Steam has registered the game as downloading. Standard spoofing doesn't work for those. Steam Quest Mode does.
+## 📌 Что такое orbshacker?
 
-### How it works
+**orbshacker** — это мощная и безопасная утилита для автоматического выполнения заданий **Discord Quests** и фарма **Discord Orbs** (а также любых наград в виде аватарок, значков и внутриигровых предметов) **без необходимости скачивать и устанавливать игры**.
 
-You search for the game by name directly inside the tool. The tool fetches the game's metadata from the SteamCMD public API install directory, executable path, depot info and retrieves your Steam ID automatically from the Windows registry. It generates a fake `appmanifest_<appid>.acf` file in your `steamapps/` folder, the exact file Steam creates when a download is in progress, with realistic values (`StateFlags 1026`, `LastOwner`, `StagedDepots`, etc.). The fake executable goes directly into `steamapps/common/<game>/`. Discord scans the folder, finds the manifest, sees the process running, and validates the quest. Cleans up after itself when you're done.
+Программа создаёт лёгкие процессы-заглушки с именами исполняемых файлов, которые отслеживает Discord, генерирует Steam-манифесты загрузки и отправляет телеметрию через локальный сокет Discord IPC RPC. Для Discord ваш компьютер выглядит так, будто на нём действительно запущены все необходимые игры.
 
-**Supported:**
-`Any game requiring a Steam manifest` &nbsp; `Fully automatic, no manual AppID lookup` &nbsp; `Uses your real Steam ID` &nbsp; `Searches demos and full games separately` &nbsp; `Auto-cleanup on exit`
-
-> **Tip:** If a quest targets a demo, search for `"Toxic Commando Demo"` instead of `"Toxic Commando"`. They have different AppIDs and the wrong one won't trigger the quest.
+> [!NOTE]  
+> **100% Безопасно:** orbshacker **не внедряет код** в клиент Discord, не модифицирует файлы приложения, не перехватывает трафик и не использует пользовательские токены. Используются только официальный публичный API Discord и локальное взаимодействие с процессами.
 
 <br/>
 
-## Features
+## ✨ Основные возможности
 
-**Automatic Game Detection** pulls the latest detectable game list from Discord's official API. Smart search lets you find games by name or abbreviation PUBG, LoL, CSGO. Auto-launch handles everything in the background.
-
-**Self-Executing Timer & Embedded Config** builds faked game processes (renamed copies of the spoofer executable) that directly run the countdown timer when double-clicked by the user, with custom durations and auto-delete settings embedded directly inside the binary. No console windows are allocated for the faked processes.
-
-**Automatic Self-Destruction (`AUTO_DELETE_ON_TIMER_END`)** cleans up all faked executables, parent folders, and generated Steam manifests in the background once the countdown timer finishes. Set `AUTO_DELETE_ON_EXIT` as well if you also want the launcher to kill faked processes and delete their files when orbshacker closes.
-
-**Multi-Game Support** lets you run multiple fake processes simultaneously, completing all orb quests at once. Launch a game, press Enter, pick another, repeat. Each process runs independently and Discord sees all of them.
-
-**Backup Database** falls back to a GitHub archive if Discord's API is unavailable, so the tool keeps working even when the primary source is down.
-
-**Manual Mode** supports custom executable names if you need to spoof something not in the database.
-
-**Multilingual Support (i18n)** automatically detects your system language or lets you switch between 6 languages: **English**, **Русский**, **Español**, **Português**, **Deutsch**, and **Français** (option 6 in main menu or `settings.json`).
-
-**Beautiful Interface** is a colored terminal UI with loading animations, because plain text is boring.
+| Функция | Описание |
+| :--- | :--- |
+| ⚡ **Discord Quests & Orbs Collector** | **Пункт 4 в меню.** Автоматический поиск активных заданий в Discord. Фарм одной выбранной игры или **всех заданий разом (`[A]`)** за 15 минут (+700 Orbs за каждое). |
+| 🎮 **Поддержка EA SPORTS FC 27** | Встроенный клиент **Discord Local RPC (`SET_ACTIVITY`)**, позволяющий фармить квесты игр, у которых нет `.exe` в базе Discord. |
+| 🚂 **Steam Quest Mode** | Автоматическая генерация `appmanifest_<appid>.acf` со статусом скачивания в Steam для игр со строгой проверкой (Once Human, Where Winds Meet, Endfield, Monster Hunter и др.). |
+| ⏱️ **Умный таймер и автоудаление** | Обратный отсчёт на 15 минут в реальном времени. После окончания таймера программа автоматически закрывает процессы и удаляет временные файлы. |
+| 🌐 **Мультиязычный интерфейс** | 6 языков: **Русский**, **English**, **Español**, **Português**, **Deutsch**, **Français** с автоопределением языка вашей ОС. |
+| 🖥️ **Кроссплатформенность** | Работает на **Windows** (готовый `.exe` или исходный код), **Linux** и **macOS**. |
+| 🔄 **Автообновление с проверкой SHA-256** | Программа сама проверяет обновления на GitHub Releases и сверяет контрольные суммы. |
 
 <br/>
 
-## Why this method works
+## 📥 Инструкция по установке
 
-Discord's game detection reads your Windows process list. It sees `TslGame.exe` and assumes you're playing PUBG. There is no technical mechanism in place to verify whether that process is the actual game or a renamed executable. The name is all it checks.
+### Способ 1: Windows Standalone EXE (Самый простой — без Python)
 
-To detect this method, Discord would need kernel-level anti-cheat software comparable to Valorant's Vanguard deep system access, raised privacy concerns, a broken promise of being a lightweight chat app. That is not happening for cosmetic orb quests.
+1. Перейдите на страницу **[GitHub Releases](https://github.com/Mextrim/orbshacker/releases/latest)**.
+2. Скачайте файл **`orbshacker.exe`** (v2.3.1).
+3. Поместите файл в любую удобную папку (например, `C:\orbshacker` или на Рабочий стол).
+4. Запустите двойным кликом (или через командную строку). Всё готово к работе!
 
-**What this is not:** This tool does not inject code into Discord's console, modify client files, or send fake API requests. Those methods leave traces. Discord can detect when their JavaScript has been tampered with. Our approach leaves Discord's client completely untouched. The tool uses Discord's own public API to fetch the game list. No client modification. No integrity violations.
+> [!TIP]  
+> Windows Defender или браузер может показать предупреждение SmartScreen, так как программа собирает процессы в памяти и не имеет платного сертификата подписи кода. Это нормально — нажмите *«Подробнее»* -> *«Выполнить в любом случае»*.
+
+---
+
+### Способ 2: Запуск из исходного кода (Windows, Linux, macOS)
+
+Этот способ подходит для пользователей Linux, macOS или тех, кто предпочитает запускать код через Python.
+
+#### 1. Системные требования:
+* **Python 3.10** или выше ([Скачать Python](https://www.python.org/downloads/)).
+* Установленный **Git** (необязательно, можно скачать ZIP-архивом).
+* Запущенный официальный клиент **Discord Desktop**.
+
+#### 2. Клонирование и настройка:
+
+```bash
+# Клонируйте репозиторий
+git clone https://github.com/Mextrim/orbshacker.git
+cd orbshacker
+
+# Создайте и активируйте виртуальное окружение:
+# Windows (PowerShell):
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Windows (CMD):
+python -m venv venv
+.\venv\Scripts\activate.bat
+
+# Linux / macOS (Bash / Zsh):
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### 3. Установка зависимостей:
+```bash
+pip install -r requirements.txt
+```
+
+> **Для пользователей Linux:**  
+> Убедитесь, что у вас установлен Tkinter для отображения таймеров:  
+> `sudo apt install python3-tk` (Ubuntu/Debian) или `sudo pacman -S tk` (Arch Linux).
+
+#### 4. Запуск программы:
+```bash
+python orbshacker.py
+# или
+python -m orbshacker
+```
 
 <br/>
 
-## Requirements
+## 🚀 Пошаговый гайд: Как зафармить квесты и получить Orbs
 
-Python 3.10 or higher (Windows, Linux, macOS). Internet connection for database and quest fetching. The Discord Desktop app must be running for quests to be detected.
+1. **Запустите Discord** на компьютере.
+2. Откройте вкладку квестов: **Настройки пользователя ⚙️ ➔ Задания** (или в меню программы нажмите `[O]`).
+3. Нажмите кнопку **«Принять задание»** (*Accept Quest*) у интересующих игр (например, *EA SPORTS FC 27*, *Call of Duty*, *Where Winds Meet* и др.).
+4. Запустите **`orbshacker.exe`** (или `python orbshacker.py`).
+5. В главном меню введите цифру **`4`** (*Discord Quests & Orbs Collector*).
+6. В открывшемся списке выберите:
+   * **`A`** — чтобы запустить фарм **всех активных заданий одновременно** (рекомендуется!).
+   * Или номер конкретной игры (например, `1`, `2` и т.д.).
+7. Программа автоматически:
+   * Создаст и запустит фоновые процессы.
+   * Сгенерирует необходимые Steam AppManifest файлы.
+   * Подключится к Discord Local RPC (для игр вроде FC 27).
+8. **Подождите 15 минут.** На экране будет отображаться интерактивный дашборд со шкалой прогресса.
+   * Вы можете нажать **`[M]`**, чтобы свернуть дашборд и вернуться в главное меню — квесты продолжат фармиться в фоне!
+9. По истечении 15 минут прозвучит сигнал о завершении.
+10. Перейдите в Discord и нажмите **«Забрать награду» (Claim Reward)** — на ваш баланс поступят **+700 Orbs** за каждый квест! 🎁
 
 <br/>
 
-## Installation
+## 📋 Описание меню программы
 
+```text
++------------------------------------------------------------------+
+|                    ГЛАВНОЕ МЕНЮ / MAIN MENU                      |
++------------------------------------------------------------------+
+  1. Поиск по базе Discord (найти игру по названию или аббревиатуре)
+  2. Ручной режим (ввести произвольное имя exe)
+  3. Steam Quest Mode (создание манифестов для квестов со Steam)
+  4. Discord Quests & Orbs Collector (автофарм квестов 700 Orbs)
+  5. О программе и авторы
+  6. Смена языка / Change Language [RU]
+  7. Выход
+```
+
+<br/>
+
+## ⚙️ Файл настроек (`settings.json` / `settings.py`)
+
+Вы можете настроить поведение программы через файл `settings.json` (создаётся автоматически рядом с `.exe`) или `settings.py`:
+
+```json
+{
+  "LANGUAGE": "auto",
+  "TIMER_MINUTES": 15,
+  "AUTO_DELETE_ON_TIMER_END": true,
+  "AUTO_DELETE_ON_EXIT": false,
+  "CHOSEN_FOLDER": "Desktop",
+  "FAKE_EXE_DIR": "Win64"
+}
+```
+
+* `LANGUAGE`: Язык интерфейса (`"auto"`, `"ru"`, `"en"`, `"es"`, `"pt"`, `"de"`, `"fr"`).
+* `TIMER_MINUTES`: Длительность таймера квеста (по умолчанию `15` минут).
+* `AUTO_DELETE_ON_TIMER_END`: Удалять временные процессы и папки по окончании таймера (`true`).
+* `AUTO_DELETE_ON_EXIT`: Завершать процессы при выходе из программы (`false`).
+
+<br/>
+
+---
+
+<br/>
+
+# 🇬🇧 English (Guide & Documentation)
+
+## 📌 What is orbshacker?
+
+**orbshacker** is a fast, lightweight, and completely undetectable utility designed to complete **Discord Quests** and collect **Discord Orbs** (avatar decorations, profile badges, in-game rewards) **without downloading or installing a single gigabyte of games**.
+
+Discord's quest tracking engine monitors running processes on your operating system, active Steam download flags, and local Discord IPC presence. orbshacker emulates these exact conditions by creating lightweight stub processes, generating legitimate Steam ACF manifests, and communicating via Discord's local RPC socket.
+
+> [!NOTE]  
+> **Completely Safe:** orbshacker **never injects code** into Discord's memory, never touches Discord's core files, and never asks for user tokens or passwords. It uses official public Discord endpoints and OS process management.
+
+<br/>
+
+## ✨ Key Features
+
+* ⚡ **Discord Quests & Orbs Collector (Option 4):** Automatically retrieves active Discord Quests and lets you farm all quests simultaneously (`[A]`) in a single 15-minute run.
+* 🎮 **Full EA SPORTS FC 27 Support:** Integrated **Discord Local IPC RPC client (`SET_ACTIVITY`)** ensures progress updates even for games without executables in Discord's detectable database.
+* 🚂 **Steam Quest Mode:** Automatically creates `appmanifest_<appid>.acf` in your Steam directory with downloading state flags, satisfying Steam-dependent quest checks.
+* ⏱️ **Self-Destructing Timers:** Standalone 15-minute countdowns with embedded configs. Automatically kills stub processes and removes generated files on completion.
+* 🌐 **6 Languages:** English, Russian, Spanish, Portuguese, German, and French with automatic system language detection.
+* 💻 **Cross-Platform:** Full compatibility with **Windows**, **Linux**, and **macOS**.
+* 🔄 **SHA-256 Verified Auto-Updater:** Seamless in-place updates from GitHub Releases.
+
+<br/>
+
+## 📥 Installation Guide
+
+### Option 1: Windows Standalone Executable (Recommended)
+
+1. Head to the **[Latest GitHub Release](https://github.com/Mextrim/orbshacker/releases/latest)**.
+2. Download **`orbshacker.exe`** (v2.3.1).
+3. Place it anywhere you like (e.g., Desktop or `C:\Tools`).
+4. Double-click to run. No Python installation required!
+
+---
+
+### Option 2: Running from Source (Windows, Linux, macOS)
+
+#### 1. Prerequisites:
+* **Python 3.10** or higher ([python.org](https://www.python.org/downloads/)).
+* **Git** installed.
+* **Discord Desktop** app running.
+
+#### 2. Clone & Setup:
+```bash
+git clone https://github.com/Mextrim/orbshacker.git
+cd orbshacker
+
+# Virtual environment setup
+# Windows (PowerShell):
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Linux / macOS (Bash / Zsh):
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### 3. Install Dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+> **Linux users:** Install Python Tkinter if you wish to see standalone GUI timer windows:  
+> `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo pacman -S tk` (Arch).
+
+#### 4. Launch:
+```bash
+python orbshacker.py
+# or
+python -m orbshacker
+```
+
+<br/>
+
+## 🚀 How to Farm Discord Quests & Orbs in 15 Minutes
+
+1. Make sure your **Discord Desktop** app is running.
+2. In Discord, go to **User Settings ⚙️ ➔ Quests** and click **Accept Quest** on the games you want.
+3. Launch `orbshacker.exe`.
+4. In the menu, select option **`4`** (*Discord Quests & Orbs Collector*).
+5. Press **`A`** to start farming all active quests simultaneously.
+6. The dashboard will display live progress bars for each game.
+   * Press **`[M]`** anytime to minimize the dashboard to the main menu without interrupting progress.
+7. After 15 minutes, the timer completes.
+8. Go back to Discord and click **Claim Reward** for **+700 Orbs** on each quest!
+
+<br/>
+
+---
+
+<br/>
+
+# 🇪🇸 Español (Guía Rápida)
+
+<details>
+<summary><b>Haz clic aquí para ver la guía en español</b></summary>
+
+<br/>
+
+### ¿Qué es orbshacker?
+**orbshacker** es una herramienta para farmear misiones de **Discord Quests** y ganar **Orbs** sin necesidad de descargar cientos de gigabytes de juegos.
+
+### Instalación rápida:
+1. Descarga **`orbshacker.exe`** desde **[Releases](https://github.com/Mextrim/orbshacker/releases/latest)**.
+2. Abre Discord y asegúrate de haber hecho clic en **Aceptar misión** en los juegos que desees.
+3. Ejecuta `orbshacker.exe`.
+4. En el menú principal selecciona la opción **`4`** (*Discord Quests & Orbs Collector*).
+5. Presiona **`A`** para farmear todas las misiones activas a la vez.
+6. Espera 15 minutos, vuelve a Discord y reclama tus recompensas (+700 Orbs por misión).
+
+Para ejecutar desde código fuente en Linux/macOS:
 ```bash
 git clone https://github.com/Mextrim/orbshacker.git
 cd orbshacker
 pip install -r requirements.txt
-```
-
-<br/>
-
-## Usage
-
-```bash
 python orbshacker.py
 ```
 
-Or via the package entry point:
+</details>
 
+<br/>
+
+---
+
+<br/>
+
+# 🇩🇪 Deutsch (Kurzanleitung)
+
+<details>
+<summary><b>Klicken Sie hier für die deutsche Anleitung</b></summary>
+
+<br/>
+
+### Was ist orbshacker?
+**orbshacker** ermöglicht es Ihnen, **Discord Quests** automatisch abzuschließen und **Discord Orbs** zu sammeln, ohne große Spiele herunterladen zu müssen.
+
+### Schnellanleitung:
+1. Laden Sie **`orbshacker.exe`** von den **[Releases](https://github.com/Mextrim/orbshacker/releases/latest)** herunter.
+2. Starten Sie Discord und nehmen Sie die Quests unter **Benutzereinstellungen ➔ Quests** an.
+3. Starten Sie `orbshacker.exe`.
+4. Wählen Sie im Hauptmenü Option **`4`** (*Discord Quests & Orbs Collector*).
+5. Drücken Sie **`A`**, um alle aktiven Quests gleichzeitig zu starten.
+6. Warten Sie 15 Minuten und fordern Sie Ihre Orbs (+700 pro Quest) in Discord an.
+
+Quellcode-Ausführung (Linux / macOS / Windows):
 ```bash
-python -m orbshacker
+git clone https://github.com/Mextrim/orbshacker.git
+cd orbshacker
+pip install -r requirements.txt
+python orbshacker.py
 ```
 
-### Menu options
-
-`1` Search Discord database by name or abbreviation
-
-`2` Manual mode, enter a custom executable name
-
-`3` Steam special quest mode
-
-`4` Credits and project info
-
-`5` Exit
-
-### Completing all quests in 15 minutes
-
-Launch the tool. Select your first game. After the process is launched, press Enter to return to the main menu. Select another game. Repeat as many times as needed no need to open multiple windows. Every fake process runs in parallel. Discord detects all of them simultaneously. Wait 15 minutes. Close everything when done.
+</details>
 
 <br/>
 
-## How it works
-
-The tool connects to Discord's official API (`/api/v9/applications/detectable`) to get the live game list. It extracts the exact process name Discord expects for each game. It copies the spoofer executable (or base Python interpreter in source mode) to the configured folder (defaults to `Desktop/Win64/`), renames it to match the game's executable name, and bakes the active configuration directly inside it.
-
-When the faked game executable runs, it acts as a standalone countdown timer with its settings embedded. When the countdown completes, it automatically triggers a background self-destruction script (if `AUTO_DELETE_ON_TIMER_END` is enabled) to delete the faked files and empty parent directories. The self-destruction script uses bounded retries and independent commands, so a locked file can never abort the rest of the cleanup.
-
-Steam Quest Mode adds a layer: it generates a fake `appmanifest_<appid>.acf` in `steamapps/` and places the executable in `steamapps/common/<game>/`, satisfying Discord's additional manifest check for games like Marathon or Toxic Commando. Both the manifest and the executable are checked before writing: files that were not created by orbshacker (i.e. a game you really have installed) are never overwritten.
+---
 
 <br/>
 
-## Project Structure
+# 🇫🇷 Français (Guide Rapide)
 
+<details>
+<summary><b>Cliquez ici pour lire le guide en français</b></summary>
+
+<br/>
+
+### Qu'est-ce que orbshacker ?
+**orbshacker** est un utilitaire sécurisé permettant de compléter les quêtes **Discord Quests** et de récolter des **Orbs** sans installer le moindre jeu volumineux.
+
+### Installation & Utilisation :
+1. Téléchargez **`orbshacker.exe`** depuis **[Releases](https://github.com/Mextrim/orbshacker/releases/latest)**.
+2. Lancez Discord et acceptez les quêtes dans **Paramètres utilisateur ➔ Quêtes**.
+3. Lancez `orbshacker.exe`.
+4. Choisissez l'option **`4`** (*Discord Quests & Orbs Collector*).
+5. Appuyez sur **`A`** pour lancer toutes les quêtes en parallèle.
+6. Patientez 15 minutes, puis récupérez vos récompenses (+700 Orbs par quête) directement sur Discord.
+
+Exécution depuis les sources :
+```bash
+git clone https://github.com/Mextrim/orbshacker.git
+cd orbshacker
+pip install -r requirements.txt
+python orbshacker.py
 ```
+
+</details>
+
+<br/>
+
+---
+
+<br/>
+
+# 🇵🇹 Português (Guia Rápido)
+
+<details>
+<summary><b>Clique aqui para ler o guia em português</b></summary>
+
+<br/>
+
+### O que é o orbshacker?
+O **orbshacker** é uma ferramenta para completar missões do **Discord Quests** e ganhar **Orbs** sem precisar baixar centenas de gigabytes de jogos.
+
+### Instalação & Uso Rápido:
+1. Baixe o **`orbshacker.exe`** na página de **[Releases](https://github.com/Mextrim/orbshacker/releases/latest)**.
+2. Abra o Discord e clique em **Aceitar Missão** nas configurações de presentes/tarefas.
+3. Abra o `orbshacker.exe`.
+4. Escolha a opção **`4`** (*Discord Quests & Orbs Collector*).
+5. Pressione **`A`** para farmar todas as missões ativas simultaneamente.
+6. Aguarde 15 minutos e resgate suas recompensas (+700 Orbs cada) no Discord.
+
+Execução via código-fonte:
+```bash
+git clone https://github.com/Mextrim/orbshacker.git
+cd orbshacker
+pip install -r requirements.txt
+python orbshacker.py
+```
+
+</details>
+
+<br/>
+
+---
+
+<br/>
+
+## 🛠️ Project Structure
+
+```text
 orbshacker/
-├── orbshacker.py          Main entry point
+├── orbshacker.exe         Standalone pre-compiled Windows executable (v2.3.1)
+├── orbshacker.py          Root CLI launcher entry point
+├── build.py               PyInstaller automated build script
 ├── orbshacker/
-│   ├── __init__.py        Version and author metadata (lazy)
-│   ├── __main__.py        Package entry point, --timer-mode support
-│   ├── bake.py            Embedded-config markers for faked executables
-│   ├── config.py          Validated configuration with settings.py overrides
-│   ├── faker.py           Fake executable creation and launch logic
-│   ├── discord_db.py      Game database loading, search, and selection
-│   ├── janitor.py         Bounded, crash-safe self-deletion of faked artifacts
-│   ├── steam.py           Steam registry helpers and manifest generation
-│   ├── timer.py           Standalone countdown timer (also inlined into .pyw fakes)
-│   ├── updater.py         Auto-update from GitHub releases (SHA-256 verified)
-│   ├── net.py             HTTP helpers
-│   ├── ui.py              Terminal colors, animations, prompts
-│   └── errors.py          Custom exception hierarchy
-├── tests/                 pytest coverage for pure helpers
-├── settings.example.py    Template for user-editable settings
-├── requirements.txt       Runtime dependencies
-├── requirements-dev.txt   Test/lint dependencies
-├── pyproject.toml         Project metadata and ruff configuration
-└── .github/
-    └── workflows/
-        └── release.yml    Tests + PyInstaller build + GitHub Release automation
+│   ├── __init__.py        Package version and metadata
+│   ├── __main__.py        Package entry point, auto-faked detection & timer mode
+│   ├── bake.py            Embedded-config markers for standalone processes
+│   ├── config.py          Configuration manager with settings.json persistence
+│   ├── discord_db.py      Official Discord detectable database loader & search
+│   ├── errors.py          Custom exception hierarchy
+│   ├── faker.py           Process spoofer and cross-platform launcher
+│   ├── i18n.py            Multilingual engine (RU, EN, ES, PT, DE, FR)
+│   ├── janitor.py         Crash-safe self-deletion & cleanup helpers
+│   ├── main.py            Main interactive terminal loop & menu
+│   ├── net.py             Resilient HTTP client with retry logic
+│   ├── path_utils.py      Path sanitization and cross-platform utilities
+│   ├── quests.py          Discord Quests Collector, IPC RPC client & dashboard
+│   ├── steam.py           Steam registry discovery & ACF manifest generator
+│   ├── timer.py           Countdown timer window & process lifecycle
+│   ├── ui.py              ANSI terminal colors, animated banners & menus
+│   └── updater.py         Automatic updater with SHA-256 verification
+├── tests/                 Comprehensive test suite (152 passing pytest tests)
+├── requirements.txt       Production dependencies
+└── pyproject.toml         Project configuration
 ```
 
 <br/>
 
-## Configuration
+## 🧪 Testing & Verification
 
-Copy `settings.example.py` to `settings.py` and edit the values (frozen builds use `settings.json` next to the executable, created on first run). `settings.py` is git-ignored so your edits never dirty the repo. Every value is validated on load invalid types fall back to the defaults with a warning. Available keys:
-
-| Key | Default | Meaning |
-| --- | --- | --- |
-| `CHOSEN_FOLDER` | `Desktop` | Base folder for faked executables |
-| `FAKE_EXE_DIR` | `Win64` | Subfolder (inside `CHOSEN_FOLDER`) for faked executables |
-| `AUTO_DELETE_ON_TIMER_END` | `True` | Delete faked files when the countdown finishes |
-| `AUTO_DELETE_ON_EXIT` | `False` | Kill faked processes + delete files when the launcher exits |
-| `TIMER_MINUTES` | `15` | Countdown duration (1–1440) |
-
-The legacy `AUTO_DELETE` key is accepted and maps to `AUTO_DELETE_ON_TIMER_END`. The application version comes from the git tag used for the build and is not user-configurable; changing it manually would break update detection.
-
-<br/>
-
-## Development
+The project includes an extensive test suite ensuring high reliability across all modules:
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest        # run the test suite
-python -m ruff check .  # lint
+pytest -v
 ```
 
 <br/>
 
-## Auto-updater
+## ⚖️ Legal Notice
 
-When a new version tag is pushed, GitHub Actions runs the tests, builds a standalone Windows executable using PyInstaller and publishes it as a GitHub Release together with a `SHA256SUMS` file. The tool checks for updates on launch, downloads the new binary, **verifies its SHA-256 checksum** against `SHA256SUMS` (unverified updates are refused), swaps it in place, and restarts automatically. No Python installation needed to run the distributed executable.
-
-<br/>
-
-## Legal Notice
-
-**Educational purposes only. No commercial use.**
-
-This tool is provided strictly for educational and research purposes to study how Discord's game detection system works and to explore process manipulation techniques. Commercial use, distribution, or sale is strictly prohibited.
-
-Users are solely responsible for compliance with all applicable laws, Discord's Terms of Service, and any other relevant agreements. The developers do not condone misuse and are not responsible for any consequences resulting from use of this software. No warranties or guarantees are provided. Use at your own risk.
-
-Misuse of this tool may violate Discord's Terms of Service.
+> **Educational purposes only.**  
+> This software is created solely for educational and research purposes to study process monitoring architecture and Discord's local IPC mechanisms. Commercial use or distribution is strictly prohibited. Users are responsible for complying with Discord's Terms of Service.
 
 <br/>
 
-## License
+## 📄 License
 
-GPL v3. Attribution required. Modified versions must also be GPL v3. Source code must be provided with any distribution. Commercial use is strictly prohibited. See [LICENSE](./LICENSE) for full terms.
+Distributed under the **GNU General Public License v3.0 (GPL-3.0)**. See [`LICENSE`](./LICENSE) for more details.
 
 <br/>
 
 <div align="center">
 
-made with questionable life choices by **Strykey**
+Made with ❤️ by **[Mextrim](https://github.com/Mextrim)** &nbsp;•&nbsp; Original concept by **Strykey**
 
 <br/>
 
-[![GitHub stars](https://img.shields.io/github/stars/DanielPires2000/orbshacker?style=for-the-badge&color=4ade80&labelColor=1a1a1a)](https://github.com/DanielPires2000/orbshacker/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/DanielPires2000/orbshacker?style=for-the-badge&color=4ade80&labelColor=1a1a1a)](https://github.com/DanielPires2000/orbshacker/network)
+[![GitHub stars](https://img.shields.io/github/stars/Mextrim/orbshacker?style=for-the-badge&color=4ade80&labelColor=1a1a1a)](https://github.com/Mextrim/orbshacker/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Mextrim/orbshacker?style=for-the-badge&color=4ade80&labelColor=1a1a1a)](https://github.com/Mextrim/orbshacker/network)
 
 <br/>
 
