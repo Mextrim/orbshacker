@@ -9,7 +9,7 @@
   <!-- Custom Titlebar -->
   <div class="titlebar">
     <div class="titlebar-brand">
-      <span class="orb-logo"></span>
+      <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
       <span style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.5.0</span>
     </div>
@@ -36,6 +36,10 @@
           <button class="dropdown-item" data-theme-val="synth"><span>🌆 Неоновый Закат</span><span class="check"></span></button>
           <button class="dropdown-item" data-theme-val="matrix"><span>🟩 Матрица</span><span class="check"></span></button>
           <button class="dropdown-item" data-theme-val="crimson"><span>🩸 Кровавая Луна</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="aurora"><span>✨ Северное Сияние</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="amethyst"><span>🔮 Аметистовая Бездна</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="solar"><span>☀️ Солнечная Вспышка</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="tokyo"><span>🏮 Токио 2077</span><span class="check"></span></button>
         </div>
       </div>
 
@@ -165,6 +169,12 @@
           </div>
         </div>
 
+        <!-- Helpful Badge Update Tip -->
+        <div class="badge-tip-banner">
+          <span style="font-size: 16px;">💡</span>
+          <span><b>Как Discord обновляет счётчик значка:</b> Игра запускается на 65 сек. для 100% фиксации сессии сервером Discord. После окончания перезагрузите окно значков в профиле или нажмите <b>Ctrl + R</b> в Discord!</span>
+        </div>
+
         <!-- Visual Tier Tracker -->
         <div class="badge-tier-tracker" id="gameCountTierTracker">
           <!-- Filled by app.js -->
@@ -281,6 +291,17 @@
           <div class="form-group">
             <label for="customSteamIdInput" data-i18n="custom_appid">Steam AppID (необязательно):</label>
             <input type="number" id="customSteamIdInput" class="form-input" placeholder="Например: 1643320" value="1643320" />
+          </div>
+
+          <div class="form-group">
+            <label style="font-size: 11px; color: var(--text-muted);">Быстрые пресеты новинок (1 клик):</label>
+            <div class="custom-presets-row">
+              <button type="button" class="preset-pill-btn" data-preset="stalker2">☢️ S.T.A.L.K.E.R. 2</button>
+              <button type="button" class="preset-pill-btn" data-preset="wukong">🐒 Black Myth: Wukong</button>
+              <button type="button" class="preset-pill-btn" data-preset="spacemarine2">⚔️ Space Marine 2</button>
+              <button type="button" class="preset-pill-btn" data-preset="silenthill2">🌫️ Silent Hill 2</button>
+              <button type="button" class="preset-pill-btn" data-preset="manorlords">🏰 Manor Lords</button>
+            </div>
           </div>
 
           <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">

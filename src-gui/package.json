@@ -20,6 +20,7 @@
       "main.js",
       "preload.js",
       "renderer/**/*",
+      "assets/**/*",
       "bin/**/*"
     ],
     "extraResources": [
@@ -32,6 +33,7 @@
       }
     ],
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "portable",

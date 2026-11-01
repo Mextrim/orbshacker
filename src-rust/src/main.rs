@@ -63,6 +63,7 @@ fn main() {
                     fn DispatchMessageW(lpMsg: *const MSG) -> isize;
                     fn DestroyWindow(hWnd: *mut std::ffi::c_void) -> i32;
                     fn SetConsoleTitleW(lpConsoleTitle: *const u16) -> i32;
+                    fn SetWindowTextW(hWnd: *mut std::ffi::c_void, lpString: *const u16) -> i32;
                 }
 
                 #[repr(C)]
@@ -126,13 +127,14 @@ fn main() {
                     class_name.as_ptr(),
                     wide_title.as_ptr(),
                     0x00CF0000,
-                    -32000, -32000, 800, 600,
+                    100, 100, 640, 480,
                     std::ptr::null_mut(),
                     std::ptr::null_mut(),
                     h_instance,
                     std::ptr::null_mut(),
                 );
                 if !hwnd.is_null() {
+                    let _ = SetWindowTextW(hwnd, wide_title.as_ptr());
                     ShowWindow(hwnd, 7); // SW_SHOWMINNOACTIVE
                 }
 

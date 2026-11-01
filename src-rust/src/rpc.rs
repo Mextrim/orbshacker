@@ -146,11 +146,22 @@ pub fn run_json_rpc_service() {
             }
             "start_badge_count" => {
                 let count = req.params.get("target_count").and_then(|v| v.as_u64()).unwrap_or(100) as usize;
-                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(20);
+                let offset = req.params.get("start_offset").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(60);
 
                 let mut s = session.lock().unwrap();
-                match s.start_badge_count_farm(count, secs_per_game, event_callback.clone()) {
+                match s.start_badge_count_farm(count, offset, secs_per_game, event_callback.clone()) {
                     Ok(total) => res = Some(serde_json::json!({ "started": true, "total_games": total })),
+                    Err(e) => err = Some(e),
+                }
+            }
+            "start_single_game" => {
+                let game_id = req.params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
+                let secs = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(65);
+
+                let mut s = session.lock().unwrap();
+                match s.start_single_game_farm(game_id, secs, event_callback.clone()) {
+                    Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
                     Err(e) => err = Some(e),
                 }
             }

@@ -61,7 +61,7 @@ pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
         DetectableGame { id: "wallpaper".into(), name: "Wallpaper Engine".into(), exe_name: "wallpaper64.exe".into(), steam_app_id: Some(431960), category: "Utility".into() },
         DetectableGame { id: "witcher3".into(), name: "The Witcher 3: Wild Hunt".into(), exe_name: "witcher3.exe".into(), steam_app_id: Some(292030), category: "RPG".into() },
 
-        DetectableGame { id: "tf2".into(), name: "Team Fortress 2".into(), exe_name: "tf_win64.exe".into(), steam_app_id: Some(440), category: "Shooter".into() },
+        DetectableGame { id: "tf2".into(), name: "Team Fortress 2".into(), exe_name: "hl2.exe".into(), steam_app_id: Some(440), category: "Shooter".into() },
         DetectableGame { id: "bg3".into(), name: "Baldur's Gate 3".into(), exe_name: "bg3.exe".into(), steam_app_id: Some(1086940), category: "RPG".into() },
         DetectableGame { id: "lethal".into(), name: "Lethal Company".into(), exe_name: "Lethal Company.exe".into(), steam_app_id: Some(1966720), category: "Co-op Horror".into() },
         DetectableGame { id: "palworld".into(), name: "Palworld".into(), exe_name: "Palworld-Win64-Shipping.exe".into(), steam_app_id: Some(1623730), category: "Survival".into() },
@@ -102,7 +102,7 @@ pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
         DetectableGame { id: "beamng".into(), name: "BeamNG.drive".into(), exe_name: "BeamNG.drive.x64.exe".into(), steam_app_id: Some(284160), category: "Simulation".into() },
         DetectableGame { id: "cities".into(), name: "Cities: Skylines".into(), exe_name: "Cities.exe".into(), steam_app_id: Some(255710), category: "City Builder".into() },
         DetectableGame { id: "unturned".into(), name: "Unturned".into(), exe_name: "Unturned.exe".into(), steam_app_id: Some(304930), category: "Survival".into() },
-        DetectableGame { id: "dst".into(), name: "Don't Starve Together".into(), exe_name: "dontstarve_steam_x64.exe".into(), steam_app_id: Some(322330), category: "Survival".into() },
+        DetectableGame { id: "dst".into(), name: "Don't Starve Together".into(), exe_name: "dontstarve_steam.exe".into(), steam_app_id: Some(322330), category: "Survival".into() },
         DetectableGame { id: "slaythespire".into(), name: "Slay the Spire".into(), exe_name: "SlayTheSpire.exe".into(), steam_app_id: Some(646570), category: "Roguelike".into() },
 
         DetectableGame { id: "manorlords".into(), name: "Manor Lords".into(), exe_name: "ManorLords-Win64-Shipping.exe".into(), steam_app_id: Some(1363080), category: "Strategy".into() },
@@ -124,12 +124,12 @@ pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
         DetectableGame { id: "squad".into(), name: "Squad".into(), exe_name: "SquadGame.exe".into(), steam_app_id: Some(393380), category: "Tactical".into() },
         DetectableGame { id: "arma3".into(), name: "Arma 3".into(), exe_name: "arma3_x64.exe".into(), steam_app_id: Some(107410), category: "Tactical".into() },
         DetectableGame { id: "factorio".into(), name: "Factorio".into(), exe_name: "factorio.exe".into(), steam_app_id: Some(427520), category: "Automation".into() },
-        DetectableGame { id: "rimworld".into(), name: "RimWorld".into(), exe_name: "RimWorldWin64.exe".into(), steam_app_id: Some(294100), category: "Colony Sim".into() },
+        DetectableGame { id: "rimworld".into(), name: "RimWorld".into(), exe_name: "rimworldwin.exe".into(), steam_app_id: Some(294100), category: "Colony Sim".into() },
         DetectableGame { id: "dayz".into(), name: "DayZ".into(), exe_name: "DayZ_x64.exe".into(), steam_app_id: Some(221100), category: "Survival".into() },
 
         DetectableGame { id: "hunt1896".into(), name: "Hunt: Showdown 1896".into(), exe_name: "HuntGame.exe".into(), steam_app_id: Some(594650), category: "Shooter".into() },
         DetectableGame { id: "enlisted".into(), name: "Enlisted".into(), exe_name: "enlisted.exe".into(), steam_app_id: Some(2055430), category: "WWII Shooter".into() },
-        DetectableGame { id: "bannerlord".into(), name: "Mount & Blade II: Bannerlord".into(), exe_name: "Bannerlord.Native.exe".into(), steam_app_id: Some(261550), category: "RPG".into() },
+        DetectableGame { id: "bannerlord".into(), name: "Mount & Blade II: Bannerlord".into(), exe_name: "bannerlord.exe".into(), steam_app_id: Some(261550), category: "RPG".into() },
         DetectableGame { id: "nomansky".into(), name: "No Man's Sky".into(), exe_name: "NMS.exe".into(), steam_app_id: Some(275850), category: "Sci-Fi".into() },
         DetectableGame { id: "detroit".into(), name: "Detroit: Become Human".into(), exe_name: "DetroitBecomeHuman.exe".into(), steam_app_id: Some(1222140), category: "Adventure".into() },
         DetectableGame { id: "godofwar".into(), name: "God of War".into(), exe_name: "GoW.exe".into(), steam_app_id: Some(1593500), category: "Action".into() },
@@ -152,7 +152,7 @@ pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
         // Popular Non-Steam & Launcher Titles
         DetectableGame { id: "roblox".into(), name: "Roblox".into(), exe_name: "RobloxPlayerBeta.exe".into(), steam_app_id: None, category: "Sandbox".into() },
         DetectableGame { id: "minecraft".into(), name: "Minecraft".into(), exe_name: "Minecraft.exe".into(), steam_app_id: None, category: "Sandbox".into() },
-        DetectableGame { id: "lol".into(), name: "League of Legends".into(), exe_name: "LeagueClient.exe".into(), steam_app_id: None, category: "MOBA".into() },
+        DetectableGame { id: "lol".into(), name: "League of Legends".into(), exe_name: "leagueclientux.exe".into(), steam_app_id: None, category: "MOBA".into() },
         DetectableGame { id: "valorant".into(), name: "VALORANT".into(), exe_name: "VALORANT-Win64-Shipping.exe".into(), steam_app_id: None, category: "Tactical FPS".into() },
         DetectableGame { id: "overwatch2".into(), name: "Overwatch 2".into(), exe_name: "Overwatch.exe".into(), steam_app_id: Some(2357570), category: "Shooter".into() },
         DetectableGame { id: "fortnite".into(), name: "Fortnite".into(), exe_name: "FortniteClient-Win64-Shipping.exe".into(), steam_app_id: None, category: "Battle Royale".into() },

@@ -24,6 +24,10 @@
     synth: { name: 'Неоновый Закат', icon: '🌆' },
     matrix: { name: 'Матрица', icon: '🟩' },
     crimson: { name: 'Кровавая Луна', icon: '🩸' },
+    aurora: { name: 'Северное Сияние', icon: '✨' },
+    amethyst: { name: 'Аметистовая Бездна', icon: '🔮' },
+    solar: { name: 'Солнечная Вспышка', icon: '☀️' },
+    tokyo: { name: 'Токио 2077', icon: '🏮' },
   };
 
   const LANGS = {
@@ -507,16 +511,36 @@
       const chip = document.createElement('div');
       chip.className = 'game-item-chip';
       chip.innerHTML = `
-        <span class="game-item-name">${g.name}</span>
-        <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
+        <div class="game-chip-info">
+          <span class="game-item-name" title="${g.name}">${g.name}</span>
+          <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
+        </div>
+        <div class="game-chip-actions">
+          <button class="btn-chip-launch" title="Запустить игру на 65с (+1 к значку в Discord)">▶ +1 игра</button>
+          <button class="btn-chip-hours" title="Выбрать игру для фарма часов">⏱ Часы</button>
+        </div>
       `;
-      chip.addEventListener('click', () => {
-        // Quick select for hours booster
+
+      chip.querySelector('.game-chip-info').addEventListener('click', () => {
         if (hoursGameSelect) {
           hoursGameSelect.value = g.id;
-          addLog(`Selected '${g.name}' for hours farming.`, 'info');
+          addLog(`Выбрана игра '${g.name}' для фарма часов.`, 'info');
         }
       });
+
+      chip.querySelector('.btn-chip-hours').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (hoursGameSelect) {
+          hoursGameSelect.value = g.id;
+          addLog(`Выбрана игра '${g.name}' для фарма часов.`, 'info');
+        }
+      });
+
+      chip.querySelector('.btn-chip-launch').addEventListener('click', (e) => {
+        e.stopPropagation();
+        startSingleGame(g.id, g.name, 65);
+      });
+
       detectableGamesGrid.appendChild(chip);
     });
 
@@ -534,10 +558,31 @@
   // ==========================================
   // 7. BADGES: GAME COUNT BOOSTER (100+ Games)
   // ==========================================
-  async function startBadgeCount(count) {
+  async function startSingleGame(gameId, gameName, durationSecs = 65) {
     try {
-      addLog(`Starting Discord Game Count badge farm for ${count} games...`, 'info');
-      const res = await window.orbshacker.call('start_badge_count', { target_count: count, duration_secs: 20 });
+      addLog(`Запуск одиночной игры '${gameName}' на ${durationSecs} сек. для значка Discord...`, 'info');
+      const res = await window.orbshacker.call('start_single_game', { game_id: gameId, duration_secs: durationSecs });
+      if (res && res.started) {
+        isBadgeFarming = true;
+        btnFarmAll100.disabled = true;
+        btnFarmNext10.disabled = true;
+        btnFarmNext2.disabled = true;
+        btnStopBadges.style.display = 'inline-flex';
+        badgeCountProgressBox.style.display = 'flex';
+        badgeCountStatusText.textContent = `Игра: ${res.game_name} (запущена...)`;
+        badgeCountPercentText.textContent = '0%';
+        badgeCountProgressFill.style.width = '0%';
+        addLog(`Процесс '${res.game_name}' активен. Discord фиксирует сессию (таймер 65с)...`, 'success');
+      }
+    } catch (err) {
+      addLog(`Ошибка запуска игры: ${err.message}`, 'error');
+    }
+  }
+
+  async function startBadgeCount(count, offset = 0) {
+    try {
+      addLog(`Запуск серии из ${count} игр для значка Discord (смещение: ${offset})...`, 'info');
+      const res = await window.orbshacker.call('start_badge_count', { target_count: count, start_offset: offset, duration_secs: 65 });
       if (res && res.started) {
         isBadgeFarming = true;
         btnFarmAll100.disabled = true;
@@ -548,7 +593,7 @@
         badgeCountStatusText.textContent = `Фарм игр: 0 / ${res.total_games}`;
         badgeCountPercentText.textContent = '0%';
         badgeCountProgressFill.style.width = '0%';
-        addLog(`Started cycle across ${res.total_games} detectable games!`, 'success');
+        addLog(`Запущена серия из ${res.total_games} игр по очереди (по 65с на игру)!`, 'success');
       }
     } catch (err) {
       addLog(`Failed to start badge game count farm: ${err.message}`, 'error');
@@ -576,9 +621,9 @@
     badgeCountProgressBox.style.display = 'none';
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(105));
-  btnFarmNext10.addEventListener('click', () => startBadgeCount(10));
-  btnFarmNext2.addEventListener('click', () => startBadgeCount(2));
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(105, 0));
+  btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 8));
+  btnFarmNext2.addEventListener('click', () => startBadgeCount(2, 8));
   btnStopBadges.addEventListener('click', stopBadgeFarm);
 
   // ==========================================
@@ -665,6 +710,28 @@
 
   btnStopCustomGame.addEventListener('click', stopBadgeFarm);
 
+  // Quick Presets for Custom Game Tab
+  const CUSTOM_PRESETS = {
+    stalker2: { name: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl', exe: 'Stalker2-Win64-Shipping.exe', appid: '1643320' },
+    wukong: { name: 'Black Myth: Wukong', exe: 'b1.exe', appid: '2358720' },
+    spacemarine2: { name: 'Warhammer 40,000: Space Marine 2', exe: 'Warhammer 40000 Space Marine 2 - Retail.exe', appid: '2183900' },
+    silenthill2: { name: 'SILENT HILL 2', exe: 'SHProto-Win64-Shipping.exe', appid: '2124490' },
+    manorlords: { name: 'Manor Lords', exe: 'ManorLords-Win64-Shipping.exe', appid: '1363080' },
+  };
+
+  document.querySelectorAll('.preset-pill-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const presetKey = btn.getAttribute('data-preset');
+      const p = CUSTOM_PRESETS[presetKey];
+      if (p) {
+        customGameNameInput.value = p.name;
+        customExeInput.value = p.exe;
+        customSteamIdInput.value = p.appid;
+        addLog(`Применён пресет: ${p.name}`, 'info');
+      }
+    });
+  });
+
   function resetCustomGameState() {
     isCustomFarming = false;
     btnLaunchCustomGame.disabled = false;
@@ -692,8 +759,10 @@
       modalCompleted.classList.add('active');
       addLog(`🎉 All quests completed! +${data.total_orbs} Orbs earned!`, 'success');
     } else if (event === 'badge_tick') {
-      if (data.mode === 'count') {
-        badgeCountStatusText.textContent = `[${data.current_index}/${data.total_games}] Текущие: ${data.current_game}`;
+      if (data.mode === 'count' || data.mode === 'single') {
+        const remaining = Math.max(0, data.target_seconds - data.elapsed_seconds);
+        const remStr = remaining > 0 ? ` [осталось ${remaining}с]` : '';
+        badgeCountStatusText.textContent = `[${data.current_index}/${data.total_games}] Игра: ${data.current_game}${remStr}`;
         badgeCountPercentText.textContent = `${data.progress_percent}%`;
         badgeCountProgressFill.style.width = `${data.progress_percent}%`;
       } else if (data.mode === 'hours') {
@@ -705,10 +774,10 @@
         hoursProgressFill.style.width = `${data.progress_percent || 100}%`;
       }
     } else if (event === 'badge_completed') {
-      if (data.mode === 'count') {
+      if (data.mode === 'count' || data.mode === 'single') {
         resetBadgeCountState();
         playCompletionChime();
-        addLog(`🎉 Batch completed! Successfully farmed ${data.completed_games} games for badge!`, 'success');
+        addLog(data.message || `🎉 Игра завершена (+1 к значку)! Переоткройте значки в Discord для обновления.`, 'success');
       } else if (data.mode === 'hours') {
         resetHoursFarmState();
         playCompletionChime();
