@@ -142,3 +142,17 @@ Win64/
 settings.py
 settings.json
 orbshacker/_version.py
+
+# Rust
+target/
+src-rust/target/
+**/*.rs.bk
+
+# Node / Electron
+node_modules/
+src-gui/node_modules/
+src-gui/dist/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,15 @@
+{
+  "name": "orbshacker",
+  "version": "2.4.0",
+  "description": "Orbshacker - Discord Quests Spoofer & Orbs Collector (Rust + Electron)",
+  "main": "main.js",
+  "author": "Mextrim",
+  "license": "GPL-3.0",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}

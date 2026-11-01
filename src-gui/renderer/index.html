@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>ORBSHACKER</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Custom Titlebar -->
+  <div class="titlebar">
+    <div class="titlebar-brand">
+      <span class="orb-logo"></span>
+      <span data-i18n="app_title">ORBSHACKER</span>
+      <span style="font-size: 10px; color: var(--accent-green); background: rgba(74, 222, 128, 0.1); padding: 2px 6px; border-radius: 4px;">v2.4.0 [Rust + Electron]</span>
+    </div>
+
+    <div class="titlebar-center">
+      <div class="discord-badge">
+        <span class="status-dot"></span>
+        <span id="discordStatusText" data-i18n="status_connected">Discord подключён</span>
+      </div>
+    </div>
+
+    <div class="titlebar-controls">
+      <select id="langSelect" class="lang-select">
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="pt">🇵🇹 Português</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="fr">🇫🇷 Français</option>
+      </select>
+      <button id="btnMinimize" class="win-btn" title="Свернуть">&#8211;</button>
+      <button id="btnClose" class="win-btn close" title="Закрыть">&#10005;</button>
+    </div>
+  </div>
+
+  <!-- App Main Content -->
+  <div class="app-container">
+    <!-- Hero / Stats & Controls -->
+    <div class="hero-card">
+      <div class="hero-stats">
+        <div class="stat-group">
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="orbs_available">Доступно Orbs</span>
+            <span class="stat-value" id="totalOrbsText">+5,600</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="time_remaining">Осталось времени</span>
+            <span class="stat-value time" id="timerText">15:00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="progress">Общий прогресс</span>
+            <span class="stat-value" id="progressText" style="color: var(--text-main);">0.0%</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button id="btnFarmAll" class="btn btn-primary">
+            <span class="orb-logo" style="width: 14px; height: 14px;"></span>
+            <span id="btnFarmAllText" data-i18n="farm_all">ФАРМИТЬ ВСЕ КВЕСТЫ (+4,900 Orbs)</span>
+          </button>
+          <button id="btnOpenDiscord" class="btn btn-secondary" data-i18n="open_discord">
+            Открыть квесты Discord
+          </button>
+          <button id="btnStopFarm" class="btn btn-danger" style="display: none;" data-i18n="stop_farm">
+            Остановить фарм
+          </button>
+        </div>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-header">
+          <span id="farmingStatusText" data-i18n="ready_to_farm">Готов к запуску</span>
+          <span id="progressPercentSub">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quests Section -->
+    <div class="section-title">
+      <span data-i18n="quests_active">Активные квесты Discord</span>
+      <span id="questsCountBadge" style="font-size: 11px; background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px;">8</span>
+    </div>
+
+    <div id="questsGrid" class="quests-grid">
+      <!-- Injected by app.js -->
+    </div>
+
+    <!-- Live Telemetry Drawer -->
+    <div class="telemetry-card">
+      <div class="telemetry-header">
+        <span data-i18n="telemetry">Логи и телеметрия Rust Core</span>
+        <button id="btnClearLogs" style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 10px;" data-i18n="clear_logs">Очистить</button>
+      </div>
+      <div id="telemetryLogs" class="telemetry-logs">
+        <div class="log-entry info">[Engine] Native Rust Core v2.4.0 initialized.</div>
+        <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Modal Dialog -->
+  <div id="modalCompleted" class="modal-overlay">
+    <div class="modal-content">
+      <div class="orb-logo" style="width: 48px; height: 48px; margin: 0 auto; box-shadow: 0 0 24px var(--accent-green-glow);"></div>
+      <div class="modal-title" data-i18n="modal_completed_title">Поздравляем!</div>
+      <div class="modal-desc" data-i18n="modal_completed_desc">
+        Все задания Discord Quests успешно завершены! Зайдите в Discord и нажмите кнопку «Забрать награду» (Claim Reward).
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <button id="btnModalDiscord" class="btn btn-primary" data-i18n="claim_reward_btn">Забрать награды в Discord</button>
+        <button id="btnModalClose" class="btn btn-secondary" data-i18n="close">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
