@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 from . import config
-from .discord_db import DiscordGamesDB
+from .discord_db import DiscordGamesDB, get_current_discord_os
 from .faker import GameFaker
 from .net import fetch_json
 from .steam import get_steam_path, generate_appmanifest
@@ -141,12 +141,56 @@ class SessionGame:
 
 # ── Discord Local RPC Broadcaster ──────────────────────────────────────────────
 
+def _get_discord_ipc_paths(pipe_index: int = 0) -> list[str]:
+    """Return platform-specific paths for Discord Local IPC pipe/socket."""
+    if sys.platform == "win32":
+        return [rf"\\.\pipe\discord-ipc-{pipe_index}"]
+
+    paths: list[str] = []
+    if sys.platform == "darwin":
+        tmp = os.environ.get("TMPDIR", "/tmp").rstrip("/")
+        paths.extend([f"{tmp}/discord-ipc-{pipe_index}", f"/tmp/discord-ipc-{pipe_index}"])
+    else:  # Linux / Unix
+        import tempfile
+        uid = getattr(os, "getuid", lambda: 1000)()
+        xdg = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{uid}")
+        paths.extend([
+            f"{xdg}/discord-ipc-{pipe_index}",
+            f"{xdg}/app/com.discordapp.Discord/discord-ipc-{pipe_index}",
+            f"{xdg}/snap.discord/discord-ipc-{pipe_index}",
+            f"/tmp/discord-ipc-{pipe_index}",
+            f"{tempfile.gettempdir()}/discord-ipc-{pipe_index}",
+        ])
+    return paths
+
+
+def _open_discord_ipc(pipe_index: int = 0):
+    """Open a read/write binary stream to Discord Local IPC (Windows Named Pipe or Unix socket)."""
+    paths = _get_discord_ipc_paths(pipe_index)
+    if sys.platform == "win32":
+        return open(paths[0], "r+b", buffering=0)
+
+    import socket
+    last_err = None
+    for path in paths:
+        if os.path.exists(path):
+            try:
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                sock.connect(path)
+                return sock.makefile("rwb", buffering=0)
+            except Exception as e:
+                last_err = e
+    if last_err:
+        raise last_err
+    raise FileNotFoundError(f"Discord IPC socket not found: {paths}")
+
+
 class DiscordRPCClient:
     """
-    Connects to the local Discord client via Windows Named Pipe (\\\\.\\pipe\\discord-ipc-0)
-    and broadcasts rich presence activity directly.
-    Required for games like EA SPORTS FC 27 where Discord's process scanner list is empty
-    and Discord detects the game exclusively through its Application ID via Local RPC.
+    Connects to the local Discord client via Windows Named Pipe or Unix Domain Socket
+    and broadcasts rich presence activity directly across Windows, Linux, and macOS.
+    Required for games like EA SPORTS FC 27 where Discord detects the game exclusively
+    through its Application ID via Local RPC.
     """
     def __init__(self, client_id: str, details: str = "Playing Match", state: str = "Online"):
         self.client_id = str(client_id)
@@ -158,8 +202,6 @@ class DiscordRPCClient:
         self.is_connected = False
 
     def start(self) -> None:
-        if sys.platform != "win32":
-            return
         self._stop_event.clear()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -174,15 +216,30 @@ class DiscordRPCClient:
         self.is_connected = False
 
     def _run(self) -> None:
-        pipe_name = r'\\.\pipe\discord-ipc-0'
         while not self._stop_event.is_set():
+            pipe = None
             try:
-                self.pipe = open(pipe_name, 'r+b', buffering=0)
+                for i in range(10):
+                    try:
+                        pipe = _open_discord_ipc(i)
+                        break
+                    except Exception:
+                        continue
+                if pipe is None:
+                    time.sleep(2)
+                    continue
+
+                self.pipe = pipe
                 # Handshake (opcode 0)
                 hs = json.dumps({'v': 1, 'client_id': self.client_id}).encode('utf-8')
                 self.pipe.write(struct.pack('<II', 0, len(hs)) + hs)
                 header = self.pipe.read(8)
                 if not header or len(header) < 8:
+                    try:
+                        self.pipe.close()
+                    except Exception:
+                        pass
+                    self.pipe = None
                     time.sleep(2)
                     continue
                 _, length = struct.unpack('<II', header)
@@ -214,26 +271,49 @@ class DiscordRPCClient:
                     time.sleep(1)
             except Exception:
                 self.is_connected = False
+                if self.pipe:
+                    try:
+                        self.pipe.close()
+                    except Exception:
+                        pass
+                    self.pipe = None
                 time.sleep(2)
 
 
 # ── System / Discord Status Helpers ────────────────────────────────────────────
 
 def is_discord_running() -> bool:
-    """Check if Discord Desktop process is actively running on Windows."""
-    if sys.platform != "win32":
-        return True
-    try:
-        res = subprocess.run(
-            ["tasklist", "/fi", "imagename eq Discord.exe", "/nh"],
-            capture_output=True,
-            text=True,
-            check=False,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        return "discord.exe" in (res.stdout or "").lower()
-    except Exception:
-        return True
+    """Check if Discord Desktop process is actively running across Windows, macOS, and Linux."""
+    if sys.platform == "win32":
+        try:
+            res = subprocess.run(
+                ["tasklist", "/fi", "imagename eq Discord.exe", "/nh"],
+                capture_output=True,
+                text=True,
+                check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            return "discord.exe" in (res.stdout or "").lower()
+        except Exception:
+            return True
+    elif sys.platform == "darwin":
+        try:
+            res = subprocess.run(["pgrep", "-ix", "Discord"], capture_output=True, text=True, check=False)
+            if res.returncode == 0 and res.stdout.strip():
+                return True
+            res2 = subprocess.run(["ps", "-axc", "-o", "command"], capture_output=True, text=True, check=False)
+            return "Discord" in (res2.stdout or "")
+        except Exception:
+            return True
+    else:  # Linux / Unix
+        try:
+            res = subprocess.run(["pgrep", "-i", "discord"], capture_output=True, text=True, check=False)
+            if res.returncode == 0 and res.stdout.strip():
+                return True
+            res2 = subprocess.run(["ps", "-A"], capture_output=True, text=True, check=False)
+            return "discord" in (res2.stdout or "").lower()
+        except Exception:
+            return True
 
 
 def open_discord_quests() -> None:
@@ -241,6 +321,8 @@ def open_discord_quests() -> None:
     try:
         if sys.platform == "win32":
             os.startfile("discord://app/settings/gift-inventory")
+        elif sys.platform == "darwin":
+            subprocess.run(["open", "discord://app/settings/gift-inventory"], check=False)
         else:
             subprocess.run(["xdg-open", "discord://app/settings/gift-inventory"], check=False)
         print_color("[OK] Открываем вкладку квестов в Discord...", Colors.GREEN)
@@ -312,7 +394,7 @@ def _resolve_quest_exes(q: dict, db: DiscordGamesDB) -> list[str]:
         for g in db.games:
             if str(g.get("id")) == aid:
                 for e in g.get("executables", []):
-                    if isinstance(e, dict) and e.get("os") == "win32":
+                    if isinstance(e, dict) and e.get("os") in (get_current_discord_os(), "win32"):
                         ename = e.get("name", "")
                         if ename.startswith(">"):
                             ename = ename[1:]
@@ -330,7 +412,7 @@ def _resolve_quest_exes(q: dict, db: DiscordGamesDB) -> list[str]:
             aliases = [a.lower() for a in g.get("aliases", [])]
             if gname == title_lower or title_lower in gname or any(title_lower in a for a in aliases):
                 for e in g.get("executables", []):
-                    if isinstance(e, dict) and e.get("os") == "win32":
+                    if isinstance(e, dict) and e.get("os") in (get_current_discord_os(), "win32"):
                         ename = e.get("name", "")
                         if ename.startswith(">"):
                             ename = ename[1:]
@@ -342,7 +424,8 @@ def _resolve_quest_exes(q: dict, db: DiscordGamesDB) -> list[str]:
     # 4. Fallback: sanitize game title
     clean = "".join(c for c in game_title if c.isalnum() or c in ("-", "_", " ")).strip()
     if clean:
-        return [f"{clean}.exe"]
+        ext = ".exe" if sys.platform == "win32" else ""
+        return [f"{clean}{ext}"]
 
     return []
 
@@ -591,13 +674,57 @@ def _render_dashboard_lines(
     return lines
 
 
+class _CrossPlatformKeyReader:
+    """Non-blocking single-key reader supporting Windows (msvcrt) and Unix (select + termios)."""
+    def __init__(self):
+        self.old_term = None
+        self.is_unix_tty = sys.platform != "win32" and sys.stdin.isatty()
+
+    def __enter__(self):
+        if self.is_unix_tty:
+            try:
+                import termios, tty
+                self.old_term = termios.tcgetattr(sys.stdin)
+                tty.setcbreak(sys.stdin.fileno())
+            except Exception:
+                self.old_term = None
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.old_term is not None:
+            try:
+                import termios
+                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_term)
+            except Exception:
+                pass
+
+    def read_key(self) -> Optional[bytes]:
+        if sys.platform == "win32":
+            try:
+                import msvcrt
+                if msvcrt.kbhit():
+                    return msvcrt.getch()
+            except Exception:
+                pass
+            return None
+        else:
+            try:
+                import select
+                if select.select([sys.stdin], [], [], 0)[0]:
+                    ch = sys.stdin.read(1)
+                    return ch.encode("utf-8")
+            except Exception:
+                pass
+            return None
+
+
 def _orb_farming_dashboard(
     sessions: list[SessionGame],
     duration_seconds: float,
     total_orbs: int,
     rpc_client: Optional[DiscordRPCClient] = None,
 ) -> bool:
-    """Live dashboard loop with non-blocking key checks on Windows."""
+    """Live dashboard loop with cross-platform non-blocking key checks."""
     if duration_seconds <= 0:
         return True
 
@@ -625,47 +752,44 @@ def _orb_farming_dashboard(
     natural_finish = False
 
     try:
-        while True:
-            elapsed = time.monotonic() - start
+        with _CrossPlatformKeyReader() as key_reader:
+            while True:
+                elapsed = time.monotonic() - start
 
-            # Non-blocking key check on Windows
-            if sys.platform == "win32":
-                try:
-                    import msvcrt
-                    if msvcrt.kbhit():
-                        ch = msvcrt.getch()
-                        if ch in (b'm', b'M', b'\r', b'\n'):
-                            print_color("\n[*] Сессия продолжается в фоне! Возврат в меню...", Colors.CYAN)
-                            time.sleep(1.0)
-                            return True
-                        if ch in (b'q', b'Q', b'\x03'):
-                            print_color("\n[!] Сессия остановлена пользователем.", Colors.YELLOW)
-                            time.sleep(1.0)
-                            return False
-                except Exception:
-                    pass
+                ch = key_reader.read_key()
+                if ch:
+                    if ch in (b'm', b'M', b'\r', b'\n'):
+                        print_color("\n[*] Сессия продолжается в фоне! Возврат в меню...", Colors.CYAN)
+                        time.sleep(1.0)
+                        return True
+                    if ch in (b'q', b'Q', b'\x03'):
+                        print_color("\n[!] Сессия остановлена пользователем.", Colors.YELLOW)
+                        time.sleep(1.0)
+                        return False
+                    if ch in (b'o', b'O'):
+                        open_discord_quests()
 
-            lines = _render_dashboard_lines(sessions, elapsed, duration_seconds, total_orbs, frame, rpc_client)
+                lines = _render_dashboard_lines(sessions, elapsed, duration_seconds, total_orbs, frame, rpc_client)
 
-            # Redraw
-            if prev_lines > 0:
-                sys.stdout.write(_CURSOR_UP.format(prev_lines))
+                # Redraw
+                if prev_lines > 0:
+                    sys.stdout.write(_CURSOR_UP.format(prev_lines))
 
-            for ln in lines:
-                sys.stdout.write(_CLEAR_LINE + ln + "\n")
-            sys.stdout.flush()
+                for ln in lines:
+                    sys.stdout.write(_CLEAR_LINE + ln + "\n")
+                sys.stdout.flush()
 
-            prev_lines = len(lines)
-            frame += 1
+                prev_lines = len(lines)
+                frame += 1
 
-            if elapsed >= duration_seconds:
-                natural_finish = True
-                for sg in sessions:
-                    if sg.status == "running":
-                        sg.status = "done"
-                break
+                if elapsed >= duration_seconds:
+                    natural_finish = True
+                    for sg in sessions:
+                        if sg.status == "running":
+                            sg.status = "done"
+                    break
 
-            time.sleep(0.25)
+                time.sleep(0.25)
 
     except (KeyboardInterrupt, EOFError):
         print_color("\n[!] Прервано пользователем.", Colors.YELLOW)

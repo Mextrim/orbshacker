@@ -3,6 +3,7 @@ discord_db.py – DiscordGamesDB class and database search mode.
 """
 
 import re
+import sys
 import time
 from typing import TypedDict
 
@@ -41,6 +42,15 @@ def _validate_games(data) -> list[GameRecord]:
     if not games:
         raise DatabaseLoadError("Games database is empty or malformed.")
     return games
+
+
+def get_current_discord_os() -> str:
+    """Return the Discord DB OS key matching the current platform."""
+    if sys.platform == "darwin":
+        return "darwin"
+    elif sys.platform.startswith("linux"):
+        return "linux"
+    return "win32"
 
 
 class DiscordGamesDB:
@@ -119,10 +129,14 @@ class DiscordGamesDB:
         return any(pattern.search(lowered) for pattern in self._SKIP_EXE_RES)
 
     def _filter_win32_exes(self, game: GameRecord, skip_patterns: bool = True) -> list[str]:
+        return self._filter_platform_exes(game, target_os='win32', skip_patterns=skip_patterns)
+
+    def _filter_platform_exes(self, game: GameRecord, target_os: str | None = None, skip_patterns: bool = True) -> list[str]:
+        target_os = target_os or get_current_discord_os()
         result: list[str] = []
         seen: set[str] = set()
         for exe in game.get('executables', []):
-            if not isinstance(exe, dict) or exe.get('os') != 'win32':
+            if not isinstance(exe, dict) or exe.get('os') != target_os:
                 continue
             name = exe.get('name', '')
             if name.startswith('>'):
@@ -140,8 +154,24 @@ class DiscordGamesDB:
         candidates = self._filter_win32_exes(game, skip_patterns=True)
         return candidates[0] if candidates else None
 
+    def get_executable(self, game: GameRecord, target_os: str | None = None) -> str | None:
+        """Return primary executable for target_os (defaulting to current platform, fallback to win32)."""
+        target_os = target_os or get_current_discord_os()
+        candidates = self._filter_platform_exes(game, target_os=target_os, skip_patterns=True)
+        if candidates:
+            return candidates[0]
+        if target_os != 'win32':
+            win_candidates = self._filter_win32_exes(game, skip_patterns=True)
+            if win_candidates:
+                return win_candidates[0]
+        return None
+
     def get_all_executables(self, game: GameRecord, skip_patterns: bool = False) -> list[str]:
-        return self._filter_win32_exes(game, skip_patterns=skip_patterns)
+        target_os = get_current_discord_os()
+        candidates = self._filter_platform_exes(game, target_os=target_os, skip_patterns=skip_patterns)
+        if not candidates and target_os != 'win32':
+            candidates = self._filter_win32_exes(game, skip_patterns=skip_patterns)
+        return candidates
 
 
 # ── Interactive UI ────────────────────────────────────────────────────────────
@@ -189,11 +219,12 @@ def _pick_discord_game(db: DiscordGamesDB, query: str) -> GameRecord | None:
 
 def _resolve_discord_exe(db: DiscordGamesDB, game: GameRecord) -> str | None:
     """Return the primary exe, prompting the user if none found."""
-    exe_name = db.get_win32_executable(game)
+    exe_name = db.get_executable(game)
     if exe_name:
         return exe_name
-    print_color("\n[ERROR] No Windows executable found for this game", Colors.RED)
-    print_color("[!] This game might not have a Windows version or executable data", Colors.YELLOW)
+    current_os_name = "macOS" if sys.platform == "darwin" else ("Linux" if sys.platform.startswith("linux") else "Windows")
+    print_color(f"\n[ERROR] No {current_os_name} executable found for this game", Colors.RED)
+    print_color(f"[!] This game might not have a {current_os_name} version or executable data", Colors.YELLOW)
     if ask_confirm("Enter executable name manually?"):
         exe_name = input(f"{Colors.BOLD}Executable name:{Colors.RESET} ").strip()
         if not exe_name:

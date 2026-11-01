@@ -58,31 +58,40 @@ def _find_source_exe() -> Path:
     if _is_frozen():
         return Path(sys.executable)
 
-    # Prefer built orbshacker.exe if present in dist/ or project root
+    # Prefer built orbshacker binary if present in dist/ or project root
     root_dir = Path(__file__).resolve().parents[1]
     candidates = [
         root_dir / "dist" / "orbshacker.exe",
         root_dir / "orbshacker.exe",
+        root_dir / "dist" / "orbshacker",
+        root_dir / "orbshacker",
         Path.cwd() / "dist" / "orbshacker.exe",
         Path.cwd() / "orbshacker.exe",
+        Path.cwd() / "dist" / "orbshacker",
+        Path.cwd() / "orbshacker",
     ]
     for candidate in candidates:
-        if candidate.exists():
+        if candidate.exists() and (sys.platform == "win32" or os.access(candidate, os.X_OK)):
             return candidate
 
-    # Source mode: prefer the real pythonw.exe from sys.base_prefix to avoid venv launcher stub issues
     base_dir = Path(sys.base_prefix)
-    pythonw = base_dir / "pythonw.exe"
-    if pythonw.exists():
-        return pythonw
-    python = base_dir / "python.exe"
-    if python.exists():
-        return python
-
-    pythonw_fallback = Path(sys.executable).parent / "pythonw.exe"
-    if pythonw_fallback.exists():
-        return pythonw_fallback
-    return Path(sys.executable)
+    if sys.platform == "win32":
+        pythonw = base_dir / "pythonw.exe"
+        if pythonw.exists():
+            return pythonw
+        python = base_dir / "python.exe"
+        if python.exists():
+            return python
+        pythonw_fallback = Path(sys.executable).parent / "pythonw.exe"
+        if pythonw_fallback.exists():
+            return pythonw_fallback
+        return Path(sys.executable)
+    else:
+        for name in ("python3", "python"):
+            bin_path = base_dir / "bin" / name
+            if bin_path.exists() and os.access(bin_path, os.X_OK):
+                return bin_path
+        return Path(sys.executable)
 
 
 class GameFaker:
@@ -170,6 +179,11 @@ class GameFaker:
         except PermissionError:
             if not (target_path.exists() and is_ours):
                 raise
+        if sys.platform != "win32":
+            try:
+                target_path.chmod(target_path.stat().st_mode | 0o755)
+            except Exception:
+                pass
         self.register_created_file(target_path)
 
         limit_dir = self._limit_dir_for(target_path)
@@ -194,12 +208,14 @@ class GameFaker:
             self.register_created_file(script)
 
     def _copy_python_runtime(self, folder: Path) -> list:
-        """Ensure pythonXY.dll and a ._pth exist beside the fake exe.
+        """Ensure pythonXY.dll and a ._pth exist beside the fake exe (Windows only).
 
         Returns every shared file in place afterwards (created now or by an
         earlier fake), so any game's cleanup can remove them once it is the
         last fake in the folder.
         """
+        if sys.platform != "win32":
+            return []
         version_tag = f"{sys.version_info.major}{sys.version_info.minor}"
         ensured = []
 
@@ -235,7 +251,7 @@ class GameFaker:
     def create_fake_game(self, exe_name: str) -> Path | None:
         """Create fake game executable under Desktop/<FAKE_EXE_DIR>/."""
         exe_name = sanitize_relative_path(exe_name)
-        if not exe_name.lower().endswith('.exe'):
+        if sys.platform == 'win32' and not exe_name.lower().endswith('.exe'):
             exe_name += '.exe'
         target_path = self.chosen_path / config.FAKE_EXE_DIR / exe_name
         try:
@@ -266,7 +282,7 @@ class GameFaker:
                 base_prefix = Path(sys.base_prefix)
                 env["PYTHONHOME"] = str(base_prefix)
 
-                path_parts = [str(base_prefix), env.get("PATH", "")]
+                path_parts = [str(base_prefix / ("bin" if sys.platform != "win32" else "")), str(base_prefix), env.get("PATH", "")]
                 env["PATH"] = os.pathsep.join(part for part in path_parts if part)
 
             if sys.platform == 'win32':

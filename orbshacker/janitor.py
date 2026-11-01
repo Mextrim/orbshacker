@@ -43,33 +43,86 @@ def build_self_destruct_script(files, dirs, max_attempts: int = MAX_DELETE_ATTEM
     return "\r\n".join(lines) + "\r\n"
 
 
+def build_posix_self_destruct_script(files, dirs, max_attempts: int = MAX_DELETE_ATTEMPTS) -> str:
+    """Build a POSIX shell script that deletes files and empty dirs with bounded retries."""
+    import shlex
+    quoted_files = [shlex.quote(str(p)) for p in files]
+    quoted_dirs = [shlex.quote(str(p)) for p in sorted(dirs, key=lambda d: len(Path(d).parts), reverse=True)]
+    lines = [
+        "#!/bin/sh",
+        "_n=0",
+        f"while [ $_n -lt {max_attempts} ]; do",
+        "  _n=$((_n + 1))",
+        "  _done=1",
+    ]
+    for qf in quoted_files:
+        lines.append(f"  rm -f {qf} 2>/dev/null")
+        lines.append(f"  if [ -e {qf} ]; then _done=0; fi")
+    lines.append("  if [ $_done -eq 1 ]; then break; fi")
+    lines.append(f"  sleep {RETRY_DELAY_SECONDS}")
+    lines.append("done")
+    for qd in quoted_dirs:
+        lines.append(f"rmdir {qd} 2>/dev/null")
+    lines.append('rm -f "$0" 2>/dev/null')
+    return "\n".join(lines) + "\n"
+
+
 def spawn_self_destruct(files, dirs, max_attempts: int = MAX_DELETE_ATTEMPTS) -> Path | None:
-    """Write and launch a detached self-destruction batch script."""
+    """Write and launch a detached self-destruction script (Windows batch or POSIX shell)."""
+    import sys
     files = [Path(p) for p in files if p]
     dirs = [Path(p) for p in dirs if p]
     if not files and not dirs:
         return None
-    script = build_self_destruct_script(files, dirs, max_attempts)
-    try:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".cmd", mode="w", encoding="utf-8", newline=""
-        ) as fh:
-            script_path = Path(fh.name)
-            fh.write(script)
-    except Exception:
-        return None
-    try:
-        subprocess.Popen(
-            ["cmd", "/c", str(script_path)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    except Exception:
+
+    if sys.platform == "win32":
+        script = build_self_destruct_script(files, dirs, max_attempts)
         try:
-            script_path.unlink()
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".cmd", mode="w", encoding="utf-8", newline=""
+            ) as fh:
+                script_path = Path(fh.name)
+                fh.write(script)
         except Exception:
-            pass
-        return None
-    return script_path
+            return None
+        try:
+            subprocess.Popen(
+                ["cmd", "/c", str(script_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except Exception:
+            try:
+                script_path.unlink()
+            except Exception:
+                pass
+            return None
+        return script_path
+    else:
+        script = build_posix_self_destruct_script(files, dirs, max_attempts)
+        try:
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".sh", mode="w", encoding="utf-8"
+            ) as fh:
+                script_path = Path(fh.name)
+                fh.write(script)
+            script_path.chmod(0o755)
+        except Exception:
+            return None
+        try:
+            subprocess.Popen(
+                ["/bin/sh", str(script_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        except Exception:
+            try:
+                script_path.unlink()
+            except Exception:
+                pass
+            return None
+        return script_path

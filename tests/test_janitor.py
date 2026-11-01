@@ -70,3 +70,14 @@ class TestSpawnSelfDestruct:
         assert "a.exe" in content
         mock_popen.assert_called_once()
         script_path.unlink()
+
+
+class TestBuildPosixSelfDestructScript:
+    def test_posix_script_structure(self):
+        from orbshacker.janitor import build_posix_self_destruct_script
+        script = build_posix_self_destruct_script(["/tmp/a", "/tmp/b"], ["/tmp/dir"], max_attempts=5)
+        assert "#!/bin/sh" in script
+        assert "rm -f /tmp/a" in script
+        assert "rmdir /tmp/dir" in script
+        assert "while [ $_n -lt 5 ]" in script
+        assert 'rm -f "$0"' in script

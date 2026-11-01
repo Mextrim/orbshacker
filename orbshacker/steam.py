@@ -53,28 +53,61 @@ except ImportError:
 # ── Registry helpers ──────────────────────────────────────────────────────────
 
 def get_steam_path() -> Path | None:
-    """Read Steam installation path from Windows registry."""
-    if sys.platform != 'win32' or _winreg is None:
+    """Read Steam installation path across Windows, macOS, and Linux."""
+    if sys.platform == 'win32':
+        if _winreg is None:
+            fallback = Path("C:/Program Files (x86)/Steam")
+            return fallback if fallback.exists() else None
+        try:
+            with _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam") as key:
+                value, _ = _winreg.QueryValueEx(key, "SteamPath")
+            return Path(value)
+        except Exception:
+            fallback = Path("C:/Program Files (x86)/Steam")
+            return fallback if fallback.exists() else None
+    elif sys.platform == 'darwin':
+        mac_path = Path.home() / "Library/Application Support/Steam"
+        return mac_path if mac_path.exists() else None
+    else:  # Linux / Unix
+        candidates = [
+            Path.home() / ".local/share/Steam",
+            Path.home() / ".steam/steam",
+            Path.home() / ".steam/root",
+            Path.home() / ".var/app/com.valvesoftware.Steam/.local/share/Steam",
+        ]
+        for c in candidates:
+            if c.exists():
+                return c
         return None
-    try:
-        with _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam") as key:
-            value, _ = _winreg.QueryValueEx(key, "SteamPath")
-        return Path(value)
-    except Exception:
-        fallback = Path("C:/Program Files (x86)/Steam")
-        return fallback if fallback.exists() else None
 
 
 def get_steam_user_id() -> str:
-    """Read the currently logged-in Steam user ID from registry."""
-    if sys.platform != 'win32' or _winreg is None:
-        return "0"
-    try:
-        with _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess") as key:
-            value, _ = _winreg.QueryValueEx(key, "ActiveUser")
-        steam_id_64 = int(value) + 76561197960265728
-        return str(steam_id_64)
-    except Exception:
+    """Read the currently logged-in Steam user ID across Windows, macOS, and Linux."""
+    if sys.platform == 'win32':
+        if _winreg is None:
+            return "0"
+        try:
+            with _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess") as key:
+                value, _ = _winreg.QueryValueEx(key, "ActiveUser")
+            steam_id_64 = int(value) + 76561197960265728
+            return str(steam_id_64)
+        except Exception:
+            return "0"
+    else:
+        # On Linux/macOS, check loginusers.vdf in steam config folder
+        steam_path = get_steam_path()
+        if steam_path:
+            loginusers = steam_path / "config" / "loginusers.vdf"
+            if loginusers.exists():
+                try:
+                    content = loginusers.read_text(encoding="utf-8", errors="ignore")
+                    import re
+                    # Look for 64-bit Steam ID with MostRecent 1
+                    matches = re.findall(r'"(7656119[0-9]{10})"', content)
+                    if matches:
+                        return matches[0]
+                except Exception:
+                    pass
         return "0"
 
 
@@ -99,9 +132,24 @@ def _resolve_executable(appid: int, installdir: str, launch: SteamLaunchMap) -> 
     if appid == 4080220:
         return "fc27.exe"
 
-    executable = _pick_windows_exe(launch)
+    current_os = "macos" if sys.platform == "darwin" else ("linux" if sys.platform.startswith("linux") else "windows")
+    executable = None
+    if current_os != "windows":
+        for key in sorted(launch.keys()):
+            entry = launch[key]
+            entry_config = entry.get("config") or {}
+            oslist = str(entry_config.get("oslist", "") or "")
+            if current_os in oslist or (current_os == "macos" and "osx" in oslist):
+                exe = entry.get("executable", "")
+                if exe:
+                    executable = exe.replace("\\", "/")
+                    break
+
     if not executable:
-        executable = installdir.split("/")[-1] + ".exe"
+        executable = _pick_windows_exe(launch)
+    if not executable:
+        ext = ".exe" if sys.platform == "win32" else ""
+        executable = installdir.split("/")[-1] + ext
     return sanitize_relative_path(executable)
 
 

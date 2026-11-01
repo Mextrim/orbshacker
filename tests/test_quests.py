@@ -145,3 +145,36 @@ def test_launch_all_pc_games():
     # Should only launch the PC game
     faker.create_fake_game.assert_called_once_with("game1.exe")
     faker.launch_executable.assert_called_once()
+
+
+def test_cross_platform_ipc_paths(monkeypatch):
+    from orbshacker.quests import _get_discord_ipc_paths
+
+    monkeypatch.setattr("sys.platform", "linux")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/run/user/1000")
+    linux_paths = _get_discord_ipc_paths(0)
+    assert any("/run/user/1000/discord-ipc-0" in p for p in linux_paths)
+
+    monkeypatch.setattr("sys.platform", "darwin")
+    monkeypatch.setenv("TMPDIR", "/var/folders/test")
+    mac_paths = _get_discord_ipc_paths(0)
+    assert any("/var/folders/test/discord-ipc-0" in p for p in mac_paths)
+
+    monkeypatch.setattr("sys.platform", "win32")
+    win_paths = _get_discord_ipc_paths(0)
+    assert win_paths == [r"\\.\pipe\discord-ipc-0"]
+
+
+def test_cross_platform_is_discord_running(monkeypatch):
+    from orbshacker.quests import is_discord_running
+    import subprocess
+
+    monkeypatch.setattr("sys.platform", "linux")
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="12345\n")
+        assert is_discord_running() is True
+
+    monkeypatch.setattr("sys.platform", "darwin")
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="12345\n")
+        assert is_discord_running() is True

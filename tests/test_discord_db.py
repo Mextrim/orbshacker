@@ -71,6 +71,12 @@ class TestSearchGames:
 
 
 class TestFilterWin32Exes:
+    def test_cross_platform_get_executable(self):
+        db = _make_db_with_games(SAMPLE_GAMES)
+        assert db.get_executable(SAMPLE_GAMES[1], target_os="linux") == "dungeons"
+        assert db.get_executable(SAMPLE_GAMES[0], target_os="linux") == "javaw.exe"
+        assert db.get_executable(SAMPLE_GAMES[1], target_os="darwin") == "Dungeons.exe"
+
     def test_returns_win32_only(self):
         db = _make_db_with_games(SAMPLE_GAMES)
         exes = db.get_all_executables(SAMPLE_GAMES[1])  # Minecraft Dungeons

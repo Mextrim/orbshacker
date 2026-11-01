@@ -4,7 +4,7 @@
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3572A5?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20Only-555555?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/DanielPires2000/orbshacker)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker)
 [![Discord](https://img.shields.io/badge/Discord-Game%20Spoofer-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
 [![License](https://img.shields.io/badge/License-GPL%20v3-c0392b?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 [![Version](https://img.shields.io/github/v/release/Mextrim/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/Mextrim/orbshacker/releases)
@@ -84,7 +84,7 @@ To detect this method, Discord would need kernel-level anti-cheat software compa
 
 ## Requirements
 
-Python 3.10 or higher, Windows only. Internet connection for database fetching. Discord must be running the spoofer only works when Discord is active and scanning processes.
+Python 3.10 or higher (Windows, Linux, macOS). Internet connection for database and quest fetching. The Discord Desktop app must be running for quests to be detected.
 
 <br/>
 
