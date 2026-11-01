@@ -5,6 +5,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3572A5?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20RU%20%7C%20ES%20%7C%20PT%20%7C%20DE%20%7C%20FR-blueviolet?style=for-the-badge)](https://github.com/Mextrim/orbshacker)
 [![Discord](https://img.shields.io/badge/Discord-Game%20Spoofer-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com)
 [![License](https://img.shields.io/badge/License-GPL%20v3-c0392b?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 [![Version](https://img.shields.io/github/v/release/Mextrim/orbshacker?style=for-the-badge&logo=semanticrelease&color=4ade80&logoColor=white)](https://github.com/Mextrim/orbshacker/releases)
@@ -67,6 +68,8 @@ You search for the game by name directly inside the tool. The tool fetches the g
 **Backup Database** falls back to a GitHub archive if Discord's API is unavailable, so the tool keeps working even when the primary source is down.
 
 **Manual Mode** supports custom executable names if you need to spoof something not in the database.
+
+**Multilingual Support (i18n)** automatically detects your system language or lets you switch between 6 languages: **English**, **Русский**, **Español**, **Português**, **Deutsch**, and **Français** (option 6 in main menu or `settings.json`).
 
 **Beautiful Interface** is a colored terminal UI with loading animations, because plain text is boring.
 
