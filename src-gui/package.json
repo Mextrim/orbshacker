@@ -1,15 +1,52 @@
 {
   "name": "orbshacker",
   "version": "2.4.0",
-  "description": "Orbshacker - Discord Quests Spoofer & Orbs Collector (Rust + Electron)",
+  "description": "Discord Quests Spoofer & Orbs Collector (Rust + Electron)",
   "main": "main.js",
   "author": "Mextrim",
   "license": "GPL-3.0",
   "scripts": {
     "start": "electron .",
-    "dev": "electron ."
+    "dev": "electron .",
+    "build:portable": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.mextrim.orbshacker",
+    "productName": "orbshacker",
+    "directories": {
+      "output": "../dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "bin/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "orbshacker-portable.exe"
+    }
   },
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
   }
 }

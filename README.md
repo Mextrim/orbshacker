@@ -13,6 +13,10 @@
 
 <br/>
 
+### ⬇️ **[Скачать orbshacker.exe (v2.4.0 Portable EXE)](https://github.com/Mextrim/orbshacker/releases/download/v2.4.0/orbshacker.exe)** &nbsp;|&nbsp; **[GitHub Releases](https://github.com/Mextrim/orbshacker/releases/latest)**
+
+<br/>
+
 ### ⚡ **Новая версия на Rust + Electron (v2.4.0)**
 *Быстрый, нативный системный движок на Rust и современный графический интерфейс на Electron.*  
 *Blazing-fast native Rust core engine paired with a modern Electron desktop GUI.*
