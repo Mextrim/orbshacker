@@ -1,7 +1,7 @@
-const I18N = {
+﻿const I18N = {
   ru: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord подключён",
     status_disconnected: "Discord не обнаружен",
     status_waiting: "Ожидание Discord...",
@@ -21,7 +21,7 @@ const I18N = {
     settings: "Настройки",
     settings_title: "Параметры программы",
     save: "Применить",
-    telemetry: "Логи и телеметрия Rust Core",
+    telemetry: "Логи и телеметрия",
     clear_logs: "Очистить логи",
     single_farm: "Фармить",
     fc27_badge: "Steam & Local RPC",
@@ -65,7 +65,7 @@ const I18N = {
   },
   en: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord Connected",
     status_disconnected: "Discord Not Running",
     status_waiting: "Waiting for Discord...",
@@ -85,7 +85,7 @@ const I18N = {
     settings: "Settings",
     settings_title: "Application Settings",
     save: "Apply",
-    telemetry: "Rust Core Logs & Telemetry",
+    telemetry: "Logs & Telemetry",
     clear_logs: "Clear Logs",
     single_farm: "Farm",
     fc27_badge: "Steam & Local RPC",
@@ -129,7 +129,7 @@ const I18N = {
   },
   es: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord Conectado",
     status_disconnected: "Discord no detectado",
     status_waiting: "Esperando a Discord...",
@@ -191,7 +191,7 @@ const I18N = {
   },
   pt: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord Conectado",
     status_disconnected: "Discord não detectado",
     status_waiting: "Aguardando Discord...",
@@ -253,7 +253,7 @@ const I18N = {
   },
   de: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord verbunden",
     status_disconnected: "Discord nicht gefunden",
     status_waiting: "Warte auf Discord...",
@@ -315,7 +315,7 @@ const I18N = {
   },
   fr: {
     app_title: "ORBSHACKER",
-    app_subtitle: "Discord Quests & Orbs Spoofer (Rust + Electron)",
+    app_subtitle: "Discord Quests & Badges Spoofer",
     status_connected: "Discord Connecté",
     status_disconnected: "Discord non détecté",
     status_waiting: "En attente de Discord...",
@@ -376,3 +376,4 @@ const I18N = {
     custom_stop_btn: "Arrêter le processus",
   },
 };
+
