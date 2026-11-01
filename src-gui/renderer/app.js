@@ -539,7 +539,7 @@
           <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
         </div>
         <div class="game-chip-actions">
-          <button class="btn-chip-launch" title="Запустить игру на 65с (+1 к значку в Discord)">▶ +1 игра</button>
+          <button class="btn-chip-launch" title="Запустить игру на значок в Discord">▶ +1 игра</button>
           <button class="btn-chip-hours" title="Выбрать игру для фарма часов">⏱ Часы</button>
         </div>
       `;
@@ -561,7 +561,7 @@
 
       chip.querySelector('.btn-chip-launch').addEventListener('click', (e) => {
         e.stopPropagation();
-        startSingleGame(g.id, g.name, 65);
+        startSingleGame(g.id, g.name, badgeSpeedDuration);
       });
 
       detectableGamesGrid.appendChild(chip);
@@ -581,10 +581,27 @@
   // ==========================================
   // 7. BADGES: GAME COUNT BOOSTER (100+ Games)
   // ==========================================
-  async function startSingleGame(gameId, gameName, durationSecs = 65) {
+  let badgeSpeedDuration = parseInt(localStorage.getItem('orbshacker_badge_speed') || '15', 10);
+  const badgeSpeedChips = document.querySelectorAll('#badgeSpeedPresets .preset-chip');
+  if (badgeSpeedChips.length > 0) {
+    badgeSpeedChips.forEach((chip) => {
+      const spd = parseInt(chip.getAttribute('data-badge-speed'), 10);
+      chip.classList.toggle('active', spd === badgeSpeedDuration);
+      chip.addEventListener('click', () => {
+        badgeSpeedChips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        badgeSpeedDuration = spd;
+        localStorage.setItem('orbshacker_badge_speed', spd.toString());
+        addLog(`Скорость фарма значка установлена: ${spd} сек/игра.`, 'info');
+      });
+    });
+  }
+
+  async function startSingleGame(gameId, gameName, durationSecs = null) {
+    const dur = durationSecs || badgeSpeedDuration || 15;
     try {
-      addLog(`Запуск одиночной игры '${gameName}' на ${durationSecs} сек. для значка Discord...`, 'info');
-      const res = await window.orbshacker.call('start_single_game', { game_id: gameId, duration_secs: durationSecs });
+      addLog(`Запуск одиночной игры '${gameName}' на ${dur} сек. для значка Discord...`, 'info');
+      const res = await window.orbshacker.call('start_single_game', { game_id: gameId, duration_secs: dur });
       if (res && res.started) {
         isBadgeFarming = true;
         btnFarmAll100.disabled = true;
@@ -595,7 +612,7 @@
         badgeCountStatusText.textContent = `Игра: ${res.game_name} (запущена...)`;
         badgeCountPercentText.textContent = '0%';
         badgeCountProgressFill.style.width = '0%';
-        addLog(`Процесс '${res.game_name}' активен. Discord фиксирует сессию (таймер 65с)...`, 'success');
+        addLog(`Процесс '${res.game_name}' активен. Discord фиксирует сессию (таймер ${dur}с)...`, 'success');
       }
     } catch (err) {
       addLog(`Ошибка запуска игры: ${err.message}`, 'error');
@@ -603,9 +620,10 @@
   }
 
   async function startBadgeCount(count, offset = 0) {
+    const dur = badgeSpeedDuration || 15;
     try {
-      addLog(`Запуск серии из ${count} игр для значка Discord (смещение: ${offset})...`, 'info');
-      const res = await window.orbshacker.call('start_badge_count', { target_count: count, start_offset: offset, duration_secs: 65 });
+      addLog(`Запуск серии из ${count} игр для значка Discord (по ${dur}с на игру, смещение: ${offset})...`, 'info');
+      const res = await window.orbshacker.call('start_badge_count', { target_count: count, start_offset: offset, duration_secs: dur });
       if (res && res.started) {
         isBadgeFarming = true;
         btnFarmAll100.disabled = true;
@@ -616,7 +634,7 @@
         badgeCountStatusText.textContent = `Фарм игр: 0 / ${res.total_games}`;
         badgeCountPercentText.textContent = '0%';
         badgeCountProgressFill.style.width = '0%';
-        addLog(`Запущена серия из ${res.total_games} игр по очереди (по 65с на игру)!`, 'success');
+        addLog(`Запущена серия из ${res.total_games} игр по очереди (по ${dur}с на игру)!`, 'success');
       }
     } catch (err) {
       addLog(`Failed to start badge game count farm: ${err.message}`, 'error');

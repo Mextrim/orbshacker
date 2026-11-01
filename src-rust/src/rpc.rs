@@ -147,7 +147,7 @@ pub fn run_json_rpc_service() {
             "start_badge_count" => {
                 let count = req.params.get("target_count").and_then(|v| v.as_u64()).unwrap_or(100) as usize;
                 let offset = req.params.get("start_offset").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(60);
+                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
 
                 let mut s = session.lock().unwrap();
                 match s.start_badge_count_farm(count, offset, secs_per_game, event_callback.clone()) {
@@ -157,7 +157,7 @@ pub fn run_json_rpc_service() {
             }
             "start_single_game" => {
                 let game_id = req.params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
-                let secs = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(65);
+                let secs = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
 
                 let mut s = session.lock().unwrap();
                 match s.start_single_game_farm(game_id, secs, event_callback.clone()) {

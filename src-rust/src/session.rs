@@ -299,7 +299,7 @@ impl FarmSession {
             .collect();
         let total_count = games_to_run.len();
 
-        let dur_per_game = duration_per_game_secs.max(30);
+        let dur_per_game = duration_per_game_secs.max(5);
         let total_expected_secs = (total_count as u64) * dur_per_game;
 
         self.badge_is_active.store(true, Ordering::SeqCst);
@@ -433,7 +433,7 @@ impl FarmSession {
             .ok_or_else(|| format!("Игра '{}' не найдена в каталоге", game_id_or_exe))?;
 
         let game_name = game.name.clone();
-        let dur = duration_secs.max(30);
+        let dur = duration_secs.max(5);
 
         self.badge_is_active.store(true, Ordering::SeqCst);
         *self.badge_mode.lock().unwrap() = "single".to_string();
