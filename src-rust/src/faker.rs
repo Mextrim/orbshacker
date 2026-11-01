@@ -55,8 +55,13 @@ impl FakerManager {
         }
 
         if !target_exe.exists() {
-            fs::copy(&current_exe, &target_exe).map_err(|e| e.to_string())?;
-            self.created_files.push(target_exe.clone());
+            if let Err(e) = fs::copy(&current_exe, &target_exe) {
+                if !target_exe.exists() {
+                    return Err(format!("Could not create stub file {}: {}", target_exe.display(), e));
+                }
+            } else {
+                self.created_files.push(target_exe.clone());
+            }
         }
 
         // Spawn child process with --stub mode
@@ -66,14 +71,6 @@ impl FakerManager {
             .arg(game_title)
             .arg("--duration")
             .arg(duration_secs.to_string());
-
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            // CREATE_NO_WINDOW = 0x08000000
-            const CREATE_NO_WINDOW: u32 = 0x08000000;
-            cmd.creation_flags(CREATE_NO_WINDOW);
-        }
 
         let child = cmd.spawn().map_err(|e| {
             format!("Failed to spawn stub process for {}: {}", exe_name, e)

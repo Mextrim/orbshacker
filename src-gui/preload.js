@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('orbshacker', {
     ipcRenderer.on('rpc:event', handler);
     return () => ipcRenderer.removeListener('rpc:event', handler);
   },
+  openDiscordQuests: () => ipcRenderer.invoke('open-discord-quests'),
   minimize: () => ipcRenderer.invoke('window:minimize'),
   maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),

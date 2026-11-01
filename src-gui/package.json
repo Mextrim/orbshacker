@@ -1,7 +1,7 @@
 {
   "name": "orbshacker",
-  "version": "2.4.0",
-  "description": "Discord Quests Spoofer & Orbs Collector (Rust + Electron)",
+  "version": "2.5.0",
+  "description": "Discord Quests & Profile Badges Spoofer (Rust + Electron)",
   "main": "main.js",
   "author": "Mextrim",
   "license": "GPL-3.0",

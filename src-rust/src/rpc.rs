@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::badges::{get_detectable_games_catalog, get_game_count_badge_tiers, get_hours_badge_tiers};
 use crate::quests::get_active_quests;
 use crate::session::{EventCallback, FarmSession};
 
@@ -127,32 +128,73 @@ pub fn run_json_rpc_service() {
             "get_status" => {
                 let s = session.lock().unwrap();
                 let st = s.get_status();
+                res = Some(serde_json::to_value(st).unwrap());
+            }
+
+            // --- Badges & Custom Games ---
+            "get_detectable_games" => {
+                let games = get_detectable_games_catalog();
+                res = Some(serde_json::to_value(games).unwrap());
+            }
+            "get_badge_tiers" => {
+                let game_count_tiers = get_game_count_badge_tiers();
+                let hours_tiers = get_hours_badge_tiers();
                 res = Some(serde_json::json!({
-                    "is_farming": st.is_farming,
-                    "elapsed_seconds": st.elapsed_seconds,
-                    "total_seconds": st.total_seconds,
-                    "progress_percent": st.progress_percent,
-                    "active_quests": st.active_quests,
-                    "total_orbs": st.total_orbs
+                    "game_count_tiers": game_count_tiers,
+                    "hours_tiers": hours_tiers
                 }));
             }
+            "start_badge_count" => {
+                let count = req.params.get("target_count").and_then(|v| v.as_u64()).unwrap_or(100) as usize;
+                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(20);
+
+                let mut s = session.lock().unwrap();
+                match s.start_badge_count_farm(count, secs_per_game, event_callback.clone()) {
+                    Ok(total) => res = Some(serde_json::json!({ "started": true, "total_games": total })),
+                    Err(e) => err = Some(e),
+                }
+            }
+            "start_badge_hours" => {
+                let game = req.params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
+                let game_name = req.params.get("game_name").and_then(|v| v.as_str());
+                let hours = req.params.get("hours").and_then(|v| v.as_u64()).unwrap_or(1) as u32;
+                let is_infinite = req.params.get("is_infinite").and_then(|v| v.as_bool()).unwrap_or(false);
+
+                let mut s = session.lock().unwrap();
+                match s.start_hours_farm(game, game_name, hours, is_infinite, event_callback.clone()) {
+                    Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
+                    Err(e) => err = Some(e),
+                }
+            }
+            "stop_badge_farm" => {
+                let mut s = session.lock().unwrap();
+                s.stop_badge_farm();
+                res = Some(serde_json::json!({ "stopped": true }));
+            }
+            "get_badge_status" => {
+                let s = session.lock().unwrap();
+                let st = s.get_badge_status();
+                res = Some(serde_json::to_value(st).unwrap());
+            }
+
             "open_discord_quests" => {
                 #[cfg(windows)]
                 {
+                    // Open Discord deep link directly to Quest Home, fallback to Web
                     let _ = Command::new("cmd")
-                        .args(["/c", "start", "discord:///channels/@me"])
+                        .args(["/c", "start discord:///quest-home || start https://discord.com/quest-home"])
                         .spawn();
                 }
                 #[cfg(target_os = "macos")]
                 {
                     let _ = Command::new("open")
-                        .arg("discord:///channels/@me")
+                        .arg("discord:///quest-home")
                         .spawn();
                 }
                 #[cfg(target_os = "linux")]
                 {
                     let _ = Command::new("xdg-open")
-                        .arg("discord:///channels/@me")
+                        .arg("https://discord.com/quest-home")
                         .spawn();
                 }
                 res = Some(serde_json::json!({ "opened": true }));

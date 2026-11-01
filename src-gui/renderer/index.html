@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="cyber">
 <head>
   <meta charset="UTF-8">
   <title>ORBSHACKER</title>
@@ -11,7 +11,7 @@
     <div class="titlebar-brand">
       <span class="orb-logo"></span>
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span style="font-size: 10px; color: var(--accent-green); background: rgba(74, 222, 128, 0.1); padding: 2px 6px; border-radius: 4px;">v2.4.0 [Rust + Electron]</span>
+      <span style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.5.0 [Rust + Electron]</span>
     </div>
 
     <div class="titlebar-center">
@@ -22,14 +22,40 @@
     </div>
 
     <div class="titlebar-controls">
-      <select id="langSelect" class="lang-select">
-        <option value="ru">🇷🇺 Русский</option>
-        <option value="en">🇬🇧 English</option>
-        <option value="es">🇪🇸 Español</option>
-        <option value="pt">🇵🇹 Português</option>
-        <option value="de">🇩🇪 Deutsch</option>
-        <option value="fr">🇫🇷 Français</option>
-      </select>
+      <!-- Custom Theme Dropdown -->
+      <div class="custom-dropdown">
+        <button id="themeDropdownBtn" class="dropdown-btn" title="Сменить тему оформления">
+          <span>🎨</span>
+          <span id="currentThemeLabel">Кибер Неон</span>
+          <span style="font-size: 9px; opacity: 0.7;">▾</span>
+        </button>
+        <div id="themeDropdownMenu" class="dropdown-menu">
+          <button class="dropdown-item selected" data-theme-val="cyber"><span>⚡ Кибер Неон</span><span class="check">✓</span></button>
+          <button class="dropdown-item" data-theme-val="nitro"><span>🎮 Discord Nitro</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="oled"><span>🌌 Полночный OLED</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="synth"><span>🌆 Неоновый Закат</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="matrix"><span>🟩 Матрица</span><span class="check"></span></button>
+          <button class="dropdown-item" data-theme-val="crimson"><span>🩸 Кровавая Луна</span><span class="check"></span></button>
+        </div>
+      </div>
+
+      <!-- Custom Language Dropdown (No native white select) -->
+      <div class="custom-dropdown">
+        <button id="langDropdownBtn" class="dropdown-btn" title="Выбрать язык интерфейса">
+          <span id="currentLangFlag">🇷🇺</span>
+          <span id="currentLangLabel">Русский</span>
+          <span style="font-size: 9px; opacity: 0.7;">▾</span>
+        </button>
+        <div id="langDropdownMenu" class="dropdown-menu">
+          <button class="dropdown-item selected" data-lang-val="ru"><span>🇷🇺 Русский</span><span class="check">✓</span></button>
+          <button class="dropdown-item" data-lang-val="en"><span>🇬🇧 English</span><span class="check"></span></button>
+          <button class="dropdown-item" data-lang-val="es"><span>🇪🇸 Español</span><span class="check"></span></button>
+          <button class="dropdown-item" data-lang-val="pt"><span>🇵🇹 Português</span><span class="check"></span></button>
+          <button class="dropdown-item" data-lang-val="de"><span>🇩🇪 Deutsch</span><span class="check"></span></button>
+          <button class="dropdown-item" data-lang-val="fr"><span>🇫🇷 Français</span><span class="check"></span></button>
+        </div>
+      </div>
+
       <button id="btnSettings" class="win-btn" title="Настройки">&#9881;</button>
       <button id="btnMinimize" class="win-btn" title="Свернуть">&#8211;</button>
       <button id="btnMaximize" class="win-btn" title="Развернуть">&#9633;</button>
@@ -37,59 +63,239 @@
     </div>
   </div>
 
-  <!-- App Main Content -->
+  <!-- Navigation Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="quests">
+      <span>🔥</span>
+      <span data-i18n="tab_quests">Задания (Orbs)</span>
+    </button>
+    <button class="tab-btn" data-tab="badges">
+      <span>🏆</span>
+      <span data-i18n="tab_badges">Значки Профиля</span>
+    </button>
+    <button class="tab-btn" data-tab="custom">
+      <span>🎮</span>
+      <span data-i18n="tab_custom">Своя Игра</span>
+    </button>
+  </div>
+
+  <!-- App Main Content Container -->
   <div class="app-container">
-    <!-- Hero / Stats & Controls -->
-    <div class="hero-card">
-      <div class="hero-stats">
-        <div class="stat-group">
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="orbs_available">Доступно Orbs</span>
-            <span class="stat-value" id="totalOrbsText">+5,600</span>
+
+    <!-- ==========================================
+         TAB 1: DISCORD QUESTS
+         ========================================== -->
+    <div id="panelQuests" class="tab-panel active">
+      <div class="hero-card">
+        <div class="hero-stats">
+          <div class="stat-group">
+            <div class="stat-item">
+              <span class="stat-label" data-i18n="orbs_available">Доступно Orbs</span>
+              <span class="stat-value" id="totalOrbsText">+5,600</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label" data-i18n="time_remaining">Осталось времени</span>
+              <span class="stat-value time" id="timerText">15:00</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label" data-i18n="progress">Общий прогресс</span>
+              <span class="stat-value" id="progressText" style="color: var(--text-main);">0.0%</span>
+            </div>
           </div>
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="time_remaining">Осталось времени</span>
-            <span class="stat-value time" id="timerText">15:00</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label" data-i18n="progress">Общий прогресс</span>
-            <span class="stat-value" id="progressText" style="color: var(--text-main);">0.0%</span>
+
+          <div class="hero-actions">
+            <button id="btnFarmAll" class="btn btn-primary">
+              <span class="orb-logo" style="width: 14px; height: 14px;"></span>
+              <span id="btnFarmAllText" data-i18n="farm_all">ФАРМИТЬ ВСЕ КВЕСТЫ (+4,900 Orbs)</span>
+            </button>
+            <button id="btnOpenDiscord" class="btn btn-secondary" data-i18n="open_discord">
+              Открыть квесты Discord
+            </button>
+            <button id="btnStopFarm" class="btn btn-danger" style="display: none;" data-i18n="stop_farm">
+              Остановить фарм
+            </button>
           </div>
         </div>
 
-        <div class="hero-actions">
-          <button id="btnFarmAll" class="btn btn-primary">
-            <span class="orb-logo" style="width: 14px; height: 14px;"></span>
-            <span id="btnFarmAllText" data-i18n="farm_all">ФАРМИТЬ ВСЕ КВЕСТЫ (+4,900 Orbs)</span>
-          </button>
-          <button id="btnOpenDiscord" class="btn btn-secondary" data-i18n="open_discord">
-            Открыть квесты Discord
-          </button>
-          <button id="btnStopFarm" class="btn btn-danger" style="display: none;" data-i18n="stop_farm">
-            Остановить фарм
-          </button>
+        <div class="progress-container">
+          <div class="progress-header">
+            <span id="farmingStatusText" data-i18n="ready_to_farm">Готов к запуску</span>
+            <span id="progressPercentSub">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
         </div>
       </div>
 
-      <div class="progress-container">
-        <div class="progress-header">
-          <span id="farmingStatusText" data-i18n="ready_to_farm">Готов к запуску</span>
-          <span id="progressPercentSub">0%</span>
+      <div class="section-title">
+        <span data-i18n="quests_active">Активные квесты Discord</span>
+        <span id="questsCountBadge" style="font-size: 11px; background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px;">8</span>
+      </div>
+
+      <div id="questsGrid" class="quests-grid">
+        <!-- Injected by app.js -->
+      </div>
+    </div>
+
+    <!-- ==========================================
+         TAB 2: DISCORD PROFILE BADGES
+         ========================================== -->
+    <div id="panelBadges" class="tab-panel">
+      <!-- Section 1: Detectable Games Count (100+ Games Badge) -->
+      <div class="badge-feature-card">
+        <div class="badge-header-row">
+          <div class="badge-title-group">
+            <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
+            <p data-i18n="badge_games_desc">Запуск каталога из 100+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
+          </div>
+          <div class="hero-actions">
+            <button id="btnFarmAll100" class="btn btn-primary">
+              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 100+ игр (Значок Универсал)</span>
+            </button>
+            <button id="btnFarmNext10" class="btn btn-secondary">
+              <span data-i18n="farm_next_10_btn">Фармить +10 игр</span>
+            </button>
+            <button id="btnFarmNext2" class="btn btn-secondary">
+              <span data-i18n="farm_next_2_btn">Фармить +2 игры</span>
+            </button>
+            <button id="btnStopBadges" class="btn btn-danger" style="display: none;">
+              <span data-i18n="stop_badge_btn">Остановить</span>
+            </button>
+          </div>
         </div>
-        <div class="progress-track">
-          <div id="progressFill" class="progress-fill"></div>
+
+        <!-- Visual Tier Tracker -->
+        <div class="badge-tier-tracker" id="gameCountTierTracker">
+          <!-- Filled by app.js -->
+        </div>
+
+        <!-- Badge Farm Progress -->
+        <div id="badgeCountProgressBox" class="progress-container" style="display: none;">
+          <div class="progress-header">
+            <span id="badgeCountStatusText" style="color: var(--accent-primary); font-weight: 700;">Фарм игр...</span>
+            <span id="badgeCountPercentText">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="badgeCountProgressFill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Searchable Detectable Games Catalog -->
+        <div class="games-filter-bar">
+          <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 100+ играм (CS2, GTA V, Dota 2, Rust...)" />
+          <span id="catalogCountLabel" style="font-size: 11px; color: var(--text-dim); white-space: nowrap;">105 игр готово</span>
+        </div>
+        <div id="detectableGamesGrid" class="detectable-games-grid">
+          <!-- Injected by app.js -->
+        </div>
+      </div>
+
+      <!-- Section 2: Playtime Hours Booster (Up to 5000+ Hours Badge) -->
+      <div class="badge-feature-card">
+        <div class="badge-header-row">
+          <div class="badge-title-group">
+            <h3 data-i18n="badge_hours_title">Наиграйте больше часов в играх на ПК</h3>
+            <p data-i18n="badge_hours_desc">Фарм игрового времени в фоне с нулевой нагрузкой на ПК (вплоть до «Вечный игрок: 5 000+ часов»)</p>
+          </div>
+          <div class="hero-actions">
+            <button id="btnStartHoursFarm" class="btn btn-primary">
+              <span data-i18n="farm_hours_btn">Запустить фарм часов</span>
+            </button>
+            <button id="btnStartAfkFarm" class="btn btn-secondary">
+              <span data-i18n="farm_afk_btn">Бесконечный AFK-фарм (онлайн)</span>
+            </button>
+            <button id="btnStopHoursFarm" class="btn btn-danger" style="display: none;">
+              <span data-i18n="stop_badge_btn">Остановить</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Hours Tier Tracker -->
+        <div class="badge-tier-tracker" id="hoursTierTracker">
+          <!-- Filled by app.js -->
+        </div>
+
+        <!-- Preset Goal Chips -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" data-i18n="hours_goal">Цель часов:</span>
+            <div class="hours-presets">
+              <button class="preset-chip active" data-hours="13">⭐ 13ч (След. значок)</button>
+              <button class="preset-chip" data-hours="1">1ч</button>
+              <button class="preset-chip" data-hours="5">5ч</button>
+              <button class="preset-chip" data-hours="20">20ч</button>
+              <button class="preset-chip" data-hours="75">75ч</button>
+              <button class="preset-chip" data-hours="150">150ч</button>
+              <button class="preset-chip" data-hours="0">∞ AFK</button>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" data-i18n="choose_game">Игра:</span>
+            <select id="hoursGameSelect" class="form-input" style="padding: 4px 10px; font-size: 12px; width: 220px;">
+              <option value="cs2">Counter-Strike 2 (cs2.exe)</option>
+              <option value="dota2">Dota 2 (dota2.exe)</option>
+              <option value="gta5">Grand Theft Auto V (GTA5.exe)</option>
+              <option value="cyberpunk">Cyberpunk 2077 (Cyberpunk2077.exe)</option>
+              <option value="rust">Rust (RustClient.exe)</option>
+              <option value="ea_fc27">EA SPORTS FC™ 27 (fc27.exe)</option>
+              <option value="wukong">Black Myth: Wukong (b1.exe)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Hours Farm Live Status Box -->
+        <div id="hoursLiveBox" class="progress-container" style="display: none; margin-top: 8px;">
+          <div class="progress-header">
+            <span id="hoursStatusText" style="color: var(--accent-green); font-weight: 700;">Фарм часов активен...</span>
+            <span id="hoursTimerDisplay" style="font-family: monospace; font-size: 14px; color: var(--text-main);">00:00:00</span>
+          </div>
+          <div class="progress-track">
+            <div id="hoursProgressFill" class="progress-fill"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Quests Section -->
-    <div class="section-title">
-      <span data-i18n="quests_active">Активные квесты Discord</span>
-      <span id="questsCountBadge" style="font-size: 11px; background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px;">8</span>
-    </div>
+    <!-- ==========================================
+         TAB 3: CUSTOM GAME LAUNCHER
+         ========================================== -->
+    <div id="panelCustom" class="tab-panel">
+      <div class="badge-feature-card">
+        <div class="badge-title-group">
+          <h3 data-i18n="custom_title">Запуск любой другой игры (не скачанной на ПК)</h3>
+          <p data-i18n="custom_desc">Позволяет запустить абсолютно любую игру для отображения в статусе Discord и накрутки онлайна без скачивания файлов.</p>
+        </div>
 
-    <div id="questsGrid" class="quests-grid">
-      <!-- Injected by app.js -->
+        <div class="custom-form">
+          <div class="form-group">
+            <label for="customGameNameInput" data-i18n="custom_name">Название игры (как в Discord):</label>
+            <input type="text" id="customGameNameInput" class="form-input" placeholder="Например: S.T.A.L.K.E.R. 2: Heart of Chornobyl" value="S.T.A.L.K.E.R. 2: Heart of Chornobyl" />
+          </div>
+
+          <div class="form-group">
+            <label for="customExeInput" data-i18n="custom_exe">Имя файла процесса (.exe):</label>
+            <input type="text" id="customExeInput" class="form-input" placeholder="Например: Stalker2-Win64-Shipping.exe" value="Stalker2-Win64-Shipping.exe" />
+          </div>
+
+          <div class="form-group">
+            <label for="customSteamIdInput" data-i18n="custom_appid">Steam AppID (необязательно):</label>
+            <input type="number" id="customSteamIdInput" class="form-input" placeholder="Например: 1643320" value="1643320" />
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+            <button id="btnLaunchCustomGame" class="btn btn-primary">
+              <span data-i18n="custom_start_btn">Запустить игру в Discord</span>
+            </button>
+            <button id="btnStopCustomGame" class="btn btn-danger" style="display: none;">
+              <span data-i18n="custom_stop_btn">Закрыть процесс</span>
+            </button>
+            <span id="customRunningLabel" style="font-size: 12px; color: var(--accent-green); display: none; font-weight: 600;">
+              ● Процесс активен в Discord
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Live Telemetry Drawer -->
@@ -99,7 +305,7 @@
         <button id="btnClearLogs" style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 10px;" data-i18n="clear_logs">Очистить</button>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
-        <div class="log-entry info">[Engine] Native Rust Core v2.4.0 initialized.</div>
+        <div class="log-entry info">[Engine] Native Rust Core v2.5.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
       </div>
     </div>
@@ -107,14 +313,14 @@
 
   <!-- Settings Modal Dialog -->
   <div id="modalSettings" class="modal-overlay">
-    <div class="modal-content" style="text-align: left; max-width: 380px;">
+    <div class="modal-content" style="text-align: left; max-width: 400px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="modal-title" style="font-size: 16px;" data-i18n="settings_title">Настройки фарма</div>
+        <div class="modal-title" style="font-size: 16px;" data-i18n="settings_title">Параметры программы</div>
         <button id="btnSettingsClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
         <label style="font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;">
-          <span>Длительность фарма: <b id="settingsDurationVal" style="color: var(--accent-green);">15 мин</b></span>
+          <span>Длительность фарма квестов: <b id="settingsDurationVal" style="color: var(--accent-green);">15 мин</b></span>
           <input type="range" id="settingsDurationInput" min="5" max="30" value="15" step="1" style="cursor: pointer; width: 100%;">
         </label>
         <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -134,13 +340,11 @@
 
   <!-- Completed Modal Dialog -->
   <div id="modalCompleted" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="text-align: center;">
       <div class="orb-logo" style="width: 48px; height: 48px; margin: 0 auto; box-shadow: 0 0 24px var(--accent-green-glow);"></div>
       <div class="modal-title" data-i18n="modal_completed_title">Поздравляем!</div>
-      <div class="modal-desc" data-i18n="modal_completed_desc">
-        Все задания Discord Quests успешно завершены! Зайдите в Discord и нажмите кнопку «Забрать награду» (Claim Reward).
-      </div>
-      <div style="display: flex; gap: 8px; justify-content: center;">
+      <div class="modal-desc" data-i18n="modal_completed_desc">Все задания Discord Quests успешно завершены! Зайдите в Discord и нажмите кнопку «Забрать награду» (Claim Reward).</div>
+      <div style="display: flex; justify-content: center; gap: 10px; margin-top: 8px;">
         <button id="btnModalDiscord" class="btn btn-primary" data-i18n="claim_reward_btn">Забрать награды в Discord</button>
         <button id="btnModalClose" class="btn btn-secondary" data-i18n="close">Закрыть</button>
       </div>

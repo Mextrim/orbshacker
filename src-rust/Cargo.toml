@@ -1,9 +1,9 @@
 [package]
 name = "orbshacker-core"
-version = "2.4.0"
+version = "2.5.0"
 edition = "2021"
 authors = ["Mextrim"]
-description = "Native Rust core for orbshacker Discord Quests spoofer & Orbs collector"
+description = "Native Rust core for orbshacker Discord Quests & Badges Spoofer"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

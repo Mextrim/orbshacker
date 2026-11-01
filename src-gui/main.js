@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -20,6 +20,7 @@ function findRustBinary() {
     path.join(process.resourcesPath || '', 'bin', binName),
     path.join(__dirname, 'bin', binName),
     path.join(process.cwd(), 'src-rust', 'target', 'release', binName),
+    path.join(process.cwd(), 'dist', binName),
   ];
 
   for (const c of candidates) {
@@ -109,13 +110,13 @@ function sendRustRpc(method, params = {}) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1040,
-    height: 760,
-    minWidth: 880,
-    minHeight: 640,
+    width: 1080,
+    height: 780,
+    minWidth: 920,
+    minHeight: 660,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#0c0e12',
+    backgroundColor: '#0a0c10',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -138,6 +139,19 @@ function createWindow() {
 // IPC Handlers
 ipcMain.handle('rpc:call', async (_event, { method, params }) => {
   return await sendRustRpc(method, params);
+});
+
+ipcMain.handle('open-discord-quests', async () => {
+  try {
+    // Open Discord client directly to Quests home tab
+    await shell.openExternal('discord:///quest-home');
+  } catch (_) {
+    try {
+      await shell.openExternal('https://discord.com/quest-home');
+    } catch (e) {
+      console.error('Failed to open discord quests url:', e);
+    }
+  }
 });
 
 ipcMain.handle('window:minimize', () => {

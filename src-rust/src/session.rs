@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use crate::badges::{get_detectable_games_catalog, DetectableGame};
 use crate::discord_rpc::DiscordRpcClient;
 use crate::faker::FakerManager;
 use crate::quests::{get_active_quests, QuestInfo};
@@ -11,6 +12,7 @@ use crate::steam::SteamHelper;
 
 pub type EventCallback = Arc<dyn Fn(&str, serde_json::Value) + Send + Sync + 'static>;
 
+#[derive(Clone, serde::Serialize)]
 pub struct FarmStatus {
     pub is_farming: bool,
     pub elapsed_seconds: u64,
@@ -20,7 +22,21 @@ pub struct FarmStatus {
     pub total_orbs: u32,
 }
 
+#[derive(Clone, serde::Serialize)]
+pub struct BadgeFarmStatus {
+    pub is_active: bool,
+    pub mode: String, // "count" | "hours" | "custom"
+    pub current_game: String,
+    pub current_index: usize,
+    pub total_games: usize,
+    pub elapsed_seconds: u64,
+    pub target_seconds: u64,
+    pub progress_percent: f64,
+    pub active_exes: Vec<String>,
+}
+
 pub struct FarmSession {
+    // Quests farm state
     is_running: Arc<AtomicBool>,
     elapsed: Arc<AtomicU64>,
     total_seconds: Arc<AtomicU64>,
@@ -29,6 +45,18 @@ pub struct FarmSession {
     faker_mgr: Arc<Mutex<FakerManager>>,
     manifest_paths: Arc<Mutex<Vec<PathBuf>>>,
     ticker_handle: Option<thread::JoinHandle<()>>,
+
+    // Badge / Hours / Custom farm state
+    badge_is_active: Arc<AtomicBool>,
+    badge_mode: Arc<Mutex<String>>,
+    badge_current_game: Arc<Mutex<String>>,
+    badge_current_index: Arc<AtomicU64>,
+    badge_total_games: Arc<AtomicU64>,
+    badge_elapsed: Arc<AtomicU64>,
+    badge_target_seconds: Arc<AtomicU64>,
+    badge_faker_mgr: Arc<Mutex<FakerManager>>,
+    badge_rpc_clients: Arc<Mutex<Vec<DiscordRpcClient>>>,
+    badge_ticker_handle: Option<thread::JoinHandle<()>>,
 }
 
 impl FarmSession {
@@ -42,8 +70,23 @@ impl FarmSession {
             faker_mgr: Arc::new(Mutex::new(FakerManager::new(None))),
             manifest_paths: Arc::new(Mutex::new(Vec::new())),
             ticker_handle: None,
+
+            badge_is_active: Arc::new(AtomicBool::new(false)),
+            badge_mode: Arc::new(Mutex::new("idle".to_string())),
+            badge_current_game: Arc::new(Mutex::new(String::new())),
+            badge_current_index: Arc::new(AtomicU64::new(0)),
+            badge_total_games: Arc::new(AtomicU64::new(0)),
+            badge_elapsed: Arc::new(AtomicU64::new(0)),
+            badge_target_seconds: Arc::new(AtomicU64::new(0)),
+            badge_faker_mgr: Arc::new(Mutex::new(FakerManager::new(None))),
+            badge_rpc_clients: Arc::new(Mutex::new(Vec::new())),
+            badge_ticker_handle: None,
         }
     }
+
+    // ==========================================
+    // 1. DISCORD QUESTS FARMING
+    // ==========================================
 
     pub fn start_farm(
         &mut self,
@@ -119,15 +162,17 @@ impl FarmSession {
                 );
             }
 
-            // If this is FC 27, also launch nested variant for maximum path compatibility
+            // For EA Sports FC 27, launch multiple common executable variants for maximum compatibility
             if quest.id == "fc27" {
+                let _ = faker.launch_stub("FC27.exe", &quest.game_title, dur_secs, quest.steam_app_id);
                 let _ = faker.launch_stub("ea sports fc 27/fc27.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("fc27_trial.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
         }
 
         *self.active_quests.lock().unwrap() = target_quests.clone();
 
-        // Start background ticker
+        // Background ticker
         let running_flag = self.is_running.clone();
         let elapsed_counter = self.elapsed.clone();
         let total_secs_val = dur_secs;
@@ -230,6 +275,280 @@ impl FarmSession {
             total_orbs,
         }
     }
+
+    // ==========================================
+    // 2. DISCORD BADGES: GAME COUNT BOOSTER (100+ Games)
+    // ==========================================
+
+    pub fn start_badge_count_farm(
+        &mut self,
+        target_count: usize,
+        duration_per_game_secs: u64,
+        event_callback: EventCallback,
+    ) -> Result<usize, String> {
+        self.stop_badge_farm();
+
+        let catalog = get_detectable_games_catalog();
+        let games_to_run: Vec<DetectableGame> = catalog.into_iter().take(target_count.max(1)).collect();
+        let total_count = games_to_run.len();
+
+        self.badge_is_active.store(true, Ordering::SeqCst);
+        *self.badge_mode.lock().unwrap() = "count".to_string();
+        self.badge_total_games.store(total_count as u64, Ordering::SeqCst);
+        self.badge_current_index.store(0, Ordering::SeqCst);
+        self.badge_elapsed.store(0, Ordering::SeqCst);
+
+        let total_expected_secs = (total_count as u64) * duration_per_game_secs;
+        self.badge_target_seconds.store(total_expected_secs, Ordering::SeqCst);
+
+        let is_active_flag = self.badge_is_active.clone();
+        let cur_index_atom = self.badge_current_index.clone();
+        let elapsed_atom = self.badge_elapsed.clone();
+        let cur_game_mutex = self.badge_current_game.clone();
+        let faker_mgr_arc = self.badge_faker_mgr.clone();
+        let cb = event_callback.clone();
+
+        let handle = thread::spawn(move || {
+            cb(
+                "log",
+                serde_json::json!({
+                    "level": "info",
+                    "message": format!("🚀 Starting Game Count badge booster for {} games ({}s per game)...", total_count, duration_per_game_secs)
+                }),
+            );
+
+            // Cycle through games in batches of 3 to maximize Discord detection speed
+            let batch_size = 3;
+            let mut idx = 0;
+
+            while idx < total_count && is_active_flag.load(Ordering::SeqCst) {
+                let end = (idx + batch_size).min(total_count);
+                let current_batch = &games_to_run[idx..end];
+
+                // Spawn current batch
+                {
+                    let mut faker = faker_mgr_arc.lock().unwrap();
+                    for game in current_batch {
+                        let _ = faker.launch_stub(&game.exe_name, &game.name, duration_per_game_secs + 5, game.steam_app_id);
+                    }
+                }
+
+                let batch_names: Vec<String> = current_batch.iter().map(|g| g.name.clone()).collect();
+                *cur_game_mutex.lock().unwrap() = batch_names.join(", ");
+                cur_index_atom.store(end as u64, Ordering::SeqCst);
+
+                cb(
+                    "log",
+                    serde_json::json!({
+                        "level": "success",
+                        "message": format!("[Badge Boost] Running batch {}/{}: {}", end, total_count, batch_names.join(", "))
+                    }),
+                );
+
+                // Wait duration for Discord scanner to record the game
+                let step_secs = duration_per_game_secs;
+                for _ in 0..step_secs {
+                    if !is_active_flag.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_secs(1));
+                    let cur_el = elapsed_atom.fetch_add(1, Ordering::SeqCst) + 1;
+                    let pct = ((end as f64) / (total_count as f64) * 100.0).min(100.0);
+
+                    cb(
+                        "badge_tick",
+                        serde_json::json!({
+                            "mode": "count",
+                            "current_game": batch_names.join(", "),
+                            "current_index": end,
+                            "total_games": total_count,
+                            "elapsed_seconds": cur_el,
+                            "target_seconds": total_expected_secs,
+                            "progress_percent": (pct * 10.0).round() / 10.0
+                        }),
+                    );
+                }
+
+                // Stop this batch before next
+                {
+                    let mut faker = faker_mgr_arc.lock().unwrap();
+                    faker.stop_all();
+                }
+
+                idx = end;
+            }
+
+            if is_active_flag.load(Ordering::SeqCst) {
+                is_active_flag.store(false, Ordering::SeqCst);
+                cb(
+                    "badge_completed",
+                    serde_json::json!({
+                        "mode": "count",
+                        "completed_games": total_count,
+                        "message": "Badge games batch completed! Check your Discord profile badge."
+                    }),
+                );
+            }
+        });
+
+        self.badge_ticker_handle = Some(handle);
+        Ok(total_count)
+    }
+
+    // ==========================================
+    // 3. DISCORD BADGES: PLAYTIME HOURS BOOSTER & CUSTOM GAMES
+    // ==========================================
+
+    pub fn start_hours_farm(
+        &mut self,
+        game_id_or_exe: &str,
+        game_name_override: Option<&str>,
+        target_hours: u32,
+        is_infinite: bool,
+        event_callback: EventCallback,
+    ) -> Result<String, String> {
+        self.stop_badge_farm();
+
+        // Find game from catalog or create custom
+        let catalog = get_detectable_games_catalog();
+        let (name, exe, steam_id) = if let Some(g) = catalog.iter().find(|g| g.id == game_id_or_exe || g.exe_name.eq_ignore_ascii_case(game_id_or_exe)) {
+            (g.name.clone(), g.exe_name.clone(), g.steam_app_id)
+        } else {
+            let n = game_name_override.unwrap_or(game_id_or_exe).to_string();
+            let mut e = game_id_or_exe.to_string();
+            if !e.ends_with(".exe") {
+                e.push_str(".exe");
+            }
+            (n, e, None)
+        };
+
+        let target_secs = if is_infinite {
+            u64::MAX
+        } else {
+            (target_hours as u64) * 3600
+        };
+
+        self.badge_is_active.store(true, Ordering::SeqCst);
+        *self.badge_mode.lock().unwrap() = "hours".to_string();
+        *self.badge_current_game.lock().unwrap() = name.clone();
+        self.badge_elapsed.store(0, Ordering::SeqCst);
+        self.badge_target_seconds.store(target_secs, Ordering::SeqCst);
+
+        // Spawn game stub
+        {
+            let mut faker = self.badge_faker_mgr.lock().unwrap();
+            let run_dur = if is_infinite { 86400 * 30 } else { target_secs + 60 };
+            let _ = faker.launch_stub(&exe, &name, run_dur, steam_id)?;
+        }
+
+        let is_active_flag = self.badge_is_active.clone();
+        let elapsed_atom = self.badge_elapsed.clone();
+        let game_title_clone = name.clone();
+        let cb = event_callback.clone();
+
+        let handle = thread::spawn(move || {
+            cb(
+                "log",
+                serde_json::json!({
+                    "level": "success",
+                    "message": format!("⚡ Started Playtime Hours farm for '{}' (Target: {} hours, AFK Mode: {})...", game_title_clone, target_hours, is_infinite)
+                }),
+            );
+
+            while is_active_flag.load(Ordering::SeqCst) {
+                thread::sleep(Duration::from_secs(1));
+                if !is_active_flag.load(Ordering::SeqCst) {
+                    break;
+                }
+
+                let cur_el = elapsed_atom.fetch_add(1, Ordering::SeqCst) + 1;
+                let pct = if target_secs > 0 && target_secs != u64::MAX {
+                    ((cur_el as f64) / (target_secs as f64) * 100.0).min(100.0)
+                } else {
+                    0.0
+                };
+
+                cb(
+                    "badge_tick",
+                    serde_json::json!({
+                        "mode": "hours",
+                        "current_game": game_title_clone,
+                        "elapsed_seconds": cur_el,
+                        "target_seconds": if target_secs == u64::MAX { 0 } else { target_secs },
+                        "progress_percent": (pct * 10.0).round() / 10.0,
+                        "is_infinite": is_infinite
+                    }),
+                );
+
+                if !is_infinite && cur_el >= target_secs {
+                    is_active_flag.store(false, Ordering::SeqCst);
+                    cb(
+                        "badge_completed",
+                        serde_json::json!({
+                            "mode": "hours",
+                            "game": game_title_clone,
+                            "hours_farmed": target_hours,
+                            "message": format!("Hours goal reached for {}! Check your badge tier.", game_title_clone)
+                        }),
+                    );
+                    break;
+                }
+            }
+        });
+
+        self.badge_ticker_handle = Some(handle);
+        Ok(name)
+    }
+
+    pub fn stop_badge_farm(&mut self) {
+        self.badge_is_active.store(false, Ordering::SeqCst);
+        if let Some(h) = self.badge_ticker_handle.take() {
+            let _ = h.join();
+        }
+
+        {
+            let mut faker = self.badge_faker_mgr.lock().unwrap();
+            faker.stop_all();
+        }
+
+        {
+            let mut list = self.badge_rpc_clients.lock().unwrap();
+            for mut c in list.drain(..) {
+                c.stop();
+            }
+        }
+
+        *self.badge_mode.lock().unwrap() = "idle".to_string();
+        *self.badge_current_game.lock().unwrap() = String::new();
+        self.badge_elapsed.store(0, Ordering::SeqCst);
+    }
+
+    pub fn get_badge_status(&self) -> BadgeFarmStatus {
+        let is_active = self.badge_is_active.load(Ordering::SeqCst);
+        let mode = self.badge_mode.lock().unwrap().clone();
+        let cur_game = self.badge_current_game.lock().unwrap().clone();
+        let cur_idx = self.badge_current_index.load(Ordering::SeqCst) as usize;
+        let total_games = self.badge_total_games.load(Ordering::SeqCst) as usize;
+        let elapsed = self.badge_elapsed.load(Ordering::SeqCst);
+        let target = self.badge_target_seconds.load(Ordering::SeqCst);
+        let pct = if target > 0 && target != u64::MAX {
+            ((elapsed as f64) / (target as f64) * 100.0).min(100.0)
+        } else {
+            0.0
+        };
+
+        BadgeFarmStatus {
+            is_active,
+            mode,
+            current_game: cur_game,
+            current_index: cur_idx,
+            total_games,
+            elapsed_seconds: elapsed,
+            target_seconds: if target == u64::MAX { 0 } else { target },
+            progress_percent: (pct * 10.0).round() / 10.0,
+            active_exes: Vec::new(),
+        }
+    }
 }
 
 impl Default for FarmSession {
@@ -241,5 +560,6 @@ impl Default for FarmSession {
 impl Drop for FarmSession {
     fn drop(&mut self) {
         self.stop_farm();
+        self.stop_badge_farm();
     }
 }

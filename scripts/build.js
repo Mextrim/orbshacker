@@ -13,7 +13,7 @@ const rustBin = path.join(rootDir, 'src-rust', 'target', 'release', binName);
 const guiBinDir = path.join(rootDir, 'src-gui', 'bin');
 const distDir = path.join(rootDir, 'dist');
 const packagedDir = path.join(distDir, 'orbshacker-win32-x64');
-const zipOut = path.join(distDir, 'orbshacker-v2.4.0-win-x64.zip');
+const zipOut = path.join(distDir, 'orbshacker-v2.5.0-win-x64.zip');
 
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
@@ -66,6 +66,19 @@ fs.copyFileSync(rustBin, path.join(resourcesBin, binName));
 fs.copyFileSync(rustBin, path.join(distDir, binName));
 console.log('✅ [5/6] Bundled Rust sidecar into Electron package.');
 
+// Build single-file portable binary with electron-builder if available
+console.log('🚀 Building standalone single-file portable exe...');
+const builderResult = spawnSync(npxCmd, ['electron-builder', '--win', 'portable', '--project', path.join(rootDir, 'src-gui')], {
+  stdio: 'inherit',
+});
+if (builderResult.status === 0) {
+  const portableSource = path.join(distDir, 'orbshacker-portable.exe');
+  if (fs.existsSync(portableSource)) {
+    fs.copyFileSync(portableSource, path.join(distDir, 'orbshacker.exe'));
+    console.log('✅ Created standalone portable binary: dist/orbshacker.exe');
+  }
+}
+
 console.log('🗜️  [6/6] Creating portable distribution ZIP...');
 if (fs.existsSync(zipOut)) {
   fs.unlinkSync(zipOut);
@@ -89,10 +102,17 @@ function sha256File(filePath) {
 
 const zipHash = sha256File(zipOut);
 const coreHash = sha256File(path.join(distDir, binName));
-const shaSums = `${zipHash} *orbshacker-v2.4.0-win-x64.zip\n${coreHash} *orbshacker-core.exe\n`;
+let shaSums = `${zipHash} *orbshacker-v2.5.0-win-x64.zip\n${coreHash} *orbshacker-core.exe\n`;
+
+const portableExe = path.join(distDir, 'orbshacker.exe');
+if (fs.existsSync(portableExe)) {
+  const portHash = sha256File(portableExe);
+  shaSums += `${portHash} *orbshacker.exe\n`;
+}
+
 fs.writeFileSync(path.join(distDir, 'SHA256SUMS'), shaSums, 'utf8');
 
 console.log(`\n🎉 Distribution ready in: ${distDir}`);
-console.log(`   - orbshacker-v2.4.0-win-x64.zip (${(fs.statSync(zipOut).size / 1024 / 1024).toFixed(1)} MB, SHA: ${zipHash.slice(0, 16)}...)`);
+console.log(`   - orbshacker-v2.5.0-win-x64.zip (${(fs.statSync(zipOut).size / 1024 / 1024).toFixed(1)} MB, SHA: ${zipHash.slice(0, 16)}...)`);
 console.log(`   - orbshacker-core.exe (${(fs.statSync(path.join(distDir, binName)).size / 1024 / 1024).toFixed(1)} MB, SHA: ${coreHash.slice(0, 16)}...)`);
 console.log('   - SHA256SUMS generated.');
