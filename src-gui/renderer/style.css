@@ -1351,3 +1351,63 @@ body {
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+/* ====================================================
+   AUTO-UPDATER STYLES
+   ==================================================== */
+.update-badge-pill {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.22), rgba(244, 63, 94, 0.25));
+  border: 1px solid rgba(251, 146, 60, 0.6);
+  color: #fb923c;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);
+  animation: pulseGlow 2s infinite;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(251, 146, 60, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
+}
+
+.update-badge-pill:hover {
+  transform: scale(1.06);
+  filter: brightness(1.2);
+}
+
+.settings-update-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+
+.update-version-badge {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.update-notes-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 140px;
+  overflow-y: auto;
+}

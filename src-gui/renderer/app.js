@@ -125,6 +125,26 @@
   const settingsSoundToggle = document.getElementById('settingsSoundToggle');
   const settingsAutoDiscordToggle = document.getElementById('settingsAutoDiscordToggle');
 
+  // Updater Elements
+  const btnUpdateAvailable = document.getElementById('btnUpdateAvailable');
+  const updateAvailableText = document.getElementById('updateAvailableText');
+  const modalUpdate = document.getElementById('modalUpdate');
+  const btnUpdateModalClose = document.getElementById('btnUpdateModalClose');
+  const updateCurrentVer = document.getElementById('updateCurrentVer');
+  const updateNewVer = document.getElementById('updateNewVer');
+  const updateReleaseNotes = document.getElementById('updateReleaseNotes');
+  const updateProgressBox = document.getElementById('updateProgressBox');
+  const updateProgressText = document.getElementById('updateProgressText');
+  const updateProgressPercent = document.getElementById('updateProgressPercent');
+  const updateProgressFill = document.getElementById('updateProgressFill');
+  const btnOpenReleaseGithub = document.getElementById('btnOpenReleaseGithub');
+  const btnPostponeUpdate = document.getElementById('btnPostponeUpdate');
+  const btnStartDownloadUpdate = document.getElementById('btnStartDownloadUpdate');
+  const settingsUpdateStatus = document.getElementById('settingsUpdateStatus');
+  const btnCheckUpdateManual = document.getElementById('btnCheckUpdateManual');
+  let latestUpdateInfo = null;
+  let isDownloadingUpdate = false;
+
   // ==========================================
   // 1. THEME ENGINE
   // ==========================================
@@ -334,6 +354,144 @@
     modalSettings.classList.remove('active');
     addLog(`Settings applied: duration=${farmDurationMinutes}m, sound=${soundEnabled}`, 'info');
   });
+
+  // ==========================================
+  // AUTO-UPDATER ENGINE (GitHub Releases)
+  // ==========================================
+  async function checkForAppUpdates(isManual = false) {
+    if (!window.orbshacker || !window.orbshacker.checkForUpdates) return;
+    try {
+      if (isManual && settingsUpdateStatus) {
+        settingsUpdateStatus.textContent = 'Проверка обновлений...';
+      }
+      const info = await window.orbshacker.checkForUpdates();
+      if (!info) return;
+
+      latestUpdateInfo = info;
+
+      if (info.hasUpdate) {
+        if (btnUpdateAvailable && updateAvailableText) {
+          updateAvailableText.textContent = info.latestVersion;
+          btnUpdateAvailable.style.display = 'inline-flex';
+        }
+        if (settingsUpdateStatus) {
+          settingsUpdateStatus.innerHTML = `<span style="color: var(--accent-orange); font-weight: 700;">🔥 Доступна ${info.latestVersion}!</span>`;
+        }
+        addLog(`🔥 Доступна новая версия: ${info.latestVersion}! Нажмите на значок обновления в заголовке или настройках.`, 'warn');
+
+        if (isManual) {
+          showUpdateModal(info);
+        }
+      } else {
+        if (settingsUpdateStatus) {
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.5.0'}) ✓`;
+        }
+        if (isManual) {
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.5.0'})!`, 'success');
+        }
+      }
+    } catch (err) {
+      if (isManual) {
+        if (settingsUpdateStatus) settingsUpdateStatus.textContent = 'Ошибка проверки';
+        addLog(`Ошибка проверки обновлений: ${err.message}`, 'error');
+      }
+    }
+  }
+
+  function showUpdateModal(info) {
+    if (!info || !modalUpdate) return;
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.5.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.5.0';
+    if (updateReleaseNotes) updateReleaseNotes.textContent = info.releaseNotes || 'Улучшения производительности и исправления ошибок.';
+    if (updateProgressBox) updateProgressBox.style.display = 'none';
+    if (btnStartDownloadUpdate) {
+      btnStartDownloadUpdate.disabled = false;
+      btnStartDownloadUpdate.innerHTML = '<span>⬇ Скачать и обновить</span>';
+    }
+    modalUpdate.classList.add('active');
+  }
+
+  if (btnUpdateAvailable) {
+    btnUpdateAvailable.addEventListener('click', () => {
+      if (latestUpdateInfo) showUpdateModal(latestUpdateInfo);
+      else checkForAppUpdates(true);
+    });
+  }
+
+  if (btnCheckUpdateManual) {
+    btnCheckUpdateManual.addEventListener('click', () => checkForAppUpdates(true));
+  }
+
+  if (btnUpdateModalClose) {
+    btnUpdateModalClose.addEventListener('click', () => {
+      if (!isDownloadingUpdate) modalUpdate.classList.remove('active');
+    });
+  }
+
+  if (btnPostponeUpdate) {
+    btnPostponeUpdate.addEventListener('click', () => {
+      if (!isDownloadingUpdate) modalUpdate.classList.remove('active');
+    });
+  }
+
+  if (btnOpenReleaseGithub) {
+    btnOpenReleaseGithub.addEventListener('click', () => {
+      const url = (latestUpdateInfo && latestUpdateInfo.releaseUrl) || 'https://github.com/Mextrim/orbshacker/releases/latest';
+      if (window.orbshacker && window.orbshacker.openExternal) {
+        window.orbshacker.openExternal(url);
+      }
+    });
+  }
+
+  if (btnStartDownloadUpdate) {
+    btnStartDownloadUpdate.addEventListener('click', async () => {
+      if (!latestUpdateInfo || !latestUpdateInfo.downloadUrl) {
+        addLog('Ссылка на скачивание не найдена в релизе.', 'error');
+        return;
+      }
+      isDownloadingUpdate = true;
+      btnStartDownloadUpdate.disabled = true;
+      if (btnPostponeUpdate) btnPostponeUpdate.disabled = true;
+      if (updateProgressBox) updateProgressBox.style.display = 'flex';
+      if (updateProgressFill) updateProgressFill.style.width = '0%';
+      if (updateProgressPercent) updateProgressPercent.textContent = '0%';
+      if (updateProgressText) updateProgressText.textContent = 'Подключение к GitHub Releases...';
+
+      addLog(`Загрузка обновления ${latestUpdateInfo.latestVersion} с GitHub...`, 'info');
+
+      try {
+        await window.orbshacker.downloadUpdate({
+          downloadUrl: latestUpdateInfo.downloadUrl,
+          checksumUrl: latestUpdateInfo.checksumUrl,
+          assetName: latestUpdateInfo.assetName
+        });
+
+        if (updateProgressText) updateProgressText.textContent = '✅ Обновление установлено! Перезапуск...';
+        if (updateProgressFill) updateProgressFill.style.width = '100%';
+        if (updateProgressPercent) updateProgressPercent.textContent = '100%';
+        addLog('Обновление успешно загружено и проверено! Перезапуск программы...', 'success');
+      } catch (err) {
+        isDownloadingUpdate = false;
+        btnStartDownloadUpdate.disabled = false;
+        if (btnPostponeUpdate) btnPostponeUpdate.disabled = false;
+        if (updateProgressText) updateProgressText.textContent = `Ошибка: ${err.message}`;
+        addLog(`Ошибка при установке обновления: ${err.message}`, 'error');
+      }
+    });
+  }
+
+  if (window.orbshacker && window.orbshacker.onUpdateProgress) {
+    window.orbshacker.onUpdateProgress((p) => {
+      if (updateProgressFill && updateProgressPercent && updateProgressText) {
+        const pct = Math.round(p.percent);
+        updateProgressFill.style.width = `${pct}%`;
+        updateProgressPercent.textContent = `${pct}%`;
+        const mb = (p.downloadedBytes / (1024 * 1024)).toFixed(1);
+        const totalMb = (p.totalBytes / (1024 * 1024)).toFixed(1);
+        updateProgressText.textContent = `Загрузка: ${mb} MB / ${totalMb} MB (${pct}%)`;
+      }
+    });
+  }
 
   // ==========================================
   // 4. RENDER QUEST CARDS
@@ -889,6 +1047,11 @@
           hoursLiveBox.style.display = 'flex';
         }
       }
+
+      // 8. Silently check for updates from GitHub in background
+      setTimeout(() => {
+        checkForAppUpdates(false);
+      }, 1500);
     } catch (err) {
       addLog(`Error initializing app: ${err.message}`, 'error');
     }

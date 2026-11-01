@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const readline = require('readline');
+const updater = require('./updater');
+const pkg = require('./package.json');
 
 let mainWindow = null;
 let rustProcess = null;
@@ -174,7 +176,37 @@ ipcMain.handle('window:close', () => {
   if (mainWindow) mainWindow.close();
 });
 
+// Auto-Updater Handlers (GitHub Releases)
+ipcMain.handle('updater:check', async () => {
+  try {
+    return await updater.checkForUpdates(pkg.version);
+  } catch (err) {
+    console.error('Update check failed:', err);
+    return { hasUpdate: false, error: err.message, currentVersion: pkg.version };
+  }
+});
+
+ipcMain.handle('updater:download', async (_event, { downloadUrl, checksumUrl, assetName }) => {
+  try {
+    return await updater.downloadAndInstall(downloadUrl, checksumUrl, assetName, (progress) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('updater:progress', progress);
+      }
+    });
+  } catch (err) {
+    console.error('Download update failed:', err);
+    throw err;
+  }
+});
+
+ipcMain.handle('open-external', async (_event, url) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+  }
+});
+
 app.whenReady().then(() => {
+  updater.cleanupOldExe();
   startRustCore();
   createWindow();
 

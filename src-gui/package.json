@@ -18,6 +18,7 @@
     },
     "files": [
       "main.js",
+      "updater.js",
       "preload.js",
       "renderer/**/*",
       "assets/**/*",

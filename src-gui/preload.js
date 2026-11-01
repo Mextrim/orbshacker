@@ -11,4 +11,12 @@ contextBridge.exposeInMainWorld('orbshacker', {
   minimize: () => ipcRenderer.invoke('window:minimize'),
   maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
+  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: (params) => ipcRenderer.invoke('updater:download', params),
+  onUpdateProgress: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('updater:progress', handler);
+    return () => ipcRenderer.removeListener('updater:progress', handler);
+  },
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
 });

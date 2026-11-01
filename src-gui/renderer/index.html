@@ -11,7 +11,11 @@
     <div class="titlebar-brand">
       <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.5.0</span>
+      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.5.0</span>
+      <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
+        <span class="update-icon">🔥</span>
+        <span id="updateAvailableText">v2.6.0</span>
+      </button>
     </div>
 
     <div class="titlebar-center">
@@ -380,9 +384,68 @@
           <input type="checkbox" id="settingsAutoDiscordToggle" checked style="cursor: pointer;">
           <span>Автоматически опрашивать Discord IPC</span>
         </label>
+        
+        <!-- Auto-Update Section -->
+        <div class="settings-update-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Обновления с GitHub</span>
+              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.5.0</span>
+            </div>
+            <button id="btnCheckUpdateManual" class="btn btn-secondary" style="padding: 5px 12px; font-size: 11px; white-space: nowrap;">
+              <span>🔄 Проверить</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
         <button id="btnSettingsSave" class="btn btn-primary" style="padding: 6px 18px; font-size: 12px;" data-i18n="save">Применить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal Dialog -->
+  <div id="modalUpdate" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🚀</span>
+          <div class="modal-title" style="font-size: 16px;">Доступно обновление Orbshacker!</div>
+        </div>
+        <button id="btnUpdateModalClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
+      </div>
+
+      <div class="update-version-badge">
+        <span>Текущая: <b id="updateCurrentVer">v2.5.0</b></span>
+        <span style="color: var(--accent-primary);">➔</span>
+        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.6.0</b></span>
+      </div>
+
+      <div class="update-notes-box">
+        <div id="updateReleaseNotes" style="white-space: pre-wrap; font-size: 11.5px; color: var(--text-muted); line-height: 1.45; max-height: 140px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- Download progress bar -->
+      <div id="updateProgressBox" class="progress-container" style="display: none; margin-top: 4px;">
+        <div class="progress-header">
+          <span id="updateProgressText" style="color: var(--accent-primary); font-weight: 700;">Загрузка обновления...</span>
+          <span id="updateProgressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="updateProgressFill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+        <button id="btnOpenReleaseGithub" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px;">
+          <span>🌐 Страница на GitHub</span>
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnPostponeUpdate" class="btn btn-secondary" style="font-size: 11px; padding: 6px 14px;">Позже</button>
+          <button id="btnStartDownloadUpdate" class="btn btn-primary btn-glow" style="font-size: 11px; padding: 6px 16px;">
+            <span>⬇ Скачать и обновить</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
