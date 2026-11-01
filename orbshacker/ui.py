@@ -49,7 +49,7 @@ def print_color(text: str, color: str = Colors.WHITE, bold: bool = False) -> Non
     print(f"{style}{color}{text}{Colors.RESET}")
 
 
-def pause(prompt: str = "Press Enter to continue...") -> None:
+def pause(prompt: str = "Нажмите Enter, чтобы продолжить...") -> None:
     """Wait for Enter; Ctrl+C/EOF return to the caller instead of killing the app."""
     try:
         input(f"\n{Colors.GRAY}{prompt}{Colors.RESET}")
@@ -87,9 +87,9 @@ def print_banner() -> None:
 |_____|__|__|_____|_____|  |__|__|__|__|_____|__|__|_____|__|__|
                                                                 
 {Colors.RESET}
-    {Colors.GRAY}Developer: {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
-    {Colors.GRAY}Version: {Colors.WHITE}{config.VERSION}{Colors.RESET}
-    {Colors.GRAY}Database: {Colors.GREEN}Discord Official API + GitHub Archive{Colors.RESET}
+    {Colors.GRAY}Разработчики:{Colors.RESET} {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
+    {Colors.GRAY}Версия:{Colors.RESET}       {Colors.WHITE}v{config.VERSION}{Colors.RESET}
+    {Colors.GRAY}База данных:{Colors.RESET}   {Colors.GREEN}Discord Official API + GitHub Archive + Live Quests{Colors.RESET}
 """
     print(banner)
 
@@ -102,11 +102,11 @@ def loading_animation(text: str, duration: float = 1.5) -> None:
     i = 0
     while time.time() < end_time:
         try:
-            sys.stdout.write(f"\r{Colors.CYAN}{frames[i % len(frames)]}{Colors.RESET} {text}")
+            sys.stdout.write(f"\r{Colors.CYAN}{frames[i % len(frames)]}{Colors.RESET} {text}...")
             sys.stdout.flush()
         except UnicodeEncodeError:
             try:
-                sys.stdout.write(f"\r{Colors.CYAN}{ascii_frames[i % len(ascii_frames)]}{Colors.RESET} {text}")
+                sys.stdout.write(f"\r{Colors.CYAN}{ascii_frames[i % len(ascii_frames)]}{Colors.RESET} {text}...")
                 sys.stdout.flush()
             except Exception:
                 pass
@@ -115,79 +115,66 @@ def loading_animation(text: str, duration: float = 1.5) -> None:
         time.sleep(0.1)
         i += 1
     try:
-        sys.stdout.write("\r" + " " * (len(text) + 5) + "\r")
+        sys.stdout.write("\r" + " " * (len(text) + 8) + "\r")
         sys.stdout.flush()
     except Exception:
         pass
 
 
-def ask_confirm(prompt: str = "Create and launch?") -> bool:
+def ask_confirm(prompt: str = "Создать и запустить?") -> bool:
     """Ask a Y/n confirmation question. Returns True if user confirms."""
     answer = input(f"\n{Colors.BOLD}{prompt}{Colors.RESET} [Y/n]: ").strip().lower()
-    return answer in ('', 'y', 'yes')
+    return answer in ('', 'y', 'yes', 'д', 'да')
 
 
 def print_menu() -> None:
     """Display main menu."""
-    print_boxed_title("MAIN MENU", width=50, color=Colors.CYAN)
-    print(f"  {Colors.BOLD}{Colors.GREEN}1.{Colors.RESET} Search Discord database (Official API)")
-    print(f"  {Colors.BOLD}{Colors.GREEN}2.{Colors.RESET} Manual mode (custom executable)")
-    print(f"  {Colors.BOLD}{Colors.YELLOW}3.{Colors.RESET} Steam Quest Mode  {Colors.YELLOW}[NEW - for Marathon, Toxic Commando…]{Colors.RESET}")
-    print(f"  {Colors.BOLD}{Colors.GREEN}4.{Colors.RESET} Credits & Info")
-    print(f"  {Colors.BOLD}{Colors.RED}5.{Colors.RESET} Exit\n")
+    print_boxed_title("ГЛАВНОЕ МЕНЮ", width=62, color=Colors.CYAN)
+    print(f"  {Colors.BOLD}{Colors.GREEN}1.{Colors.RESET} Поиск по базе Discord (Официальный API)")
+    print(f"  {Colors.BOLD}{Colors.GREEN}2.{Colors.RESET} Ручной режим (указать имя EXE)")
+    print(f"  {Colors.BOLD}{Colors.YELLOW}3.{Colors.RESET} Steam Quest Mode  {Colors.YELLOW}[для Marathon, Toxic Commando…]{Colors.RESET}")
+    print(f"  {Colors.BOLD}{Colors.YELLOW}4.{Colors.RESET} {Colors.BOLD}Discord Quests & Orbs Collector{Colors.RESET}  {Colors.YELLOW}[HOT - Забрать ВСЕ Орбсы в 1 клик!]{Colors.RESET}")
+    print(f"  {Colors.BOLD}{Colors.CYAN}5.{Colors.RESET} Информация & О программе")
+    print(f"  {Colors.BOLD}{Colors.RED}6.{Colors.RESET} Выход\n")
 
 
 def show_credits() -> None:
     """Display credits."""
-    print_boxed_title("CREDITS", width=65, color=Colors.CYAN)
+    print_boxed_title("ИНФОРМАЦИЯ & О ПРОГРАММЕ", width=68, color=Colors.CYAN)
     credits_text = f"""
-    {Colors.BOLD}Developer:{Colors.RESET} {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
-    {Colors.BOLD}Version:{Colors.RESET}   {Colors.WHITE}{config.VERSION}{Colors.RESET}
+    {Colors.BOLD}Разработчики:{Colors.RESET} {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
+    {Colors.BOLD}Версия:{Colors.RESET}       {Colors.WHITE}v{config.VERSION}{Colors.RESET}
 
-    {Colors.BOLD}Description:{Colors.RESET}
-    This tool works as a game process spoofer. It tricks Discord into
-    thinking you're running a game by creating fake processes with the
-    exact names Discord expects.
+    {Colors.BOLD}Принцип работы (Спуфинг игровых процессов):{Colors.RESET}
+    1. Подключается к официальному API Discord и получает список игр
+    2. Находит точное имя процесса (EXE), которое ожидает Discord
+    3. Создаёт лёгкий процесс с нужным именем в папке Desktop/Win64/
+    4. Discord сканирует запущенные процессы в Windows и видит игру
+    5. Discord засчитывает время в квестах так, как будто игра реально идёт
     
-    {Colors.BOLD}IMPORTANT:{Colors.RESET} {Colors.RED}Discord MUST be running for this to work!{Colors.RESET}
+    {Colors.BOLD}{Colors.YELLOW}⚡ Коллектор Орбсов Discord (Пункт 4):{Colors.RESET}
+    • В реальном времени получает список всех действующих квестов
+    • Показывает награды в Орбсах (Discord Orbs) и ПК-игры
+    • Позволяет запустить ВСЕ игры одновременно в 1 клик ([A])!
+    • Встроенный живой дашборд с таймером на 15 минут и прогресс-баром
+    • После завершения таймера вы получаете все Орбсы в Discord!
     
-    {Colors.BOLD}How it works (Game Spoofing):{Colors.RESET}
-    1. Connects to Discord's official API to get the latest game list
-    2. Finds the exact process name Discord expects for each game
-    3. Copies a base executable to Desktop/Win64/ and renames it to match
-    4. Launches the fake process in background
-    5. Discord scans running processes and detects the fake process name
-    6. Discord thinks you're playing the game (process name match)
-    7. The fake process must stay running for Discord to keep detecting it
+    {Colors.BOLD}Steam Quest Mode (Пункт 3):{Colors.RESET}
+    Некоторые квесты требуют наличия игры в Steam. Режим Steam Quest
+    генерирует манифест appmanifest.acf в папке Steam и обходит проверку.
     
-    {Colors.BOLD}Steam Quest Mode (NEW):{Colors.RESET}
-    Some games (Marathon, Toxic Commando…) require Discord to verify
-    that Steam has at least partially downloaded them.
-    Steam Quest Mode bypasses this by:
-    1. Fetching app info automatically from SteamCMD public API
-    2. Generating a fake appmanifest_<appid>.acf in your steamapps/ folder
-    3. Placing the fake exe directly in steamapps/common/<installdir>/
-    Discord then sees a valid Steam manifest + a running process = quest detected.
-    
-    {Colors.BOLD}Database Sources:{Colors.RESET}
+    {Colors.BOLD}Источники данных:{Colors.RESET}
     • Primary: Discord Official API
     • Backup:  GitHub Archive by Cynosphere
+    • Quests:  Discord API Tracker (Live)
     
-    {Colors.BOLD}Pro Tips:{Colors.RESET}
-    • Use Steam Quest Mode for games not detected by modes 1 or 2
-    • Find AppIDs at https://steamdb.info
-    • The fake process must stay running for Discord to detect it
+    {Colors.BOLD}Полезные советы:{Colors.RESET}
+    • Discord обязательно должен быть запущен во время фарма!
+    • В Discord не забудьте нажать «Принять квест» (Accept Quest)!
+    • Все процессы автоматически завершаются через 15 минут.
     
-    {Colors.BOLD}{Colors.GREEN}Multi-Game Emulation:{Colors.RESET}
-    • Launch several games from the menu in one session
-    • Complete ALL orb quests simultaneously in just 15 minutes
-    
-    {Colors.BOLD}{Colors.RED}WARNING - EDUCATIONAL PURPOSES ONLY{Colors.RESET}
-    • Users are SOLELY responsible for compliance with Discord ToS
-    • The developers are NOT responsible for any consequences
-    • Use at your own risk
-    
-    {Colors.GRAY}Made by {config.DEVELOPER}{Colors.RESET}
+    {Colors.BOLD}{Colors.RED}ВНИМАНИЕ:{Colors.RESET} Программа создана в образовательных целях.
+    Используйте на свой страх и риск.
 """
     print(credits_text)
-    pause("Press Enter to return to menu...")
+    pause("Нажмите Enter, чтобы вернуться в меню...")

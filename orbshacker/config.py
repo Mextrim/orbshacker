@@ -238,6 +238,10 @@ GITHUB_BACKUP_URL = (
 )
 STEAMCMD_API_URL = "https://api.steamcmd.net/v1/info"
 STEAM_STORE_SEARCH_URL = "https://store.steampowered.com/api/storesearch"
+QUESTS_API_URL         = (
+    "https://raw.githubusercontent.com/xGustavvo/"
+    "discord-api-tracker/refs/heads/main/quest.json"
+)
 
 # ── HTTP settings (internal) ─────────────────────────────────────────────────
 REQUEST_TIMEOUT = 10

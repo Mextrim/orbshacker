@@ -165,7 +165,11 @@ class GameFaker:
             )
 
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(self._source_exe, target_path)
+        try:
+            shutil.copy2(self._source_exe, target_path)
+        except PermissionError:
+            if not (target_path.exists() and is_ours):
+                raise
         self.register_created_file(target_path)
 
         limit_dir = self._limit_dir_for(target_path)

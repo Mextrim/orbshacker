@@ -46,13 +46,14 @@ def main():
     print(f"[*] Baking version into: {version_file}")
     version_file.write_text(f'VERSION = "{version}"\n', encoding="utf-8")
 
-    # 3. Find PyInstaller executable in current environment
-    pyinstaller_bin = Path(sys.executable).parent / "pyinstaller"
-    pyinstaller_exe = pyinstaller_bin.with_suffix(".exe")
+    # 3. Find PyInstaller executable in current venv / python installation
+    scripts_dir = Path(sys.executable).parent / "Scripts"
+    pyinstaller_exe = Path(sys.executable).parent / "pyinstaller.exe"
+    if not pyinstaller_exe.exists():
+        pyinstaller_exe = scripts_dir / "pyinstaller.exe"
+
     if pyinstaller_exe.exists():
         pyinstaller_cmd = [str(pyinstaller_exe)]
-    elif pyinstaller_bin.exists():
-        pyinstaller_cmd = [str(pyinstaller_bin)]
     else:
         pyinstaller_cmd = [sys.executable, "-m", "PyInstaller"]
 
