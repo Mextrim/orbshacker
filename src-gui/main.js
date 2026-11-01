@@ -16,8 +16,9 @@ function findRustBinary() {
   const candidates = [
     path.join(__dirname, '..', 'src-rust', 'target', 'release', binName),
     path.join(__dirname, '..', 'src-rust', 'target', 'debug', binName),
-    path.join(__dirname, 'bin', binName),
+    path.join(path.dirname(process.execPath || ''), binName),
     path.join(process.resourcesPath || '', 'bin', binName),
+    path.join(__dirname, 'bin', binName),
     path.join(process.cwd(), 'src-rust', 'target', 'release', binName),
   ];
 
