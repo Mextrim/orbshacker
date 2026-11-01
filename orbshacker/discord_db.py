@@ -8,6 +8,7 @@ import time
 from typing import TypedDict
 
 from . import config
+from .i18n import t
 from .errors import DatabaseLoadError, NetworkError
 from .faker import GameFaker
 from .net import fetch_json
@@ -181,12 +182,12 @@ def _pick_discord_game(db: DiscordGamesDB, query: str) -> GameRecord | None:
     loading_animation(f"Searching for '{query}'", 0.8)
     matches = db.search_games(query)
     if not matches:
-        print_color(f"\n[ERROR] No games found for '{query}'", Colors.RED)
-        print_color("[!] Try a different search term or abbreviation", Colors.YELLOW)
+        print_color(f"\n[ERROR] " + t("db_no_games", query=query), Colors.RED)
+        print_color(f"[!] " + t("db_try_diff"), Colors.YELLOW)
         time.sleep(config.SLEEP_LONG)
         return None
 
-    print(f"\n{Colors.BOLD}{Colors.GREEN}Found {len(matches)} game(s):{Colors.RESET}\n")
+    print(f"\n{Colors.BOLD}{Colors.GREEN}" + t("db_found_games", count=len(matches)) + f"{Colors.RESET}\n")
     print(f"{Colors.GRAY}{'─' * 75}{Colors.RESET}")
     for idx, game in enumerate(matches, 1):
         name    = game.get('name', 'Unknown')
@@ -203,7 +204,7 @@ def _pick_discord_game(db: DiscordGamesDB, query: str) -> GameRecord | None:
             print(f"{Colors.GRAY}{'─' * 75}{Colors.RESET}")
     print()
 
-    raw = input(f"{Colors.BOLD}Select [1-{len(matches)}]{Colors.RESET} (or 'back'): ").strip()
+    raw = input(f"{Colors.BOLD}" + t("db_select_num", count=len(matches)) + f"{Colors.RESET}").strip()
     if raw.lower() in ('back', 'b', ''):
         return None
     try:
@@ -211,7 +212,7 @@ def _pick_discord_game(db: DiscordGamesDB, query: str) -> GameRecord | None:
         if not 1 <= idx <= len(matches):
             raise ValueError
     except ValueError:
-        print_color("\n[ERROR] Enter a valid number", Colors.RED)
+        print_color(f"\n[ERROR] " + t("db_valid_num"), Colors.RED)
         time.sleep(config.SLEEP_SHORT)
         return None
     return matches[idx - 1]
@@ -223,12 +224,12 @@ def _resolve_discord_exe(db: DiscordGamesDB, game: GameRecord) -> str | None:
     if exe_name:
         return exe_name
     current_os_name = "macOS" if sys.platform == "darwin" else ("Linux" if sys.platform.startswith("linux") else "Windows")
-    print_color(f"\n[ERROR] No {current_os_name} executable found for this game", Colors.RED)
-    print_color(f"[!] This game might not have a {current_os_name} version or executable data", Colors.YELLOW)
-    if ask_confirm("Enter executable name manually?"):
-        exe_name = input(f"{Colors.BOLD}Executable name:{Colors.RESET} ").strip()
+    print_color(f"\n[ERROR] " + t("db_no_exe", os_name=current_os_name), Colors.RED)
+    print_color(f"[!] " + t("db_no_exe_data", os_name=current_os_name), Colors.YELLOW)
+    if ask_confirm(t("db_enter_manual")):
+        exe_name = input(f"{Colors.BOLD}" + t("db_exe_name") + f"{Colors.RESET}").strip()
         if not exe_name:
-            print_color("\n[!] Operation cancelled", Colors.YELLOW)
+            print_color(f"\n[!] " + t("operation_cancelled"), Colors.YELLOW)
             time.sleep(config.SLEEP_SHORT)
             return None
         return sanitize_relative_path(exe_name)
@@ -237,14 +238,13 @@ def _resolve_discord_exe(db: DiscordGamesDB, game: GameRecord) -> str | None:
 
 def database_mode(db: DiscordGamesDB, faker: GameFaker) -> None:
     """Database search mode."""
-    print_boxed_title("DATABASE SEARCH", width=50, color=Colors.CYAN)
-    print_color(f"[*] Database: {db.source}", Colors.CYAN)
-    print_color(f"[*] Total games available: {len(db.games)}", Colors.GRAY)
-    print_color("\n[*] Search by name or abbreviation", Colors.CYAN)
-    print_color("[*] Examples: PUBG, Fortnite, League, Valorant, Minecraft", Colors.GRAY)
+    print_boxed_title(t("db_title"), width=56, color=Colors.CYAN)
+    print_color(f"[*] {t('db_label')} {db.source}", Colors.CYAN)
+    print_color(f"[*] " + t("db_total_avail", count=len(db.games)), Colors.GRAY)
+    print_color(f"\n[*] " + t("db_search_hint"), Colors.CYAN)
     print()
 
-    query = input(f"{Colors.BOLD}Search{Colors.RESET} (or 'back'): ").strip()
+    query = input(f"{Colors.BOLD}" + t("db_search_prompt") + f"{Colors.RESET}").strip()
     if query.lower() in ('back', 'b', ''):
         return
 

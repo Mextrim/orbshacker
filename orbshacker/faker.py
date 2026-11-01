@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 
 from . import config
+from .i18n import t
 from .bake import MARKER, bake_config, has_baked_config
 from .errors import FileConflictError
 from .path_utils import sanitize_relative_path
@@ -255,22 +256,22 @@ class GameFaker:
             exe_name += '.exe'
         target_path = self.chosen_path / config.FAKE_EXE_DIR / exe_name
         try:
-            loading_animation(f"Creating {exe_name.split('/')[-1]}", 0.5)
+            loading_animation(t("creating_fake", name=exe_name.split('/')[-1]), 0.5)
             self.copy_exe_to(target_path)
-            print_color(f"[OK] Created: {target_path}", Colors.GREEN, bold=True)
+            print_color(f"[OK] " + t("created_fake", path=target_path), Colors.GREEN, bold=True)
             return target_path
         except FileConflictError as e:
             print_color(f"[ERROR] {e}", Colors.RED, bold=True)
             return None
         except Exception as e:
-            print_color(f"[ERROR] Failed to create executable: {e}", Colors.RED, bold=True)
-            print_color("[!] Check file permissions or disk space", Colors.YELLOW)
+            print_color(f"[ERROR] " + t("failed_create", err=e), Colors.RED, bold=True)
+            print_color("[!] " + t("check_perms"), Colors.YELLOW)
             return None
 
     def launch_executable(self, exe_path: Path) -> bool:
         """Launch the fake game process in background."""
         try:
-            loading_animation("Launching process", 0.5)
+            loading_animation(t("launching_proc"), 0.5)
 
             if self._frozen:
                 args = [str(exe_path)]
@@ -306,11 +307,11 @@ class GameFaker:
                 )
             self._processes.append(proc)
 
-            print_color("[OK] Process launched in background", Colors.GREEN, bold=True)
-            print_color("[*] Discord should now detect the game (if Discord is running)", Colors.CYAN)
-            print_color("[!] IMPORTANT: Discord MUST be running for the spoofing to work", Colors.YELLOW)
-            print_color("[*] Wait a few seconds for Discord to scan processes", Colors.GRAY)
-            print_color("[*] TIP: Use the menu again to emulate multiple games at once!", Colors.MAGENTA)
+            print_color(f"[OK] {t('proc_launched_bg')}", Colors.GREEN, bold=True)
+            print_color(f"[*] {t('discord_will_detect')}", Colors.CYAN)
+            print_color(f"[!] {t('discord_must_run')}", Colors.YELLOW)
+            print_color(f"[*] {t('discord_scan_wait')}", Colors.GRAY)
+            print_color(f"[*] {t('tip_multi')}", Colors.MAGENTA)
             return True
         except Exception as e:
             print_color(f"[!] Failed to auto-launch: {e}", Colors.YELLOW)
@@ -364,25 +365,21 @@ class GameFaker:
 
 def manual_mode(faker: GameFaker) -> None:
     """Manual mode – user types an exact process name to fake."""
-    print_boxed_title("MANUAL MODE", width=50, color=Colors.CYAN)
-    print_color("[*] Enter the exact process name Discord expects", Colors.CYAN)
-    print_color("[*] Examples:", Colors.GRAY)
-    print_color("    • TslGame.exe (PUBG)", Colors.GRAY)
-    print_color("    • League of Legends.exe (LoL)", Colors.GRAY)
-    print_color("    • Overwatch.exe", Colors.GRAY)
-    print_color("[*] Make sure the name matches exactly (case-sensitive on some systems)", Colors.GRAY)
+    print_boxed_title(t("manual_title"), width=50, color=Colors.CYAN)
+    print_color(f"[*] {t('manual_desc')}", Colors.CYAN)
+    print_color(f"[*] {t('manual_examples')}", Colors.GRAY)
     print()
 
-    exe_name = input(f"{Colors.BOLD}Executable name{Colors.RESET} (or 'back'): ").strip()
+    exe_name = input(f"{Colors.BOLD}" + t("manual_prompt") + f"{Colors.RESET}").strip()
     if not exe_name or exe_name.lower() in ('back', 'b'):
         return
 
-    print(f"\n{Colors.BOLD}Summary:{Colors.RESET}")
+    print(f"\n{Colors.BOLD}" + t("manual_summary") + f"{Colors.RESET}")
     print(f"  Executable: {Colors.CYAN}{exe_name}{Colors.RESET}")
     print(f"  Path: {Colors.GRAY}{faker.chosen_path / config.FAKE_EXE_DIR / exe_name}{Colors.RESET}")
 
     if not ask_confirm():
-        print_color("\n[!] Operation cancelled", Colors.YELLOW)
+        print_color(f"\n[!] {t('operation_cancelled')}", Colors.YELLOW)
         time.sleep(config.SLEEP_SHORT)
         return
 
@@ -390,7 +387,7 @@ def manual_mode(faker: GameFaker) -> None:
     if result:
         print()
         faker.launch_executable(result)
-        print_color("\n[OK] Setup complete!", Colors.GREEN, bold=True)
-        print_color("[!] IMPORTANT: Discord MUST be running for the spoofing to work", Colors.YELLOW)
+        print_color(f"\n[OK] {t('manual_setup_done')}", Colors.GREEN, bold=True)
+        print_color(f"[!] {t('discord_must_run')}", Colors.YELLOW)
 
     pause()

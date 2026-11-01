@@ -7,6 +7,7 @@ import sys
 import time
 
 from . import config
+from .i18n import t, LANGUAGES, get_current_language, set_language, detect_system_language
 
 _vt_enabled = False
 
@@ -49,8 +50,9 @@ def print_color(text: str, color: str = Colors.WHITE, bold: bool = False) -> Non
     print(f"{style}{color}{text}{Colors.RESET}")
 
 
-def pause(prompt: str = "Нажмите Enter, чтобы продолжить...") -> None:
+def pause(prompt: str | None = None) -> None:
     """Wait for Enter; Ctrl+C/EOF return to the caller instead of killing the app."""
+    prompt = prompt or t("press_enter")
     try:
         input(f"\n{Colors.GRAY}{prompt}{Colors.RESET}")
     except (EOFError, KeyboardInterrupt):
@@ -87,9 +89,9 @@ def print_banner() -> None:
 |_____|__|__|_____|_____|  |__|__|__|__|_____|__|__|_____|__|__|
                                                                 
 {Colors.RESET}
-    {Colors.GRAY}Разработчики:{Colors.RESET} {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
-    {Colors.GRAY}Версия:{Colors.RESET}       {Colors.WHITE}v{config.VERSION}{Colors.RESET}
-    {Colors.GRAY}База данных:{Colors.RESET}   {Colors.GREEN}Discord Official API + GitHub Archive + Live Quests{Colors.RESET}
+    {Colors.GRAY}{t("dev_label")}{Colors.RESET} {Colors.CYAN}{config.DEVELOPER}{Colors.RESET}
+    {Colors.GRAY}{t("ver_label")}{Colors.RESET}       {Colors.WHITE}v{config.VERSION}{Colors.RESET}
+    {Colors.GRAY}{t("db_label")}{Colors.RESET}   {Colors.GREEN}{t("db_desc")}{Colors.RESET}
 """
     print(banner)
 
@@ -121,21 +123,59 @@ def loading_animation(text: str, duration: float = 1.5) -> None:
         pass
 
 
-def ask_confirm(prompt: str = "Создать и запустить?") -> bool:
-    """Ask a Y/n confirmation question. Returns True if user confirms."""
+def ask_confirm(prompt: str | None = None) -> bool:
+    """Ask a Y/n confirmation question in the active language. Returns True if user confirms."""
+    prompt = prompt or t("confirm_prompt")
     answer = input(f"\n{Colors.BOLD}{prompt}{Colors.RESET} [Y/n]: ").strip().lower()
-    return answer in ('', 'y', 'yes', 'д', 'да')
+    return answer in ('', 'y', 'yes', 'д', 'да', 's', 'sim', 'si', 'ja', 'j', 'o', 'oui')
 
 
 def print_menu() -> None:
-    """Display main menu."""
-    print_boxed_title("ГЛАВНОЕ МЕНЮ", width=62, color=Colors.CYAN)
-    print(f"  {Colors.BOLD}{Colors.GREEN}1.{Colors.RESET} Поиск по базе Discord (Официальный API)")
-    print(f"  {Colors.BOLD}{Colors.GREEN}2.{Colors.RESET} Ручной режим (указать имя EXE)")
-    print(f"  {Colors.BOLD}{Colors.YELLOW}3.{Colors.RESET} Steam Quest Mode  {Colors.YELLOW}[для Marathon, Toxic Commando…]{Colors.RESET}")
-    print(f"  {Colors.BOLD}{Colors.YELLOW}4.{Colors.RESET} {Colors.BOLD}Discord Quests & Orbs Collector{Colors.RESET}  {Colors.YELLOW}[HOT - Забрать ВСЕ Орбсы в 1 клик!]{Colors.RESET}")
-    print(f"  {Colors.BOLD}{Colors.CYAN}5.{Colors.RESET} Информация & О программе")
-    print(f"  {Colors.BOLD}{Colors.RED}6.{Colors.RESET} Выход\n")
+    """Display multilingual main menu."""
+    curr_lang = get_current_language()
+    lang_name = LANGUAGES.get(curr_lang, curr_lang).upper()
+    print_boxed_title(t("menu_title"), width=68, color=Colors.CYAN)
+    print(f"  {Colors.BOLD}{Colors.GREEN}1.{Colors.RESET} {t('opt_database')}")
+    print(f"  {Colors.BOLD}{Colors.GREEN}2.{Colors.RESET} {t('opt_manual')}")
+    print(f"  {Colors.BOLD}{Colors.YELLOW}3.{Colors.RESET} {t('opt_steam')}")
+    print(f"  {Colors.BOLD}{Colors.YELLOW}4.{Colors.RESET} {Colors.BOLD}{t('opt_quests')}{Colors.RESET}")
+    print(f"  {Colors.BOLD}{Colors.CYAN}5.{Colors.RESET} {t('opt_credits')}")
+    print(f"  {Colors.BOLD}{Colors.MAGENTA}6.{Colors.RESET} {t('opt_language')} {Colors.MAGENTA}[{lang_name}]{Colors.RESET}")
+    print(f"  {Colors.BOLD}{Colors.RED}7.{Colors.RESET} {t('opt_exit')}\n")
+
+
+def language_menu() -> None:
+    """Interactive language selection menu."""
+    print_boxed_title(t("lang_title"), width=68, color=Colors.MAGENTA)
+    curr = get_current_language()
+    print_color(f"  {t('lang_current', lang=LANGUAGES.get(curr, curr))}\n", Colors.CYAN, bold=True)
+    items = list(LANGUAGES.items())
+    for idx, (code, name) in enumerate(items, 1):
+        active_marker = f" {Colors.GREEN}[✓]{Colors.RESET}" if code == curr else ""
+        print(f"  {Colors.BOLD}{Colors.CYAN}{idx}.{Colors.RESET} {name} ({code.upper()}){active_marker}")
+    print(f"  {Colors.BOLD}{Colors.GRAY}0.{Colors.RESET} Auto-detect (System)")
+    print()
+    choice = input(t("lang_select", count=len(items))).strip().lower()
+    if choice in ('back', 'b', ''):
+        return
+    if choice == '0':
+        detected = detect_system_language()
+        set_language(detected)
+        print_color(f"\n[OK] {t('lang_changed', lang=LANGUAGES.get(detected, detected))}", Colors.GREEN, bold=True)
+        time.sleep(config.SLEEP_SHORT)
+        return
+    try:
+        num = int(choice)
+        if 1 <= num <= len(items):
+            chosen_code, chosen_name = items[num - 1]
+            set_language(chosen_code)
+            print_color(f"\n[OK] {t('lang_changed', lang=chosen_name)}", Colors.GREEN, bold=True)
+            time.sleep(config.SLEEP_SHORT)
+            return
+    except ValueError:
+        pass
+    print_color(f"\n[ERROR] {t('db_valid_num')}", Colors.RED)
+    time.sleep(config.SLEEP_SHORT)
 
 
 def show_credits() -> None:

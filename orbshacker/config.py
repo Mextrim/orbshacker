@@ -37,6 +37,7 @@ DEFAULTS: dict[str, Any] = {
     "TIMER_MINUTES": 15,
     "MAX_SEARCH_RESULTS": 20,
     "STEAM_MANIFEST_PATH": None,
+    "LANGUAGE": "auto",
 }
 
 LEGACY_KEYS = {"AUTO_DELETE": "AUTO_DELETE_ON_TIMER_END"}
@@ -268,6 +269,7 @@ AUTO_DELETE_ON_TIMER_END = _get_validated("AUTO_DELETE_ON_TIMER_END")
 AUTO_DELETE_ON_EXIT = _get_validated("AUTO_DELETE_ON_EXIT")
 TIMER_MINUTES = _get_validated("TIMER_MINUTES")
 STEAM_MANIFEST_PATH = _get_validated("STEAM_MANIFEST_PATH")
+LANGUAGE = str(_get_validated("LANGUAGE"))
 
 
 def _resolve_chosen_folder() -> Path:

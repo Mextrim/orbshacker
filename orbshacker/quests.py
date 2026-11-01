@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 from . import config
+from .i18n import t
 from .discord_db import DiscordGamesDB, get_current_discord_os
 from .faker import GameFaker
 from .net import fetch_json
@@ -325,7 +326,7 @@ def open_discord_quests() -> None:
             subprocess.run(["open", "discord://app/settings/gift-inventory"], check=False)
         else:
             subprocess.run(["xdg-open", "discord://app/settings/gift-inventory"], check=False)
-        print_color("[OK] Открываем вкладку квестов в Discord...", Colors.GREEN)
+        print_color(f"[OK] {t('quests_open_tab')}", Colors.GREEN)
     except Exception:
         try:
             import webbrowser
@@ -606,7 +607,7 @@ def _render_dashboard_lines(
 
     width = 74
     border = f"{Colors.BOLD}{Colors.CYAN}+{'─' * (width - 2)}+{Colors.RESET}"
-    title  = "DISCORD ORBS FARMING SESSION"
+    title  = t("dash_title")
     pad    = max(0, (width - 2 - len(title) - 4) // 2)
 
     lines: list[str] = [
@@ -624,22 +625,22 @@ def _render_dashboard_lines(
     # Progress and timers
     bar_color = Colors.GREEN if fraction < 0.6 else Colors.YELLOW if fraction < 0.9 else Colors.CYAN
     lines.append(
-        f"  {Colors.BOLD}Прогресс:{Colors.RESET}   "
+        f"  {Colors.BOLD}{t('dash_progress')}{Colors.RESET}   "
         f"{bar_color}{bar_str}{Colors.RESET} {Colors.BOLD}{pct:3d}%{Colors.RESET}  "
-        f"Прошло: {Colors.WHITE}{_format_duration(elapsed)}{Colors.RESET}  "
-        f"Осталось: {Colors.CYAN}{Colors.BOLD}{_format_duration(remaining)}{Colors.RESET}"
+        f"{t('dash_elapsed')} {Colors.WHITE}{_format_duration(elapsed)}{Colors.RESET}  "
+        f"{t('dash_remaining')} {Colors.CYAN}{Colors.BOLD}{_format_duration(remaining)}{Colors.RESET}"
     )
 
     running_cnt = sum(1 for s in sessions if s.status == "running")
     rpc_badge = f"{Colors.GREEN}[RPC Активен]{Colors.RESET}" if (rpc_client and rpc_client.is_connected) else ""
     lines.append(
-        f"  {Colors.BOLD}Всего Орбсов:{Colors.RESET} {Colors.YELLOW}{Colors.BOLD}+{total_orbs} {ORB_ICON}{Colors.RESET}   "
-        f"{Colors.BOLD}Процессов в работе:{Colors.RESET} {Colors.GREEN}{running_cnt}/{len(sessions)}{Colors.RESET}  {rpc_badge}"
+        f"  {Colors.BOLD}{t('dash_total_orbs')}{Colors.RESET} {Colors.YELLOW}{Colors.BOLD}+{total_orbs} {ORB_ICON}{Colors.RESET}   "
+        f"{Colors.BOLD}{t('dash_running')}{Colors.RESET} {Colors.GREEN}{running_cnt}/{len(sessions)}{Colors.RESET}  {rpc_badge}"
     )
     lines.append("")
 
     # Process table
-    lines.append(f"  {Colors.BOLD}{'Игра':<26}{'Исполняемый файл':<26}{'Орбсы':<8}{'Статус'}{Colors.RESET}")
+    lines.append(f"  {Colors.BOLD}{t('dash_col_game'):<26}{t('dash_col_exe'):<26}{t('dash_col_orbs'):<8}{t('dash_col_status')}{Colors.RESET}")
     lines.append(f"  {Colors.GRAY}{'─' * 70}{Colors.RESET}")
 
     for sg in sessions:
@@ -666,10 +667,7 @@ def _render_dashboard_lines(
 
     lines.append("")
     lines.append(f"  {Colors.GRAY}{'─' * 70}{Colors.RESET}")
-    lines.append(
-        f"  {Colors.BOLD}[M] / [Enter]{Colors.RESET} Свернуть в фон и вернуться в меню  "
-        f"{Colors.BOLD}[Q]{Colors.RESET} Прервать сессию"
-    )
+    lines.append(f"  {Colors.BOLD}{t('dash_hotkeys')}{Colors.RESET}")
 
     return lines
 
@@ -848,17 +846,17 @@ def _collect_all_orbs(
 
     # ── Summary Screen ─────────────────────────────────────────────────────────
     subprocess.run('cls' if os.name == 'nt' else 'clear', shell=True, check=False)
-    print_boxed_title("ЗАБРАТЬ ВСЕ ОРБСЫ (COLLECT ALL ORBS)", width=74, color=Colors.YELLOW)
+    print_boxed_title(t("quests_collect_all_title"), width=74, color=Colors.YELLOW)
 
-    print(f"  {Colors.BOLD}Квестов к фарму:{Colors.RESET}    {Colors.GREEN}{len(unique_titles)}{Colors.RESET}")
-    print(f"  {Colors.BOLD}Всего Орбсов:{Colors.RESET}       {Colors.YELLOW}{Colors.BOLD}+{total_orbs} {ORB_ICON}{Colors.RESET}")
-    print(f"  {Colors.BOLD}Процессов игры:{Colors.RESET}     {Colors.CYAN}{len(sessions)} процессов в параллели{Colors.RESET}")
-    print(f"  {Colors.BOLD}Время сессии:{Colors.RESET}       {Colors.WHITE}{config.TIMER_MINUTES} минут{Colors.RESET}")
+    print(f"  {Colors.BOLD}{t('quests_count_label')}{Colors.RESET}    {Colors.GREEN}{len(unique_titles)}{Colors.RESET}")
+    print(f"  {Colors.BOLD}{t('quests_total_orbs')}{Colors.RESET}       {Colors.YELLOW}{Colors.BOLD}+{total_orbs} {ORB_ICON}{Colors.RESET}")
+    print(f"  {Colors.BOLD}{t('quests_procs_count')}{Colors.RESET}     {Colors.CYAN}{len(sessions)}{Colors.RESET}")
+    print(f"  {Colors.BOLD}{t('quests_session_time')}{Colors.RESET}       {Colors.WHITE}{t('quests_minutes', mins=config.TIMER_MINUTES)}{Colors.RESET}")
 
     if discord_ok:
-        print(f"  {Colors.BOLD}Статус Discord:{Colors.RESET}     {Colors.GREEN}{TICK_ICON} Запущен и обнаружен{Colors.RESET}")
+        print(f"  {Colors.BOLD}{t('quests_discord_status')}{Colors.RESET}     {Colors.GREEN}{TICK_ICON} {t('quests_discord_detected')}{Colors.RESET}")
     else:
-        print(f"  {Colors.BOLD}Статус Discord:{Colors.RESET}     {Colors.RED}✗ НЕ запущен! (Запустите Discord перед стартом){Colors.RESET}")
+        print(f"  {Colors.BOLD}{t('quests_discord_status')}{Colors.RESET}     {Colors.RED}✗ {t('quests_discord_not_running')}{Colors.RESET}")
 
     if has_fc27:
         print(f"  {Colors.BOLD}EA FC 27 RPC:{Colors.RESET}       {Colors.GREEN}{TICK_ICON} Локальный Discord RPC активен (App ID: 1531874756096295054){Colors.RESET}")
@@ -880,12 +878,12 @@ def _collect_all_orbs(
         )
 
     print()
-    print_color("  [!] Все процессы запускаются параллельно и гарантированно определяются Discord!", Colors.CYAN, bold=True)
-    print_color("  [*] Убедитесь, что вы нажали «Принять квест» (Accept Quest) в Discord.", Colors.YELLOW)
+    print_color(f"  [!] {t('quests_parallel_note')}", Colors.CYAN, bold=True)
+    print_color(f"  [*] {t('quests_accept_note')}", Colors.YELLOW)
     print()
 
-    if not ask_confirm("Запустить все игры и начать фарм Орбсов?"):
-        print_color("\n[!] Запуск отменён.", Colors.YELLOW)
+    if not ask_confirm(t("quests_confirm_all")):
+        print_color(f"\n[!] {t('operation_cancelled')}", Colors.YELLOW)
         time.sleep(config.SLEEP_SHORT)
         return
 
@@ -898,7 +896,7 @@ def _collect_all_orbs(
 
     # ── Parallel Launch ────────────────────────────────────────────────────────
     print()
-    print_color("[*] Запускаем фейковые процессы игр...", Colors.CYAN, bold=True)
+    print_color(f"[*] {t('quests_launching_all')}", Colors.CYAN, bold=True)
 
     for sg in sessions:
         sg.status = "launching"
@@ -935,7 +933,7 @@ def _collect_all_orbs(
 
     print()
     print_color(
-        f"[OK] Успешно запущено {len(launched)}/{len(sessions)} процессов! Discord сканирует игры...",
+        f"[OK] " + t("quests_success_count", ok=len(launched), total=len(sessions)),
         Colors.GREEN,
         bold=True,
     )

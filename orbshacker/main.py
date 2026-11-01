@@ -12,8 +12,9 @@ from .discord_db import DiscordGamesDB, database_mode
 from .errors import DatabaseLoadError
 from .faker import GameFaker, manual_mode
 from .steam import steam_quest_mode
+from .i18n import init_language_from_config, t
 from .quests import quests_mode
-from .ui import Colors, print_banner, print_color, print_menu, show_credits
+from .ui import Colors, language_menu, print_banner, print_color, print_menu, show_credits
 from .updater import auto_update
 
 
@@ -25,10 +26,11 @@ def main() -> None:
         pass
 
     config.ensure_user_settings()
+    init_language_from_config(getattr(config, "LANGUAGE", "auto"))
 
     print_banner()
-    print_color("Initializing orbshacker...", Colors.CYAN)
-    print_color("[*] Connecting to Discord API...", Colors.GRAY)
+    print_color(t("init_app"), Colors.CYAN)
+    print_color(t("connecting_discord"), Colors.GRAY)
 
     try:
         db = DiscordGamesDB()
@@ -37,7 +39,7 @@ def main() -> None:
         sys.exit(1)
 
     faker = GameFaker()
-    print_color("[OK] Ready to fake some games!", Colors.GREEN)
+    print_color(t("ready"), Colors.GREEN)
     time.sleep(0.5)
 
     try:
@@ -51,10 +53,10 @@ def main() -> None:
                 print_banner()
 
                 if db.source:
-                    print_color(f"   Active Database: {db.source} ({len(db.games)} games)", Colors.GRAY)
+                    print_color(f"   " + t("active_db", source=db.source, count=len(db.games)), Colors.GRAY)
 
                 print_menu()
-                choice = input(f"{Colors.BOLD}Select option{Colors.RESET} [1-6]: ").strip()
+                choice = input(f"{Colors.BOLD}{t('select_option')}{Colors.RESET} [1-7]: ").strip().lower()
 
                 if choice == '1':
                     database_mode(db, faker)
@@ -66,18 +68,20 @@ def main() -> None:
                     quests_mode(db, faker)
                 elif choice == '5':
                     show_credits()
-                elif choice == '6':
-                    print_color("\n[*] Thanks for using orbshacker!", Colors.CYAN, bold=True)
-                    print_color(f"[*] Developed by {config.DEVELOPER}", Colors.GRAY)
-                    print_color("\n[*] May your orbs be plentiful!", Colors.MAGENTA)
+                elif choice in ('6', 'l', 'lang'):
+                    language_menu()
+                elif choice in ('7', 'q', 'exit'):
+                    print_color(f"\n[*] {t('thanks')}", Colors.CYAN, bold=True)
+                    print_color(f"[*] {t('dev_label')} {config.DEVELOPER}", Colors.GRAY)
+                    print_color(f"\n[*] {t('wish_orbs')}", Colors.MAGENTA)
                     break
                 else:
-                    print_color("\n[ERROR] Invalid option - try 1, 2, 3, 4, 5 or 6", Colors.RED)
+                    print_color(f"\n[ERROR] {t('invalid_option', max_opt=7)}", Colors.RED)
                     time.sleep(config.SLEEP_SHORT)
 
             except (KeyboardInterrupt, EOFError):
-                print_color("\n\n[!] Interrupted by user", Colors.YELLOW)
-                print_color("[*] Thanks for using orbshacker!\n", Colors.CYAN)
+                print_color(f"\n\n[!] {t('interrupted')}", Colors.YELLOW)
+                print_color(f"[*] {t('thanks')}\n", Colors.CYAN)
                 break
     finally:
         faker.cleanup()
