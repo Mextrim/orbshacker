@@ -178,3 +178,39 @@ def test_cross_platform_is_discord_running(monkeypatch):
     with patch("subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="12345\n")
         assert is_discord_running() is True
+
+
+def test_discord_rpc_client_lifecycle():
+    from orbshacker.quests import DiscordRPCClient, stop_all_rpc_clients, _active_rpc_clients
+
+    client = DiscordRPCClient("1531874756096295054", "In Match", "Online", name="EA Sports FC 27")
+    assert client.client_id == "1531874756096295054"
+    assert client.name == "EA Sports FC 27"
+
+    with patch.object(client, "_run", return_value=None):
+        client.start()
+        assert client in _active_rpc_clients
+        client.stop()
+        assert client not in _active_rpc_clients
+
+    # Test stop_all_rpc_clients
+    c1 = DiscordRPCClient("111")
+    c2 = DiscordRPCClient("222")
+    _active_rpc_clients.extend([c1, c2])
+    stop_all_rpc_clients()
+    assert len(_active_rpc_clients) == 0
+
+
+def test_fc27_exe_variants_resolved():
+    db = MagicMock()
+    db.games = []
+
+    for variant in ["EA SPORTS FC™ 27", "ea sports fc 27", "FC 27", "fc27"]:
+        q = {
+            "messages": {"game_title": variant},
+            "application": {"id": "1531874756096295054", "name": variant},
+            "task_config_v2": {"tasks": {"PLAY_ON_DESKTOP": {}}},
+        }
+        exes = _resolve_quest_exes(q, db)
+        assert "fc27.exe" in exes
+        assert "FC27.exe" in exes

@@ -46,8 +46,11 @@ KNOWN_EXE_OVERRIDES: dict[str, list[str]] = {
     "99 nights in the forest":    ["RobloxPlayerBeta.exe", "Roblox.exe"],
     "the latest firefox browser": ["firefox.exe"],
     "firefox browser":            ["firefox.exe"],
-    "ea sports fc":               ["fc27.exe"],
-    "fc 27":                      ["fc27.exe"],
+    "ea sports fc":               ["fc27.exe", "FC27.exe", "ea sports fc 27/fc27.exe", "ea sports fc 27/fc27_trial.exe"],
+    "ea sports fc™ 27":           ["fc27.exe", "FC27.exe", "ea sports fc 27/fc27.exe", "ea sports fc 27/fc27_trial.exe"],
+    "ea sports fc 27":            ["fc27.exe", "FC27.exe", "ea sports fc 27/fc27.exe", "ea sports fc 27/fc27_trial.exe"],
+    "fc 27":                      ["fc27.exe", "FC27.exe", "ea sports fc 27/fc27.exe", "ea sports fc 27/fc27_trial.exe"],
+    "fc27":                       ["fc27.exe", "FC27.exe", "ea sports fc 27/fc27.exe", "ea sports fc 27/fc27_trial.exe"],
     "valorant":                   ["win64/valorant-win64-shipping.exe", "VALORANT.exe"],
 }
 
@@ -62,6 +65,11 @@ KNOWN_RPC_APPS: dict[str, str] = {
 # Known Steam app manifests to generate if Steam is installed
 KNOWN_STEAM_MANIFESTS: dict[str, dict] = {
     "fc27.exe": {
+        "appid": 4080220,
+        "name": "EA SPORTS FC 27",
+        "installdir": "EA SPORTS FC 27",
+    },
+    "FC27.exe": {
         "appid": 4080220,
         "name": "EA SPORTS FC 27",
         "installdir": "EA SPORTS FC 27",
@@ -186,6 +194,20 @@ def _open_discord_ipc(pipe_index: int = 0):
     raise FileNotFoundError(f"Discord IPC socket not found: {paths}")
 
 
+_active_rpc_clients: list["DiscordRPCClient"] = []
+
+
+def stop_all_rpc_clients() -> None:
+    """Safely terminate all background Discord RPC broadcaster clients."""
+    global _active_rpc_clients
+    for client in _active_rpc_clients:
+        try:
+            client.stop()
+        except Exception:
+            pass
+    _active_rpc_clients.clear()
+
+
 class DiscordRPCClient:
     """
     Connects to the local Discord client via Windows Named Pipe or Unix Domain Socket
@@ -193,10 +215,17 @@ class DiscordRPCClient:
     Required for games like EA SPORTS FC 27 where Discord detects the game exclusively
     through its Application ID via Local RPC.
     """
-    def __init__(self, client_id: str, details: str = "Playing Match", state: str = "Online"):
+    def __init__(
+        self,
+        client_id: str,
+        details: str = "Playing Ultimate Team",
+        state: str = "In Match",
+        name: str = "EA Sports FC 27",
+    ):
         self.client_id = str(client_id)
         self.details = details
         self.state = state
+        self.name = name
         self.pipe = None
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -206,6 +235,8 @@ class DiscordRPCClient:
         self._stop_event.clear()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+        if self not in _active_rpc_clients:
+            _active_rpc_clients.append(self)
 
     def stop(self) -> None:
         self._stop_event.set()
@@ -215,6 +246,8 @@ class DiscordRPCClient:
             except Exception:
                 pass
         self.is_connected = False
+        if self in _active_rpc_clients:
+            _active_rpc_clients.remove(self)
 
     def _run(self) -> None:
         while not self._stop_event.is_set():
@@ -246,19 +279,24 @@ class DiscordRPCClient:
                 _, length = struct.unpack('<II', header)
                 self.pipe.read(length)
 
-                # Set Activity (opcode 1)
+                # Set Activity (opcode 1) with full presence fields
+                start_ts = int(time.time())
                 act = {
                     'cmd': 'SET_ACTIVITY',
                     'args': {
                         'pid': os.getpid(),
                         'activity': {
+                            'name': self.name,
                             'type': 0,
-                            'timestamps': {'start': int(time.time())},
+                            'timestamps': {'start': start_ts},
                             'details': self.details,
                             'state': self.state,
+                            'application_id': self.client_id,
+                            'platform': 'desktop',
+                            'instance': True,
                         }
                     },
-                    'nonce': 'orbshacker_rpc'
+                    'nonce': f'orbshacker_{start_ts}'
                 }
                 act_b = json.dumps(act).encode('utf-8')
                 self.pipe.write(struct.pack('<II', 1, len(act_b)) + act_b)
@@ -268,8 +306,23 @@ class DiscordRPCClient:
                     self.pipe.read(length)
                 self.is_connected = True
 
+                last_ping = time.monotonic()
                 while not self._stop_event.is_set():
                     time.sleep(1)
+                    now = time.monotonic()
+                    # Refresh presence every 20 seconds so Discord never drops it
+                    if now - last_ping >= 20.0:
+                        last_ping = now
+                        try:
+                            act['nonce'] = f'orbshacker_{int(time.time())}'
+                            act_b = json.dumps(act).encode('utf-8')
+                            self.pipe.write(struct.pack('<II', 1, len(act_b)) + act_b)
+                            header = self.pipe.read(8)
+                            if header and len(header) >= 8:
+                                _, length = struct.unpack('<II', header)
+                                self.pipe.read(length)
+                        except Exception:
+                            break
             except Exception:
                 self.is_connected = False
                 if self.pipe:
@@ -379,8 +432,10 @@ def _resolve_quest_exes(q: dict, db: DiscordGamesDB) -> list[str]:
         return []
 
     # 1. Known executable overrides (highest priority, returns all verified names)
+    import re as _re
+    clean_combined = _re.sub(r"[™®©]", "", combined)
     for pattern, exes in KNOWN_EXE_OVERRIDES.items():
-        if pattern in combined:
+        if pattern in combined or pattern in clean_combined:
             return list(exes)
 
     # 2. Check all applications listed in PLAY_ON_DESKTOP task configuration
@@ -950,7 +1005,9 @@ def _collect_all_orbs(
     try:
         completed = _orb_farming_dashboard(sessions, duration, total_orbs, rpc_client)
     finally:
-        if rpc_client:
+        # If user explicitly aborted with [Q], stop RPC.
+        # But if minimized to background ([M]/Enter) or natural finish, keep active until timer expiry.
+        if not completed and rpc_client:
             rpc_client.stop()
 
     # ── Results Screen ─────────────────────────────────────────────────────────

@@ -33,6 +33,7 @@ BAKED_CONFIG_KEYS = (
     "EXTRA_FILES",
     "SHARED_FILES",
     "TK_SUPPORT_DIRS",
+    "GAME_TITLE",
 )
 
 
@@ -47,6 +48,7 @@ def resolve_config(minutes=None) -> dict:
         "EXTRA_FILES": [],
         "SHARED_FILES": [],
         "TK_SUPPORT_DIRS": [],
+        "GAME_TITLE": None,
     }
     if __package__:
         try:
@@ -140,12 +142,12 @@ def cleanup_targets(cfg: dict) -> tuple[list, list]:
 
 class TimerApp:
     def __init__(self, root, minutes=DEFAULT_MINUTES, auto_delete=True,
-                 cleanup_files=None, cleanup_dirs=None):
+                 cleanup_files=None, cleanup_dirs=None, title=None):
         self.root = root
         self.auto_delete = bool(auto_delete)
         self.cleanup_files = list(cleanup_files or [])
         self.cleanup_dirs = list(cleanup_dirs or [])
-        root.title(WINDOW_TITLE)
+        root.title(title or WINDOW_TITLE)
         root.geometry(WINDOW_SIZE)
         root.resizable(False, False)
         root.configure(bg=BG_COLOR)
@@ -207,6 +209,7 @@ def run_timer(minutes=None) -> None:
         auto_delete=cfg["AUTO_DELETE_ON_TIMER_END"],
         cleanup_files=files,
         cleanup_dirs=dirs,
+        title=cfg.get("GAME_TITLE"),
     )
     root.mainloop()
 

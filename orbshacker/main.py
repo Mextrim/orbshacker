@@ -13,7 +13,7 @@ from .errors import DatabaseLoadError
 from .faker import GameFaker, manual_mode
 from .steam import steam_quest_mode
 from .i18n import init_language_from_config, t
-from .quests import quests_mode
+from .quests import quests_mode, stop_all_rpc_clients
 from .ui import Colors, language_menu, print_banner, print_color, print_menu, show_credits
 from .updater import auto_update
 
@@ -85,3 +85,7 @@ def main() -> None:
                 break
     finally:
         faker.cleanup()
+        try:
+            stop_all_rpc_clients()
+        except Exception:
+            pass

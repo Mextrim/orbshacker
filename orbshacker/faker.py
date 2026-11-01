@@ -140,7 +140,13 @@ class GameFaker:
         return self.chosen_path
 
     def build_baked_config(self, target_exe=None, manifest_path=None, cleanup_dirs=(),
-                           extra_files=(), shared_files=()) -> dict:
+                           extra_files=(), shared_files=(), game_title=None) -> dict:
+        stem = Path(target_exe).stem if target_exe else ""
+        if not game_title:
+            if "fc27" in stem.lower() or "fc 27" in stem.lower():
+                game_title = "EA Sports FC 27"
+            else:
+                game_title = stem.replace("_", " ").title()
         return {
             "TARGET_EXE": str(target_exe).replace("\\", "/") if target_exe else None,
             "TIMER_MINUTES": config.TIMER_MINUTES,
@@ -150,6 +156,7 @@ class GameFaker:
             "EXTRA_FILES": [str(f).replace("\\", "/") for f in extra_files],
             "SHARED_FILES": [str(f).replace("\\", "/") for f in shared_files],
             "TK_SUPPORT_DIRS": self._tk_support_dirs(),
+            "GAME_TITLE": game_title,
         }
 
     @staticmethod
@@ -159,7 +166,7 @@ class GameFaker:
             return []
         return [str(p).replace("\\", "/") for p in sorted(base.iterdir()) if p.is_dir()]
 
-    def copy_exe_to(self, target_path: Path, manifest_path: Path | None = None) -> None:
+    def copy_exe_to(self, target_path: Path, manifest_path: Path | None = None, game_title: str | None = None) -> None:
         """Copy the faker executable to *target_path* and bake the active config.
 
         Refuses to overwrite files that were not created by orbshacker so a real
@@ -198,6 +205,7 @@ class GameFaker:
             manifest_path=manifest_path,
             cleanup_dirs=cleanup_dirs,
             shared_files=shared_files,
+            game_title=game_title,
         )
         if self._frozen:
             bake_config(target_path, baked)
@@ -249,7 +257,7 @@ class GameFaker:
 
         return ensured
 
-    def create_fake_game(self, exe_name: str) -> Path | None:
+    def create_fake_game(self, exe_name: str, game_title: str | None = None) -> Path | None:
         """Create fake game executable under Desktop/<FAKE_EXE_DIR>/."""
         exe_name = sanitize_relative_path(exe_name)
         if sys.platform == 'win32' and not exe_name.lower().endswith('.exe'):
@@ -257,7 +265,7 @@ class GameFaker:
         target_path = self.chosen_path / config.FAKE_EXE_DIR / exe_name
         try:
             loading_animation(t("creating_fake", name=exe_name.split('/')[-1]), 0.5)
-            self.copy_exe_to(target_path)
+            self.copy_exe_to(target_path, game_title=game_title)
             print_color(f"[OK] " + t("created_fake", path=target_path), Colors.GREEN, bold=True)
             return target_path
         except FileConflictError as e:
