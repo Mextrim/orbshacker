@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Build Rust Core (Windows)
+      - name: Build Rust Core & Launcher (Windows)
         run: |
           cargo build --release --manifest-path src-rust/Cargo.toml
           cargo build --release --manifest-path src-launcher/Cargo.toml
@@ -35,7 +35,7 @@ jobs:
       - name: Install GUI dependencies
         run: |
           cd src-gui
-          npm ci
+          npm install
 
       - name: Build Electron App (Windows Portable & Archive)
         run: |
@@ -93,7 +93,7 @@ jobs:
       - name: Install GUI dependencies
         run: |
           cd src-gui
-          npm ci
+          npm install
 
       - name: Build Electron App (Linux AppImage & tar.gz)
         run: |
@@ -113,65 +113,9 @@ jobs:
           name: linux-assets
           path: artifacts/*
 
-  build-macos:
-    name: Build macOS (Universal)
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-apple-darwin,aarch64-apple-darwin
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Build Launcher & Rust Core (macOS universal)
-        run: |
-          cargo build --release --target x86_64-apple-darwin --manifest-path src-rust/Cargo.toml
-          cargo build --release --target aarch64-apple-darwin --manifest-path src-rust/Cargo.toml
-          cargo build --release --target x86_64-apple-darwin --manifest-path src-launcher/Cargo.toml
-          cargo build --release --target aarch64-apple-darwin --manifest-path src-launcher/Cargo.toml
-          mkdir -p src-gui/bin artifacts
-          lipo -create -output src-gui/bin/orbshacker-core \
-            src-rust/target/x86_64-apple-darwin/release/orbshacker-core \
-            src-rust/target/aarch64-apple-darwin/release/orbshacker-core
-          chmod +x src-gui/bin/orbshacker-core
-          lipo -create -output artifacts/orbshacker-launcher-mac-universal \
-            src-launcher/target/x86_64-apple-darwin/release/orbshacker-launcher \
-            src-launcher/target/aarch64-apple-darwin/release/orbshacker-launcher
-          chmod +x artifacts/orbshacker-launcher-mac-universal
-
-      - name: Install GUI dependencies
-        run: |
-          cd src-gui
-          npm ci
-
-      - name: Build Electron App (macOS dmg & zip)
-        run: |
-          cd src-gui
-          npm run build:mac
-
-      - name: Prepare macOS Binaries
-        run: |
-          mkdir -p artifacts
-          cp src-gui/bin/orbshacker-core artifacts/orbshacker-core-mac-universal
-          cp dist/*.dmg artifacts/ || true
-          cp dist/*mac*.zip artifacts/ || true
-
-      - name: Upload macOS Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-assets
-          path: artifacts/*
-
   publish-release:
     name: Publish Multi-Platform Release
-    needs: [build-windows, build-linux, build-macos]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -203,9 +147,9 @@ jobs:
         uses: softprops/action-gh-release@v2.6.1
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: Orbshacker ${{ steps.vars.outputs.tag }} - Multi-Platform (Windows, Linux, macOS)
+          name: Orbshacker ${{ steps.vars.outputs.tag }} - Windows & Linux
           body: |
-            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows + Linux + macOS)
+            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows + Linux)
             
             Multi-platform release of Orbshacker with Discord Quests & Badges Booster.
             
@@ -217,25 +161,19 @@ jobs:
             - **`orbshacker-v2.5.0-win-x64.zip`**: Full portable zip archive containing all runtime dependencies (ffmpeg, d3dcompiler, etc.).
             - **`orbshacker-core.exe`**: Native Rust CLI engine.
             
-            #### 🐧 Linux (All Distros: Ubuntu, Debian, Arch, Fedora, etc.)
+            #### 🐧 Linux (All Distros: Ubuntu, Debian, Arch, Fedora, openSUSE, etc.)
             - **`orbshacker-launcher-linux-x64`**: Native Linux launcher (~1.8 MB). Automatically downloads and prepares components.
             - **`orbshacker-2.5.0.AppImage`**: Standalone Linux AppImage.
             - **`orbshacker-v2.5.0-linux-x64.tar.gz`**: Standalone tar.gz archive.
             - **`orbshacker-core-linux-x64`**: Native Linux CLI engine.
             
-            #### 🍎 macOS (Universal: Apple Silicon M1/M2/M3/M4 & Intel)
-            - **`orbshacker-launcher-mac-universal`**: Native universal launcher for macOS.
-            - **`orbshacker-2.5.0.dmg`**: macOS disk image installer.
-            - **`orbshacker-v2.5.0-mac-universal.zip`**: Portable macOS application archive.
-            - **`orbshacker-core-mac-universal`**: Universal Mach-O binary.
-            
             ---
             
             ### ✨ What's New
-            - 🎮 **Discord Profile Badges Booster**: 100+ detectable games farmed in parallel (5 games concurrently) with guaranteed Discord Heartbeat detection.
+            - 🎮 **Discord Profile Badges Booster**: 100+ detectable games farmed in parallel with guaranteed Discord Heartbeat detection.
             - ⚡ **Zero-Download Game Spoofer**: Emulates games with real process handles and Steam manifests without downloading gigabytes.
-            - 🎨 **Theme Engine & Glassmorphism UI**: 10 rich themes (Cyber Neon, Tokyo 2077, Discord Nitro, OLED, Matrix, Crimson, etc.).
-            - 🔄 **Cross-Platform Auto-Updates**: In-app updater for Windows, Linux, and macOS.
+            - 🎨 **Theme Engine & Glassmorphism UI**: 10 rich themes with minimalist clean layout.
+            - 🔄 **Cross-Platform Auto-Updates**: In-app updater and lightweight native launcher for Windows and Linux.
           files: release-files/*
           draft: false
           prerelease: false

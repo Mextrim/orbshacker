@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ORBSHACKER — Discord Quests & Profile Badges Spoofer</title>
+  <meta name="description" content="Автоматический бустер квестов и значков профиля Discord для Windows и Linux. Фарм 100+ игр, часов геймплея и наград без нагрузки на ПК." />
+  <link rel="icon" href="https://raw.githubusercontent.com/Mextrim/orbshacker/main/src-gui/assets/icon.png" type="image/png" />
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(18, 22, 34, 0.75);
+      --bg-card-hover: rgba(26, 32, 50, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(0, 242, 254, 0.35);
+      --primary-cyan: #00f2fe;
+      --primary-purple: #9d4edd;
+      --accent-green: #00f5d4;
+      --accent-red: #ff3366;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --glow-cyan: 0 0 25px rgba(0, 242, 254, 0.4);
+      --glow-purple: 0 0 25px rgba(157, 78, 221, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(157, 78, 221, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(0, 245, 212, 0.06) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(7, 9, 14, 0.8);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 0;
+    }
+
+    .nav-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-cyan);
+      font-size: 1.1rem;
+    }
+
+    .badge-version {
+      font-size: 0.75rem;
+      background: rgba(0, 242, 254, 0.12);
+      color: var(--primary-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-cyan);
+    }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-github:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 90px 0 60px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(157, 78, 221, 0.12);
+      border: 1px solid rgba(157, 78, 221, 0.3);
+      border-radius: 9999px;
+      color: #c77dff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary-cyan) 0%, #70e000 50%, var(--primary-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 760px;
+      margin: 0 auto 36px;
+      font-weight: 400;
+    }
+
+    .cta-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 50px;
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .btn-cta-win {
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      color: #07090e;
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
+    }
+
+    .btn-cta-win:hover {
+      box-shadow: 0 6px 30px rgba(0, 242, 254, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn-cta-linux {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-cta-linux:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    /* App Preview Mockup */
+    .preview-wrapper {
+      position: relative;
+      margin: 0 auto;
+      max-width: 960px;
+      border-radius: 16px;
+      padding: 8px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(157, 78, 221, 0.2));
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .preview-inner {
+      background: #0f121b;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .preview-header {
+      background: rgba(10, 12, 18, 0.95);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .preview-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preview-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .preview-title {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-family: monospace;
+    }
+
+    .mockup-body {
+      padding: 30px;
+      text-align: left;
+    }
+
+    .mockup-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .mockup-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .mockup-status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      margin-right: 8px;
+    }
+
+    /* Features Grid */
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 50px;
+      font-size: 1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 90px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-card:nth-child(2) .feature-icon-wrapper {
+      background: rgba(157, 78, 221, 0.1);
+      border-color: rgba(157, 78, 221, 0.2);
+    }
+
+    .feature-card:nth-child(3) .feature-icon-wrapper {
+      background: rgba(0, 245, 212, 0.1);
+      border-color: rgba(0, 245, 212, 0.2);
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Platforms & Downloads Table */
+    .downloads-section {
+      background: rgba(14, 18, 28, 0.6);
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      padding: 40px;
+      margin-bottom: 90px;
+    }
+
+    .download-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .download-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border-color 0.2s ease;
+    }
+
+    .download-card:hover {
+      border-color: rgba(0, 242, 254, 0.4);
+    }
+
+    .card-top {
+      margin-bottom: 20px;
+    }
+
+    .card-platform-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary-cyan);
+      margin-bottom: 8px;
+    }
+
+    .card-file-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .card-file-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .download-btn-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(157, 78, 221, 0.15));
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--text-main);
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .download-btn-pill:hover {
+      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
+      color: #07090e;
+      border-color: transparent;
+    }
+
+    /* FAQ */
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      padding: 20px 24px;
+    }
+
+    .faq-q {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .faq-a {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--primary-cyan);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero { padding: 60px 0 40px; }
+      .downloads-section { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="container nav-wrapper">
+      <a href="#" class="brand">
+        <div class="brand-icon">⚡</div>
+        <span>ORBSHACKER</span>
+        <span class="badge-version">v2.5.0</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Возможности</a></li>
+        <li><a href="#launcher">Нативный Лаунчер</a></li>
+        <li><a href="#downloads">Скачать</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <a href="https://github.com/Mextrim/orbshacker" target="_blank" class="btn-github">
+        <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span>GitHub Repo</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero container">
+    <div class="hero-badge">
+      <span>🚀 Версия 2.5.0 • Только Windows & Linux • Pure Rust + Electron</span>
+    </div>
+    <h1 class="hero-title">
+      Бустер квестов и значков <br />
+      <span class="gradient-text">Discord Profile Badges</span>
+    </h1>
+    <p class="hero-subtitle">
+      Автоматический запуск каталога из 100+ игр для повышения уровня значка профиля вплоть до «Универсал: 100+ игр» и фарм тысяч часов игрового времени в фоне без нагрузки на ПК.
+    </p>
+
+    <div class="cta-group">
+      <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher.exe" class="btn-cta btn-cta-win">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801"/>
+        </svg>
+        <span>Скачать Лаунчер для Windows (1.8 МБ)</span>
+      </a>
+      <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher-linux-x64" class="btn-cta btn-cta-linux">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a4 4 0 0 0-4 4c0 .8.2 1.6.6 2.3C7.2 9 6 10.8 6 13v1c0 2 1.4 3.7 3.3 4.2C10.1 19.3 11 20 12 20s1.9-.7 2.7-1.8c1.9-.5 3.3-2.2 3.3-4.2v-1c0-2.2-1.2-4-2.6-4.7.4-.7.6-1.5.6-2.3a4 4 0 0 0-4-4z"/>
+        </svg>
+        <span>Лаунчер для Linux (x64)</span>
+      </a>
+    </div>
+
+    <!-- UI Mockup -->
+    <div class="preview-wrapper">
+      <div class="preview-inner">
+        <div class="preview-header">
+          <div class="preview-dots">
+            <span class="preview-dot dot-red"></span>
+            <span class="preview-dot dot-yellow"></span>
+            <span class="preview-dot dot-green"></span>
+          </div>
+          <div class="preview-title">ORBSHACKER v2.5.0 — Minimalist Neon UI</div>
+          <div style="font-size: 0.75rem; color: var(--accent-green);"><span class="mockup-status-dot"></span>Discord подключён</div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-card">
+            <div class="mockup-flex">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700;">🎮 Сыграйте в другие обнаруживаемые игры на ПК</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Запуск каталога из 105 игр (по 5 игр параллельно) для значка «Универсал»</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <span style="background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.3); color: var(--primary-cyan); padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">Фармить ВСЕ 100+ игр</span>
+                <span style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;">Фармить +10 игр</span>
+              </div>
+            </div>
+            <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 0.85rem; color: var(--primary-cyan); font-weight: 600;">⚡ Игра: Counter-Strike 2 (04:15)</span>
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-family: monospace;">Прогресс: 12%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; margin-top: 8px; overflow: hidden;">
+              <div style="width: 12%; height: 100%; background: linear-gradient(90deg, var(--primary-cyan), var(--primary-purple)); border-radius: 9999px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="container" id="features">
+    <h2 class="section-title">Создано для максимальной эффективности</h2>
+    <p class="section-subtitle">Полная автоматизация получения наград и значков без лишних действий и загрузки десятков гигабайтов данных.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">🚀</div>
+        <h3 class="feature-title">Нативный Лаунчер на Rust</h3>
+        <p class="feature-desc">Файл весит всего 1.8 МБ! Сам проверяет последние версии на GitHub, скачивает зависимости и запускает приложение без необходимости ручной установки DLL.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">🎮</div>
+        <h3 class="feature-title">100+ игр параллельно</h3>
+        <p class="feature-desc">Умный запуск до 5 игр одновременно с контролем интервала Heartbeat Discord (300 сек). Гарантированная фиксация каждой игры в профиле Discord.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">⏱️</div>
+        <h3 class="feature-title">Бесконечный AFK-фарм часов</h3>
+        <p class="feature-desc">Фармите сотни и тысячи игровых часов для значков «Искатель приключений», «Открыватель», «Свободный дух» вплоть до максимального значка (5000+ ч).</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">⚡</div>
+        <h3 class="feature-title">Zero-Download Spoofer</h3>
+        <p class="feature-desc">Эмуляция реальных исполняемых файлов и манифестов Steam без реального скачивания тяжелых игр на диск (0 МБ загрузки на SSD).</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">🎨</div>
+        <h3 class="feature-title">10 неоновых стилей UI</h3>
+        <p class="feature-desc">Интерфейс в стиле Cyber Neon, Tokyo 2077, Midnight OLED, Discord Nitro, Matrix Terminal с мгновенным переключением темы на лету.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">🐧</div>
+        <h3 class="feature-title">100% поддержка Linux</h3>
+        <p class="feature-desc">Поддержка AppImage и tar.gz с автоматической установкой прав выполнения на всех популярных дистрибутивах (Ubuntu, Arch, Fedora, Debian).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Downloads Section -->
+  <section class="container" id="downloads">
+    <div class="downloads-section">
+      <h2 class="section-title">Загрузки для Windows и Linux</h2>
+      <p class="section-subtitle">Выберите подходящий вариант для вашей операционной системы</p>
+
+      <div class="download-cards">
+        <!-- Windows Launcher -->
+        <div class="download-card">
+          <div class="card-top">
+            <div class="card-platform-badge">Рекомендуется • Windows</div>
+            <h3 class="card-file-title">orbshacker-launcher.exe</h3>
+            <p class="card-file-desc">Лёгкий нативный загрузчик (~1.8 МБ). Скачивает и автоматически распаковывает все файлы программы с GitHub.</p>
+          </div>
+          <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher.exe" class="download-btn-pill">
+            Скачать Лаунчер (.exe)
+          </a>
+        </div>
+
+        <!-- Windows Full ZIP -->
+        <div class="download-card">
+          <div class="card-top">
+            <div class="card-platform-badge">Полный архив • Windows</div>
+            <h3 class="card-file-title">orbshacker-v2.5.0-win-x64.zip</h3>
+            <p class="card-file-desc">Полный распакованный архив (~115 МБ) со всеми библиотеками ffmpeg.dll и чистым интерфейсом.</p>
+          </div>
+          <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-v2.5.0-win-x64.zip" class="download-btn-pill">
+            Скачать ZIP-архив
+          </a>
+        </div>
+
+        <!-- Linux Launcher -->
+        <div class="download-card">
+          <div class="card-top">
+            <div class="card-platform-badge">Linux (Любой дистрибутив)</div>
+            <h3 class="card-file-title">orbshacker-launcher-linux-x64</h3>
+            <p class="card-file-desc">Нативный лаунчер для Linux. Автоматически скачивает зависимости и запускает приложение.</p>
+          </div>
+          <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher-linux-x64" class="download-btn-pill">
+            Скачать для Linux
+          </a>
+        </div>
+
+        <!-- Linux AppImage -->
+        <div class="download-card">
+          <div class="card-top">
+            <div class="card-platform-badge">Автономный • Linux</div>
+            <h3 class="card-file-title">orbshacker-2.5.0.AppImage</h3>
+            <p class="card-file-desc">Универсальный исполняемый файл AppImage для Ubuntu, Debian, Arch, Fedora, openSUSE.</p>
+          </div>
+          <a href="https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-2.5.0.AppImage" class="download-btn-pill">
+            Скачать AppImage
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="container" id="faq" style="margin-bottom: 90px;">
+    <h2 class="section-title">Часто задаваемые вопросы</h2>
+    <p class="section-subtitle">Ответы на популярные вопросы о работе Orbshacker</p>
+
+    <div class="faq-item">
+      <div class="faq-q">Зачем нужен лаунчер (orbshacker-launcher)?</div>
+      <div class="faq-a">Лаунчер весит всего 1.8 МБ. Он сам подключается к GitHub Releases, скачивает все необходимые компоненты (включая библиотеки Electron и ffmpeg.dll), распаковывает их в правильную структуру папок и запускает приложение. Это гарантирует, что программа всегда будет запускаться без ошибок недостающих DLL.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Безопасно ли это для аккаунта Discord?</div>
+      <div class="faq-a">Да! Orbshacker не внедряется в память Discord и не модифицирует системные файлы. Он использует стандартный протокол Discord Game Detection и Discord RPC, точно так же, как обычные игры в Windows и Linux.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Как обновить счётчик значка в Discord?</div>
+      <div class="faq-a">Discord кэширует профиль локально. После завершения пакета фарма просто перезагрузите Discord нажатием <strong>Ctrl + R</strong>, чтобы увидеть обновленное количество игр и новые значки!</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>ORBSHACKER is an open-source project released under the GPL-3.0 License.</p>
+      <p style="margin-top: 8px;">
+        <a href="https://github.com/Mextrim/orbshacker" target="_blank">GitHub Repository</a> • 
+        <a href="https://github.com/Mextrim/orbshacker/releases" target="_blank">All Releases</a> • 
+        Created with ❤️ by <a href="https://github.com/Mextrim" target="_blank">@Mextrim</a>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

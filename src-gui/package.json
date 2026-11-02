@@ -10,8 +10,7 @@
     "dev": "electron .",
     "build:portable": "electron-builder --win portable",
     "build:win": "electron-builder --win portable zip",
-    "build:linux": "electron-builder --linux AppImage tar.gz",
-    "build:mac": "electron-builder --mac dmg zip"
+    "build:linux": "electron-builder --linux AppImage tar.gz"
   },
   "build": {
     "appId": "com.mextrim.orbshacker",
@@ -71,26 +70,6 @@
           "target": "tar.gz",
           "arch": [
             "x64"
-          ]
-        }
-      ]
-    },
-    "mac": {
-      "icon": "assets/icon.png",
-      "category": "public.app-category.utilities",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
           ]
         }
       ]

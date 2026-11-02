@@ -59,15 +59,6 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
         root_dir.join("dist").join("orbshacker"),
     ];
 
-    #[cfg(target_os = "macos")]
-    let candidates = [
-        app_dir.join("Orbshacker.app"),
-        app_dir.join("Orbshacker.app").join("Contents").join("MacOS").join("orbshacker"),
-        root_dir.join("Orbshacker.app"),
-        root_dir.join("dist").join("mac").join("Orbshacker.app"),
-        root_dir.join("dist").join("mac-arm64").join("Orbshacker.app"),
-    ];
-
     for c in &candidates {
         if c.exists() {
             return Some(c.clone());
@@ -77,19 +68,6 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
 }
 
 fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    {
-        if exe.to_string_lossy().ends_with(".app") || exe.is_dir() {
-            let mut cmd = Command::new("open");
-            cmd.arg(exe);
-            if !args.is_empty() {
-                cmd.arg("--args");
-                cmd.args(args);
-            }
-            return cmd.spawn().map(|_| ()).map_err(|e| format!("Не удалось запустить через open: {}", e));
-        }
-    }
-
     #[cfg(unix)]
     {
         if let Ok(meta) = fs::metadata(exe) {
@@ -155,19 +133,6 @@ fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
                             }
                         }
                     }
-
-                    #[cfg(target_os = "macos")]
-                    {
-                        for asset in assets {
-                            if let Some(name) = asset["name"].as_str() {
-                                if name.ends_with(".zip") && (name.contains("mac") || name.contains("darwin")) {
-                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
-                                        return (download_url.to_string(), tag, ArchiveKind::Zip);
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
 
                 // Fallbacks per OS
@@ -187,15 +152,6 @@ fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
                         GITHUB_REPO, tag, tag
                     );
                     return (fallback, tag, ArchiveKind::TarGz);
-                }
-
-                #[cfg(target_os = "macos")]
-                {
-                    let fallback = format!(
-                        "https://github.com/{}/releases/download/{}/orbshacker-{}-mac-universal.zip",
-                        GITHUB_REPO, tag, tag
-                    );
-                    return (fallback, tag, ArchiveKind::Zip);
                 }
             }
         }
@@ -217,15 +173,6 @@ fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
             GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
         );
         (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::TarGz)
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        let fallback = format!(
-            "https://github.com/{}/releases/download/{}/orbshacker-{}-mac-universal.zip",
-            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
-        );
-        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::Zip)
     }
 }
 
@@ -814,13 +761,6 @@ fn run_launcher_terminal(
             } else {
                 println!("\x1b[1;32m✔ {}\x1b[0m", status);
                 println!("\x1b[1;34m✨ Запуск ORBSHACKER...\x1b[0m");
-
-                #[cfg(target_os = "macos")]
-                {
-                    let _ = Command::new("osascript")
-                        .args(["-e", "display notification \"Установка завершена! Запуск ORBSHACKER...\" with title \"ORBSHACKER\""])
-                        .spawn();
-                }
 
                 #[cfg(target_os = "linux")]
                 {

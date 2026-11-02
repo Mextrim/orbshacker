@@ -41,6 +41,8 @@ fn main() {
                 use std::ffi::OsStr;
                 use std::os::windows::ffi::OsStrExt;
 
+                #[link(name = "user32")]
+                #[link(name = "kernel32")]
                 extern "system" {
                     fn FreeConsole() -> i32;
                     fn GetModuleHandleW(lpModuleName: *const u16) -> *mut std::ffi::c_void;
