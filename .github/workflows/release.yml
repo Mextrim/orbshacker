@@ -28,6 +28,7 @@ jobs:
       - name: Build Rust Core (Windows)
         run: |
           cargo build --release --manifest-path src-rust/Cargo.toml
+          cargo build --release --manifest-path src-launcher/Cargo.toml
           mkdir -p src-gui/bin
           cp src-rust/target/release/orbshacker-core.exe src-gui/bin/orbshacker-core.exe
 
@@ -46,6 +47,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p artifacts
+          cp src-launcher/target/release/orbshacker-launcher.exe artifacts/orbshacker-launcher.exe
           cp dist/orbshacker-portable.exe artifacts/orbshacker.exe
           cp dist/orbshacker-core.exe artifacts/orbshacker-core.exe
           if [ -f dist/orbshacker-v*.zip ]; then

@@ -321,46 +321,7 @@
         dot.style.boxShadow = '0 0 6px var(--accent-orange)';
         text.textContent = dict.status_disconnected;
       }
-
-      if (window.orbshacker && window.orbshacker.getDiscordProfile) {
-        try {
-          const profile = await window.orbshacker.getDiscordProfile();
-          if (profile && profile.connected) {
-            liveProfile = profile;
-            if (profile.user && profile.user.username) {
-              text.textContent = `Discord: ${profile.user.username}`;
-            }
-            updateBadgeUIWithLiveProfile();
-          }
-        } catch (_) {}
-      }
     } catch (_) {}
-  }
-
-  function updateBadgeUIWithLiveProfile() {
-    if (!liveProfile || !liveProfile.distinctGames) return;
-    const dg = liveProfile.distinctGames;
-    const count = dg.currentCount;
-    const needed = dg.neededForNext;
-    const nextTier = dg.nextTierName || 'следующий уровень';
-    const curTier = dg.currentTierName || 'Рейнджер';
-
-    // Update buttons
-    if (btnFarmNext2 && !isBadgeFarming) {
-      const span = btnFarmNext2.querySelector('span:not(.btn-icon)');
-      if (span) {
-        span.textContent = `Фармить +${needed} ${needed === 1 ? 'игру' : (needed < 5 ? 'игры' : 'игр')} (до «${nextTier}»)`;
-      }
-      btnFarmNext2.title = `Запустить ${needed} игр для разблокировки «${nextTier}» (старт со смещения ${count})`;
-    }
-
-    // Update Banner tip
-    const tipBanner = document.querySelector('.badge-tip-banner span:last-child');
-    if (tipBanner) {
-      tipBanner.innerHTML = `<b>Ваш значок в Discord:</b> «${curTier}» (сервером Discord засчитано <b>${count} игр</b>). До «${nextTier}» осталось всего <b>${needed} ${needed === 1 ? 'игра' : (needed < 5 ? 'игры' : 'игр')}</b>!<br>💡 <b>Внимание:</b> Приложение Discord кэширует значки в окне. После фарма нажмите <b>Ctrl + R</b> в Discord, чтобы клиент обновил окно значков.`;
-    }
-
-    renderTierTrackers();
   }
 
   // Settings Handlers
@@ -661,57 +622,14 @@
   // 6. BADGES VISUAL PROGRESSION & CATALOG
   // ==========================================
   function renderTierTrackers() {
-    // 1. Games count tier tracker
-    const liveCount = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
-      ? liveProfile.distinctGames.currentCount
-      : 17;
-    const nextTargetThreshold = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.threshold) || 20;
-
-    if (gameCountTierTracker && gameCountTiers.length > 0) {
-      gameCountTierTracker.innerHTML = '';
-      gameCountTiers.forEach((tier) => {
-        const pill = document.createElement('div');
-        const isUnlocked = liveCount >= tier.threshold;
-        const isCurrent = tier.threshold === nextTargetThreshold;
-        pill.className = `tier-pill ${isUnlocked ? 'unlocked' : ''} ${isCurrent ? 'current' : ''}`;
-        pill.innerHTML = `
-          <span class="tier-name">${isUnlocked ? '✓ ' : ''}${tier.title}</span>
-          <span class="tier-count">${tier.threshold} игр</span>
-        `;
-        gameCountTierTracker.appendChild(pill);
-      });
-    }
-
-    // 2. Hours tier tracker
-    const liveHours = (liveProfile && liveProfile.playtimeHours && liveProfile.playtimeHours.currentHours !== undefined)
-      ? liveProfile.playtimeHours.currentHours
-      : 16;
-    const nextHoursThreshold = (liveProfile && liveProfile.playtimeHours && liveProfile.playtimeHours.threshold) || 20;
-
-    if (hoursTierTracker && hoursTiers.length > 0) {
-      hoursTierTracker.innerHTML = '';
-      hoursTiers.forEach((tier) => {
-        const pill = document.createElement('div');
-        const isUnlocked = liveHours >= tier.threshold;
-        const isCurrent = tier.threshold === nextHoursThreshold;
-        pill.className = `tier-pill ${isUnlocked ? 'unlocked' : ''} ${isCurrent ? 'current' : ''}`;
-        pill.innerHTML = `
-          <span class="tier-name">${isUnlocked ? '✓ ' : ''}${tier.title}</span>
-          <span class="tier-count">${tier.threshold} ч</span>
-        `;
-        hoursTierTracker.appendChild(pill);
-      });
-    }
+    // Statistics removed per user request for a cleaner UI
   }
 
   function formatRemainingTime(seconds) {
     if (!seconds || seconds <= 0) return '';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
+    const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    if (h > 0) return ` [осталось ${h}ч ${m}м]`;
-    if (m > 0) return ` [осталось ${m}м ${s.toString().padStart(2, '0')}с]`;
-    return ` [осталось ${s}с]`;
+    return ` (${m}:${s.toString().padStart(2, '0')})`;
   }
 
   function highlightFarmingGame(gameName) {
@@ -876,28 +794,9 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => {
-    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
-      ? liveProfile.distinctGames.currentCount
-      : 0;
-    const remaining = Math.max(1, 105 - offset);
-    startBadgeCount(remaining, offset);
-  });
-
-  btnFarmNext10.addEventListener('click', () => {
-    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
-      ? liveProfile.distinctGames.currentCount
-      : 17;
-    startBadgeCount(10, offset);
-  });
-
-  btnFarmNext2.addEventListener('click', () => {
-    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
-      ? liveProfile.distinctGames.currentCount
-      : 17;
-    const count = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.neededForNext) || 3;
-    startBadgeCount(count, offset);
-  });
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(105, 0));
+  btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 0));
+  btnFarmNext2.addEventListener('click', () => startBadgeCount(5, 0));
 
   btnStopBadges.addEventListener('click', stopBadgeFarm);
 
@@ -1037,7 +936,7 @@
       if (data.mode === 'count' || data.mode === 'single') {
         const remaining = Math.max(0, data.target_seconds - data.elapsed_seconds);
         const remStr = formatRemainingTime(remaining);
-        badgeCountStatusText.textContent = `[${data.current_index}/${data.total_games}] Игра: ${data.current_game}${remStr}`;
+        badgeCountStatusText.textContent = `Игра: ${data.current_game}${remStr}`;
         badgeCountPercentText.textContent = `${data.progress_percent}%`;
         badgeCountProgressFill.style.width = `${data.progress_percent}%`;
         highlightFarmingGame(data.current_game);

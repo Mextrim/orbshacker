@@ -378,17 +378,15 @@ impl FarmSession {
                     thread::sleep(Duration::from_secs(1));
                     let cur_el = elapsed_atom.fetch_add(1, Ordering::SeqCst) + 1;
                     let pct = ((cur_el as f64) / (total_expected_secs as f64) * 100.0).min(100.0);
-                    let batch_rem = dur_per_game.saturating_sub(sec + 1);
+                    let _batch_rem = dur_per_game.saturating_sub(sec + 1);
 
                     cb(
                         "badge_tick",
                         serde_json::json!({
                             "mode": "count",
-                            "current_game": format!("[Пакет {}/{}] {} игр параллельно: {} (осталось {}с)", batch_num, total_batches, batch_count, current_title, batch_rem),
+                            "current_game": current_title,
                             "current_index": ((batch_idx * batch_size) + batch_count).min(total_count),
                             "total_games": total_count,
-                            "batch_num": batch_num,
-                            "total_batches": total_batches,
                             "elapsed_seconds": cur_el,
                             "target_seconds": total_expected_secs,
                             "progress_percent": (pct * 10.0).round() / 10.0

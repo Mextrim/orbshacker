@@ -13,8 +13,12 @@ if (!fs.existsSync(portSrc)) {
 }
 
 fs.copyFileSync(portSrc, path.join(distDir, 'orbshacker.exe'));
-fs.copyFileSync(portSrc, path.join(rootDir, 'orbshacker.exe'));
-console.log('✅ Copied portable exe to dist/orbshacker.exe & root orbshacker.exe');
+try {
+  fs.copyFileSync(portSrc, path.join(rootDir, 'orbshacker.exe'));
+  console.log('✅ Copied portable exe to dist/orbshacker.exe & root orbshacker.exe');
+} catch (e) {
+  console.log('⚠️ Could not overwrite running root orbshacker.exe (currently in use by user), dist/orbshacker.exe updated.');
+}
 
 const rustBin = path.join(rootDir, 'src-rust', 'target', 'release', 'orbshacker-core.exe');
 if (fs.existsSync(rustBin)) {
@@ -40,11 +44,25 @@ function sha256(p) {
   return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 }
 
+const launcherBin = path.join(rootDir, 'src-launcher', 'target', 'release', 'orbshacker-launcher.exe');
+if (fs.existsSync(launcherBin)) {
+  fs.copyFileSync(launcherBin, path.join(distDir, 'orbshacker-launcher.exe'));
+  try {
+    fs.copyFileSync(launcherBin, path.join(rootDir, 'orbshacker-launcher.exe'));
+    console.log('✅ Copied launcher to dist/orbshacker-launcher.exe & root orbshacker-launcher.exe');
+  } catch (_) {
+    console.log('✅ Copied launcher to dist/orbshacker-launcher.exe');
+  }
+}
+
 const lines = [
   `${sha256(zipOut)} *orbshacker-v2.5.0-win-x64.zip`,
   `${sha256(path.join(distDir, 'orbshacker-core.exe'))} *orbshacker-core.exe`,
   `${sha256(path.join(distDir, 'orbshacker.exe'))} *orbshacker.exe`
 ];
+if (fs.existsSync(path.join(distDir, 'orbshacker-launcher.exe'))) {
+  lines.push(`${sha256(path.join(distDir, 'orbshacker-launcher.exe'))} *orbshacker-launcher.exe`);
+}
 
 fs.writeFileSync(path.join(distDir, 'SHA256SUMS'), lines.join('\n') + '\n', 'utf8');
 console.log('✅ SHA256SUMS generated successfully:');
