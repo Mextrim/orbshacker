@@ -44,16 +44,17 @@ jobs:
           npm run build:win
 
       - name: Copy & Prepare Windows Binaries
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p artifacts
-          cp src-launcher/target/release/orbshacker-launcher.exe artifacts/orbshacker-launcher.exe
-          cp dist/orbshacker-portable.exe artifacts/orbshacker.exe || true
-          cp src-rust/target/release/orbshacker-core.exe artifacts/orbshacker-core.exe
-          cp dist/*.zip artifacts/ || true
-          if [ -d dist/win-unpacked ]; then
-            cd dist/win-unpacked && zip -r ../../artifacts/orbshacker-v2.5.0-win-x64.zip . && cd ../..
-          fi
+          New-Item -ItemType Directory -Force -Path artifacts
+          Copy-Item src-launcher/target/release/orbshacker-launcher.exe artifacts/orbshacker-launcher.exe
+          if (Test-Path dist/orbshacker-portable.exe) {
+            Copy-Item dist/orbshacker-portable.exe artifacts/orbshacker.exe
+          }
+          Copy-Item src-rust/target/release/orbshacker-core.exe artifacts/orbshacker-core.exe
+          if (Test-Path dist/win-unpacked) {
+            Compress-Archive -Path dist/win-unpacked/* -DestinationPath artifacts/orbshacker-v2.5.0-win-x64.zip -Force
+          }
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
