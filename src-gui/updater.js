@@ -151,17 +151,35 @@ async function checkForUpdates(currentVersion) {
   const latestTag = rel.tag_name || '';
   const hasUpdate = isNewer(latestTag, currentVersion);
 
+  const platform = process.platform;
   let exeAsset = null;
   let checksumAsset = null;
 
   for (const a of rel.assets || []) {
-    if (a.name.toLowerCase() === 'orbshacker.exe' || a.name.toLowerCase().endsWith('.exe')) {
-      if (!exeAsset || a.name.toLowerCase() === 'orbshacker.exe') {
-        exeAsset = a;
-      }
-    }
+    const name = a.name.toLowerCase();
     if (a.name.toUpperCase() === 'SHA256SUMS') {
       checksumAsset = a;
+      continue;
+    }
+
+    if (platform === 'win32') {
+      if (name === 'orbshacker.exe' || name === 'orbshacker-portable.exe' || name.endsWith('.exe')) {
+        if (!exeAsset || name === 'orbshacker.exe' || name === 'orbshacker-portable.exe') {
+          exeAsset = a;
+        }
+      }
+    } else if (platform === 'linux') {
+      if (name.endsWith('.appimage') || name.includes('linux')) {
+        if (!exeAsset || name.endsWith('.appimage')) {
+          exeAsset = a;
+        }
+      }
+    } else if (platform === 'darwin') {
+      if (name.endsWith('.dmg') || name.includes('mac')) {
+        if (!exeAsset || name.endsWith('.dmg')) {
+          exeAsset = a;
+        }
+      }
     }
   }
 

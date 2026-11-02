@@ -62,6 +62,12 @@ impl FakerManager {
             } else {
                 self.created_files.push(target_exe.clone());
             }
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = fs::set_permissions(&target_exe, fs::Permissions::from_mode(0o755));
+            }
         }
 
         // Spawn child process with --stub mode

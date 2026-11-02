@@ -4,6 +4,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const readline = require('readline');
 const updater = require('./updater');
+const { getLiveDiscordProfile } = require('./discord-account');
 const pkg = require('./package.json');
 
 let mainWindow = null;
@@ -143,6 +144,14 @@ function createWindow() {
 // IPC Handlers
 ipcMain.handle('rpc:call', async (_event, { method, params }) => {
   return await sendRustRpc(method, params);
+});
+
+ipcMain.handle('discord:get-live-profile', async () => {
+  try {
+    return await getLiveDiscordProfile();
+  } catch (err) {
+    return { connected: false, error: err.message };
+  }
 });
 
 ipcMain.handle('open-discord-quests', async () => {

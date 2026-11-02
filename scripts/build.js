@@ -46,52 +46,44 @@ if (cargoLauncherResult.status === 0) {
   }
 }
 
-console.log('📦 [4/6] Packaging Electron GUI app with packager...');
+console.log('📦 [4/5] Building Windows distribution (portable + unpacked) with electron-builder...');
 const npxCmd = isWin ? 'npx.cmd' : 'npx';
-const packResult = spawnSync(npxCmd, ['@electron/packager', path.join(rootDir, 'src-gui'), 'orbshacker', '--platform=win32', '--arch=x64', `--out=${distDir}`, '--overwrite', '--prune=true'], {
+const builderResult = spawnSync(npxCmd, ['electron-builder', '--win', 'portable'], {
+  cwd: path.join(rootDir, 'src-gui'),
+  shell: true,
   stdio: 'inherit',
 });
-if (packResult.status !== 0) {
-  console.error('❌ Failed to package Electron app!');
+if (builderResult.status !== 0) {
+  console.error('❌ Failed to package with electron-builder!');
   process.exit(1);
 }
 
-// Copy orbshacker-core.exe into packaged directory and resources/bin
-const resourcesBin = path.join(packagedDir, 'resources', 'bin');
-if (!fs.existsSync(resourcesBin)) {
-  fs.mkdirSync(resourcesBin, { recursive: true });
-}
-fs.copyFileSync(rustBin, path.join(packagedDir, binName));
-fs.copyFileSync(rustBin, path.join(resourcesBin, binName));
+// Copy orbshacker-core.exe into dist
 fs.copyFileSync(rustBin, path.join(distDir, binName));
-console.log('✅ [5/6] Bundled Rust sidecar into Electron package.');
 
-// Build single-file portable binary with electron-builder if available
-console.log('🚀 Building standalone single-file portable exe...');
-const builderResult = spawnSync(npxCmd, ['electron-builder', '--win', 'portable', '--project', path.join(rootDir, 'src-gui')], {
-  stdio: 'inherit',
-});
-if (builderResult.status === 0) {
-  const portableSource = path.join(distDir, 'orbshacker-portable.exe');
-  if (fs.existsSync(portableSource)) {
-    fs.copyFileSync(portableSource, path.join(distDir, 'orbshacker.exe'));
-    console.log('✅ Created standalone portable binary: dist/orbshacker.exe');
-  }
+// Ensure orbshacker.exe in dist and root is the single-file standalone portable exe
+const portableSource = path.join(distDir, 'orbshacker-portable.exe');
+if (fs.existsSync(portableSource)) {
+  fs.copyFileSync(portableSource, path.join(distDir, 'orbshacker.exe'));
+  fs.copyFileSync(portableSource, path.join(rootDir, 'orbshacker.exe'));
+  console.log('✅ Created standalone portable binary: dist/orbshacker.exe & root orbshacker.exe');
 }
 
-console.log('🗜️  [6/6] Creating portable distribution ZIP...');
+console.log('🗜️  [5/5] Creating complete distribution ZIP with all DLLs (including ffmpeg.dll)...');
 if (fs.existsSync(zipOut)) {
   fs.unlinkSync(zipOut);
 }
 
-// Use powershell Compress-Archive for maximum native speed
-const psScript = `Compress-Archive -Path "${packagedDir}\\*" -DestinationPath "${zipOut}" -Force`;
-const zipResult = spawnSync('powershell.exe', ['-NoProfile', '-Command', psScript], {
-  stdio: 'inherit',
-});
-if (zipResult.status !== 0) {
-  console.error('❌ Failed to compress distribution archive!');
-  process.exit(1);
+const unpackedDir = path.join(distDir, 'win-unpacked');
+if (fs.existsSync(unpackedDir)) {
+  const psScript = `Compress-Archive -Path "${unpackedDir}\\*" -DestinationPath "${zipOut}" -Force`;
+  const zipResult = spawnSync('powershell.exe', ['-NoProfile', '-Command', psScript], {
+    stdio: 'inherit',
+  });
+  if (zipResult.status !== 0) {
+    console.error('❌ Failed to compress distribution archive!');
+    process.exit(1);
+  }
 }
 
 // Generate SHA256SUMS

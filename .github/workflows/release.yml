@@ -1,106 +1,227 @@
-name: Build & Release
+name: Multi-Platform Build & Release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  test:
+  build-windows:
+    name: Build Windows (x64)
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
+          node-version: 22
 
-      - name: Install dependencies
+      - name: Build Rust Core (Windows)
         run: |
-          pip install -r requirements-dev.txt
+          cargo build --release --manifest-path src-rust/Cargo.toml
+          mkdir -p src-gui/bin
+          cp src-rust/target/release/orbshacker-core.exe src-gui/bin/orbshacker-core.exe
 
-      - name: Lint
-        run: python -m ruff check .
-
-      - name: Test
-        run: python -m pytest
-
-  build:
-    runs-on: windows-latest
-    needs: test
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
+      - name: Install GUI dependencies
         run: |
-          pip install -r requirements.txt
-          pip install pyinstaller
+          cd src-gui
+          npm ci
 
-      - name: Get and validate tag
-        id: tag
+      - name: Build Electron App (Windows Portable & Archive)
+        run: |
+          cd src-gui
+          npm run build:portable
+          npm run build:win
+
+      - name: Copy & Prepare Windows Binaries
         shell: bash
         run: |
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag ${GITHUB_REF_NAME} is not a stable release tag (expected vX.Y.Z) — skipping."
-            echo "valid=false" >> $GITHUB_OUTPUT
-            exit 0
+          mkdir -p artifacts
+          cp dist/orbshacker-portable.exe artifacts/orbshacker.exe
+          cp dist/orbshacker-core.exe artifacts/orbshacker-core.exe
+          if [ -f dist/orbshacker-v*.zip ]; then
+            cp dist/orbshacker-v*.zip artifacts/
           fi
 
-          echo "TAG_NAME=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-          echo "valid=true" >> $GITHUB_OUTPUT
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-assets
+          path: artifacts/*
 
-      - name: Write version metadata
-        if: steps.tag.outputs.valid == 'true'
-        shell: bash
-        run: |
-          VERSION="${{ steps.tag.outputs.TAG_NAME }}"
-          printf 'VERSION = "%s"\n' "${VERSION#v}" > orbshacker/_version.py
+  build-linux:
+    name: Build Linux (x64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build executable
-        if: steps.tag.outputs.valid == 'true'
-        run: |
-          copy settings.example.py settings.py
-          pyinstaller --onefile --name orbshacker --noconsole --add-data "settings.py;." --collect-all orbshacker orbshacker.py
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Generate SHA256SUMS
-        if: steps.tag.outputs.valid == 'true'
-        shell: bash
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Linux build dependencies
         run: |
-          cd dist
-          sha256sum orbshacker.exe | sed 's/  */ /' > SHA256SUMS
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools libfuse2
+
+      - name: Build Rust Core (Linux)
+        run: |
+          cargo build --release --manifest-path src-rust/Cargo.toml
+          mkdir -p src-gui/bin
+          cp src-rust/target/release/orbshacker-core src-gui/bin/orbshacker-core
+          chmod +x src-gui/bin/orbshacker-core
+
+      - name: Install GUI dependencies
+        run: |
+          cd src-gui
+          npm ci
+
+      - name: Build Electron App (Linux AppImage & tar.gz)
+        run: |
+          cd src-gui
+          npm run build:linux
+
+      - name: Prepare Linux Binaries
+        run: |
+          mkdir -p artifacts
+          cp src-rust/target/release/orbshacker-core artifacts/orbshacker-core-linux-x64
+          cp dist/*.AppImage artifacts/ || true
+          cp dist/*.tar.gz artifacts/ || true
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-assets
+          path: artifacts/*
+
+  build-macos:
+    name: Build macOS (Universal)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build Rust Core (macOS universal)
+        run: |
+          cargo build --release --target x86_64-apple-darwin --manifest-path src-rust/Cargo.toml
+          cargo build --release --target aarch64-apple-darwin --manifest-path src-rust/Cargo.toml
+          mkdir -p src-gui/bin
+          lipo -create -output src-gui/bin/orbshacker-core \
+            src-rust/target/x86_64-apple-darwin/release/orbshacker-core \
+            src-rust/target/aarch64-apple-darwin/release/orbshacker-core
+          chmod +x src-gui/bin/orbshacker-core
+
+      - name: Install GUI dependencies
+        run: |
+          cd src-gui
+          npm ci
+
+      - name: Build Electron App (macOS dmg & zip)
+        run: |
+          cd src-gui
+          npm run build:mac
+
+      - name: Prepare macOS Binaries
+        run: |
+          mkdir -p artifacts
+          cp src-gui/bin/orbshacker-core artifacts/orbshacker-core-mac-universal
+          cp dist/*.dmg artifacts/ || true
+          cp dist/*mac*.zip artifacts/ || true
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-assets
+          path: artifacts/*
+
+  publish-release:
+    name: Publish Multi-Platform Release
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-assets
+
+      - name: Flatten and generate SHA256SUMS
+        run: |
+          mkdir -p release-files
+          find all-assets -type f -exec cp {} release-files/ \;
+          cd release-files
+          sha256sum * > SHA256SUMS
           cat SHA256SUMS
 
-      - name: Create GitHub Release
-        if: steps.tag.outputs.valid == 'true'
+      - name: Determine Tag
+        id: vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "$TAG" =~ ^v[0-9] ]]; then
+            TAG="v2.5.0"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2.6.1
         with:
-          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
-          name: Orbshacker ${{ steps.tag.outputs.TAG_NAME }}
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Orbshacker ${{ steps.vars.outputs.tag }} - Multi-Platform (Windows, Linux, macOS)
           body: |
-            ## Orbshacker ${{ steps.tag.outputs.TAG_NAME }}
+            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows + Linux + macOS)
             
-            ### Download
-            Download `orbshacker.exe` below and run it. No Python required!
+            Multi-platform release of Orbshacker with Discord Quests & Badges Booster.
             
-            `SHA256SUMS` contains the checksum the app verifies before self-updating.
+            ### 📥 Downloads
             
-            ### What's new
-            See the [commit log](https://github.com/${{ github.repository }}/commits/${{ steps.tag.outputs.TAG_NAME }}) for details.
-          files: |
-            dist/orbshacker.exe
-            dist/SHA256SUMS
+            #### 🪟 Windows (x64)
+            - **`orbshacker.exe`**: Standalone single-file portable GUI app. No installation required.
+            - **`orbshacker-v2.5.0-win-x64.zip`**: Full portable zip archive containing all runtime dependencies (ffmpeg, d3dcompiler, etc.).
+            - **`orbshacker-core.exe`**: Native Rust CLI engine.
+            
+            #### 🐧 Linux (x64)
+            - **`orbshacker-2.5.0.AppImage`**: Standalone Linux AppImage.
+            - **`orbshacker-v2.5.0-linux-x64.tar.gz`**: Standalone tar.gz archive.
+            - **`orbshacker-core-linux-x64`**: Native Linux CLI engine.
+            
+            #### 🍎 macOS (Universal: Apple Silicon M1/M2/M3/M4 & Intel)
+            - **`orbshacker-2.5.0.dmg`**: macOS disk image installer.
+            - **`orbshacker-v2.5.0-mac-universal.zip`**: Portable macOS application archive.
+            - **`orbshacker-core-mac-universal`**: Universal Mach-O binary.
+            
+            ---
+            
+            ### ✨ What's New
+            - 🎮 **Discord Profile Badges Booster**: 100+ detectable games farmed in parallel (5 games concurrently) with guaranteed Discord Heartbeat detection.
+            - ⚡ **Zero-Download Game Spoofer**: Emulates games with real process handles and Steam manifests without downloading gigabytes.
+            - 🎨 **Theme Engine & Glassmorphism UI**: 10 rich themes (Cyber Neon, Tokyo 2077, Discord Nitro, OLED, Matrix, Crimson, etc.).
+            - 🔄 **Cross-Platform Auto-Updates**: In-app updater for Windows, Linux, and macOS.
+          files: release-files/*
           draft: false
           prerelease: false

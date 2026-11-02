@@ -299,8 +299,15 @@ impl FarmSession {
             .collect();
         let total_count = games_to_run.len();
 
-        let dur_per_game = duration_per_game_secs.max(5);
-        let total_expected_secs = (total_count as u64) * dur_per_game;
+        // Discord badge calculation requires at least 300 seconds (5 minutes) for the 5-min RunningGameHeartbeat to register the game into badge progress!
+        let dur_per_game = duration_per_game_secs.max(300);
+        let batch_size = 5usize;
+        let batches: Vec<Vec<DetectableGame>> = games_to_run
+            .chunks(batch_size)
+            .map(|chunk| chunk.to_vec())
+            .collect();
+        let total_batches = batches.len();
+        let total_expected_secs = (total_batches as u64) * dur_per_game;
 
         self.badge_is_active.store(true, Ordering::SeqCst);
         *self.badge_mode.lock().unwrap() = "count".to_string();
@@ -321,56 +328,67 @@ impl FarmSession {
                 "log",
                 serde_json::json!({
                     "level": "info",
-                    "message": format!("🚀 Запуск бустера значка: {} игр по очереди (по {}с на игру)...", total_count, dur_per_game)
+                    "message": format!("🚀 Запуск параллельного бустера значка: {} игр ({} пакетов по до {} игр, по {}с на пакет)...", total_count, total_batches, batch_size, dur_per_game)
                 }),
             );
 
-            for (idx, game) in games_to_run.iter().enumerate() {
+            for (batch_idx, batch_games) in batches.iter().enumerate() {
                 if !is_active_flag.load(Ordering::SeqCst) {
                     break;
                 }
 
-                let game_num = idx + 1;
-                *cur_game_mutex.lock().unwrap() = game.name.clone();
-                cur_index_atom.store(game_num as u64, Ordering::SeqCst);
+                let batch_num = batch_idx + 1;
+                let batch_count = batch_games.len();
+                let game_names: Vec<String> = batch_games.iter().map(|g| g.name.clone()).collect();
+                let current_title = game_names.join(", ");
+                *cur_game_mutex.lock().unwrap() = current_title.clone();
+                cur_index_atom.store(((batch_idx * batch_size) + batch_count).min(total_count) as u64, Ordering::SeqCst);
 
-                // 1. Create Steam appmanifest for verified detection in Discord
-                let steam_manifest = if let Some(steam_id) = game.steam_app_id {
-                    SteamHelper::create_fake_manifest(steam_id, &game.name).ok()
-                } else {
-                    None
-                };
+                // 1. Create Steam appmanifests for verified detection in Discord
+                let mut manifests = Vec::new();
+                for game in batch_games {
+                    if let Some(steam_id) = game.steam_app_id {
+                        if let Ok(m) = SteamHelper::create_fake_manifest(steam_id, &game.name) {
+                            manifests.push(m);
+                        }
+                    }
+                }
 
-                // 2. Spawn single game stub
+                // 2. Spawn batch of game stubs simultaneously
                 {
                     let mut faker = faker_mgr_arc.lock().unwrap();
-                    let _ = faker.launch_stub(&game.exe_name, &game.name, dur_per_game + 5, game.steam_app_id);
+                    for game in batch_games {
+                        let _ = faker.launch_stub(&game.exe_name, &game.name, dur_per_game + 10, game.steam_app_id);
+                    }
                 }
 
                 cb(
                     "log",
                     serde_json::json!({
                         "level": "info",
-                        "message": format!("[Игра {}/{}] Запущена: {} ({}с). Discord регистрирует сессию...", game_num, total_count, game.name, dur_per_game)
+                        "message": format!("[Пакет {}/{}] Запущено {} игр параллельно: {} (сессия {}с)...", batch_num, total_batches, batch_count, current_title, dur_per_game)
                     }),
                 );
 
-                // 2. Run for dur_per_game seconds
-                for _ in 0..dur_per_game {
+                // 3. Run for dur_per_game seconds
+                for sec in 0..dur_per_game {
                     if !is_active_flag.load(Ordering::SeqCst) {
                         break;
                     }
                     thread::sleep(Duration::from_secs(1));
                     let cur_el = elapsed_atom.fetch_add(1, Ordering::SeqCst) + 1;
                     let pct = ((cur_el as f64) / (total_expected_secs as f64) * 100.0).min(100.0);
+                    let batch_rem = dur_per_game.saturating_sub(sec + 1);
 
                     cb(
                         "badge_tick",
                         serde_json::json!({
                             "mode": "count",
-                            "current_game": game.name,
-                            "current_index": game_num,
+                            "current_game": format!("[Пакет {}/{}] {} игр параллельно: {} (осталось {}с)", batch_num, total_batches, batch_count, current_title, batch_rem),
+                            "current_index": ((batch_idx * batch_size) + batch_count).min(total_count),
                             "total_games": total_count,
+                            "batch_num": batch_num,
+                            "total_batches": total_batches,
                             "elapsed_seconds": cur_el,
                             "target_seconds": total_expected_secs,
                             "progress_percent": (pct * 10.0).round() / 10.0
@@ -378,12 +396,12 @@ impl FarmSession {
                     );
                 }
 
-                // 3. Terminate game process so Discord emits closed: true with full duration
+                // 4. Terminate batch stubs so Discord emits closed: true with full duration
                 {
                     let mut faker = faker_mgr_arc.lock().unwrap();
                     faker.stop_all();
                 }
-                if let Some(ref m) = steam_manifest {
+                for m in manifests {
                     let _ = std::fs::remove_file(m);
                 }
 
@@ -391,13 +409,13 @@ impl FarmSession {
                     "log",
                     serde_json::json!({
                         "level": "success",
-                        "message": format!("[Игра {}/{}] Сессия {} завершена (+1 игра в Discord)!", game_num, total_count, game.name)
+                        "message": format!("[Пакет {}/{}] Завершена сессия для {} игр! (+{} в копилку Discord)", batch_num, total_batches, batch_count, batch_count)
                     }),
                 );
 
                 // Small pause for Discord process scanner
-                if is_active_flag.load(Ordering::SeqCst) && game_num < total_count {
-                    thread::sleep(Duration::from_millis(1500));
+                if is_active_flag.load(Ordering::SeqCst) && batch_num < total_batches {
+                    thread::sleep(Duration::from_millis(2000));
                 }
             }
 
@@ -408,7 +426,7 @@ impl FarmSession {
                     serde_json::json!({
                         "mode": "count",
                         "completed_games": total_count,
-                        "message": "Серия игр завершена! Переоткройте окно значков в Discord (или нажмите Ctrl+R), чтобы увидеть обновлённый счётчик!"
+                        "message": "Серия игр успешно завершена! Нажмите Ctrl+R в Discord (или переоткройте окно профиля), чтобы обновить значок!"
                     }),
                 );
             }
@@ -433,7 +451,7 @@ impl FarmSession {
             .ok_or_else(|| format!("Игра '{}' не найдена в каталоге", game_id_or_exe))?;
 
         let game_name = game.name.clone();
-        let dur = duration_secs.max(5);
+        let dur = duration_secs.max(300);
 
         self.badge_is_active.store(true, Ordering::SeqCst);
         *self.badge_mode.lock().unwrap() = "single".to_string();

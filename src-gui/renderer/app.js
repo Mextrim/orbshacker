@@ -10,6 +10,7 @@
   let isBadgeFarming = false;
   let isHoursFarming = false;
   let isCustomFarming = false;
+  let liveProfile = null;
 
   let farmDurationMinutes = 15;
   let selectedTargetHours = 13;
@@ -320,7 +321,46 @@
         dot.style.boxShadow = '0 0 6px var(--accent-orange)';
         text.textContent = dict.status_disconnected;
       }
+
+      if (window.orbshacker && window.orbshacker.getDiscordProfile) {
+        try {
+          const profile = await window.orbshacker.getDiscordProfile();
+          if (profile && profile.connected) {
+            liveProfile = profile;
+            if (profile.user && profile.user.username) {
+              text.textContent = `Discord: ${profile.user.username}`;
+            }
+            updateBadgeUIWithLiveProfile();
+          }
+        } catch (_) {}
+      }
     } catch (_) {}
+  }
+
+  function updateBadgeUIWithLiveProfile() {
+    if (!liveProfile || !liveProfile.distinctGames) return;
+    const dg = liveProfile.distinctGames;
+    const count = dg.currentCount;
+    const needed = dg.neededForNext;
+    const nextTier = dg.nextTierName || 'следующий уровень';
+    const curTier = dg.currentTierName || 'Рейнджер';
+
+    // Update buttons
+    if (btnFarmNext2 && !isBadgeFarming) {
+      const span = btnFarmNext2.querySelector('span:not(.btn-icon)');
+      if (span) {
+        span.textContent = `Фармить +${needed} ${needed === 1 ? 'игру' : (needed < 5 ? 'игры' : 'игр')} (до «${nextTier}»)`;
+      }
+      btnFarmNext2.title = `Запустить ${needed} игр для разблокировки «${nextTier}» (старт со смещения ${count})`;
+    }
+
+    // Update Banner tip
+    const tipBanner = document.querySelector('.badge-tip-banner span:last-child');
+    if (tipBanner) {
+      tipBanner.innerHTML = `<b>Ваш значок в Discord:</b> «${curTier}» (сервером Discord засчитано <b>${count} игр</b>). До «${nextTier}» осталось всего <b>${needed} ${needed === 1 ? 'игра' : (needed < 5 ? 'игры' : 'игр')}</b>!<br>💡 <b>Внимание:</b> Приложение Discord кэширует значки в окне. После фарма нажмите <b>Ctrl + R</b> в Discord, чтобы клиент обновил окно значков.`;
+    }
+
+    renderTierTrackers();
   }
 
   // Settings Handlers
@@ -622,16 +662,20 @@
   // ==========================================
   function renderTierTrackers() {
     // 1. Games count tier tracker
+    const liveCount = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
+      ? liveProfile.distinctGames.currentCount
+      : 17;
+    const nextTargetThreshold = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.threshold) || 20;
+
     if (gameCountTierTracker && gameCountTiers.length > 0) {
       gameCountTierTracker.innerHTML = '';
       gameCountTiers.forEach((tier) => {
         const pill = document.createElement('div');
-        // Currently user has 8 games as seen in screenshot
-        const isUnlocked = 8 >= tier.threshold;
-        const isCurrent = tier.threshold === 10; // Next target is 10
+        const isUnlocked = liveCount >= tier.threshold;
+        const isCurrent = tier.threshold === nextTargetThreshold;
         pill.className = `tier-pill ${isUnlocked ? 'unlocked' : ''} ${isCurrent ? 'current' : ''}`;
         pill.innerHTML = `
-          <span class="tier-name">${tier.title}</span>
+          <span class="tier-name">${isUnlocked ? '✓ ' : ''}${tier.title}</span>
           <span class="tier-count">${tier.threshold} игр</span>
         `;
         gameCountTierTracker.appendChild(pill);
@@ -639,16 +683,20 @@
     }
 
     // 2. Hours tier tracker
+    const liveHours = (liveProfile && liveProfile.playtimeHours && liveProfile.playtimeHours.currentHours !== undefined)
+      ? liveProfile.playtimeHours.currentHours
+      : 16;
+    const nextHoursThreshold = (liveProfile && liveProfile.playtimeHours && liveProfile.playtimeHours.threshold) || 20;
+
     if (hoursTierTracker && hoursTiers.length > 0) {
       hoursTierTracker.innerHTML = '';
       hoursTiers.forEach((tier) => {
         const pill = document.createElement('div');
-        // Currently user has 7 hours as seen in screenshot
-        const isUnlocked = 7 >= tier.threshold;
-        const isCurrent = tier.threshold === 20; // Next target is 20
+        const isUnlocked = liveHours >= tier.threshold;
+        const isCurrent = tier.threshold === nextHoursThreshold;
         pill.className = `tier-pill ${isUnlocked ? 'unlocked' : ''} ${isCurrent ? 'current' : ''}`;
         pill.innerHTML = `
-          <span class="tier-name">${tier.title}</span>
+          <span class="tier-name">${isUnlocked ? '✓ ' : ''}${tier.title}</span>
           <span class="tier-count">${tier.threshold} ч</span>
         `;
         hoursTierTracker.appendChild(pill);
@@ -739,7 +787,12 @@
   // ==========================================
   // 7. BADGES: GAME COUNT BOOSTER (100+ Games)
   // ==========================================
-  let badgeSpeedDuration = parseInt(localStorage.getItem('orbshacker_badge_speed') || '15', 10);
+  let badgeSpeedDuration = parseInt(localStorage.getItem('orbshacker_badge_speed') || '305', 10);
+  if (badgeSpeedDuration < 300) {
+    badgeSpeedDuration = 305;
+    localStorage.setItem('orbshacker_badge_speed', '305');
+  }
+
   const badgeSpeedChips = document.querySelectorAll('#badgeSpeedPresets .preset-chip');
   if (badgeSpeedChips.length > 0) {
     badgeSpeedChips.forEach((chip) => {
@@ -750,15 +803,15 @@
         chip.classList.add('active');
         badgeSpeedDuration = spd;
         localStorage.setItem('orbshacker_badge_speed', spd.toString());
-        addLog(`Скорость фарма значка установлена: ${spd} сек/игра.`, 'info');
+        addLog(`Длительность сессии пакета установлена: ${spd} сек (${(spd/60).toFixed(1)} мин).`, 'info');
       });
     });
   }
 
   async function startSingleGame(gameId, gameName, durationSecs = null) {
-    const dur = durationSecs || badgeSpeedDuration || 15;
+    const dur = Math.max(durationSecs || badgeSpeedDuration || 305, 300);
     try {
-      addLog(`Запуск одиночной игры '${gameName}' на ${dur} сек. для значка Discord...`, 'info');
+      addLog(`Запуск игры '${gameName}' на ${dur} сек. (Discord 5-мин Heartbeat)...`, 'info');
       const res = await window.orbshacker.call('start_single_game', { game_id: gameId, duration_secs: dur });
       if (res && res.started) {
         isBadgeFarming = true;
@@ -778,9 +831,9 @@
   }
 
   async function startBadgeCount(count, offset = 0) {
-    const dur = badgeSpeedDuration || 15;
+    const dur = Math.max(badgeSpeedDuration || 305, 300);
     try {
-      addLog(`Запуск серии из ${count} игр для значка Discord (по ${dur}с на игру, смещение: ${offset})...`, 'info');
+      addLog(`Запуск параллельного фарма ${count} игр (по 5 игр сразу, сессия ${dur}с, смещение ${offset})...`, 'info');
       const res = await window.orbshacker.call('start_badge_count', { target_count: count, start_offset: offset, duration_secs: dur });
       if (res && res.started) {
         isBadgeFarming = true;
@@ -789,10 +842,10 @@
         btnFarmNext2.disabled = true;
         btnStopBadges.style.display = 'inline-flex';
         badgeCountProgressBox.style.display = 'flex';
-        badgeCountStatusText.textContent = `Фарм игр: 0 / ${res.total_games}`;
+        badgeCountStatusText.textContent = `Подготовка пакета игр...`;
         badgeCountPercentText.textContent = '0%';
         badgeCountProgressFill.style.width = '0%';
-        addLog(`Запущена серия из ${res.total_games} игр по очереди (по ${dur}с на игру)!`, 'success');
+        addLog(`Запущена серия из ${res.total_games} игр (по 5 одновременно)!`, 'success');
       }
     } catch (err) {
       addLog(`Failed to start badge game count farm: ${err.message}`, 'error');
@@ -823,9 +876,29 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(105, 0));
-  btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 8));
-  btnFarmNext2.addEventListener('click', () => startBadgeCount(2, 8));
+  btnFarmAll100.addEventListener('click', () => {
+    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
+      ? liveProfile.distinctGames.currentCount
+      : 0;
+    const remaining = Math.max(1, 105 - offset);
+    startBadgeCount(remaining, offset);
+  });
+
+  btnFarmNext10.addEventListener('click', () => {
+    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
+      ? liveProfile.distinctGames.currentCount
+      : 17;
+    startBadgeCount(10, offset);
+  });
+
+  btnFarmNext2.addEventListener('click', () => {
+    const offset = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.currentCount !== undefined)
+      ? liveProfile.distinctGames.currentCount
+      : 17;
+    const count = (liveProfile && liveProfile.distinctGames && liveProfile.distinctGames.neededForNext) || 3;
+    startBadgeCount(count, offset);
+  });
+
   btnStopBadges.addEventListener('click', stopBadgeFarm);
 
   // ==========================================
@@ -980,7 +1053,9 @@
       if (data.mode === 'count' || data.mode === 'single') {
         resetBadgeCountState();
         playCompletionChime();
-        addLog(data.message || `🎉 Игра завершена (+1 к значку)! Переоткройте значки в Discord для обновления.`, 'success');
+        addLog(data.message || `🎉 Пакет игр завершён! Нажмите Ctrl+R в Discord для обновления окна профиля.`, 'success');
+        // Refresh live stats from Discord servers
+        setTimeout(checkDiscordStatus, 1500);
       } else if (data.mode === 'hours') {
         resetHoursFarmState();
         playCompletionChime();

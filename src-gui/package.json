@@ -8,7 +8,10 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build:portable": "electron-builder --win portable"
+    "build:portable": "electron-builder --win portable",
+    "build:win": "electron-builder --win portable zip",
+    "build:linux": "electron-builder --linux AppImage tar.gz",
+    "build:mac": "electron-builder --mac dmg zip"
   },
   "build": {
     "appId": "com.mextrim.orbshacker",
@@ -19,6 +22,7 @@
     "files": [
       "main.js",
       "updater.js",
+      "discord-account.js",
       "preload.js",
       "renderer/**/*",
       "assets/**/*",
@@ -41,11 +45,55 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
     "portable": {
       "artifactName": "orbshacker-portable.exe"
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Utility",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "assets/icon.png",
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
     }
   },
   "devDependencies": {
