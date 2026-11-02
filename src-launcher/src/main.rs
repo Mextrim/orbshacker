@@ -10,6 +10,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
 const GITHUB_REPO: &str = "Mextrim/orbshacker";
 const DEFAULT_VERSION: &str = "v2.5.0";
 
@@ -22,17 +25,47 @@ struct ProgressState {
     error: Option<String>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[allow(dead_code)]
+enum ArchiveKind {
+    Zip,
+    TarGz,
+    AppImage,
+}
+
 fn get_app_dir(root_dir: &Path) -> PathBuf {
     root_dir.join("app")
 }
 
 fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
     let app_dir = get_app_dir(root_dir);
+
+    #[cfg(windows)]
     let candidates = [
         app_dir.join("win-unpacked").join("orbshacker.exe"),
         app_dir.join("orbshacker.exe"),
         root_dir.join("dist").join("win-unpacked").join("orbshacker.exe"),
         root_dir.join("dist").join("orbshacker-portable.exe"),
+        root_dir.join("dist").join("orbshacker.exe"),
+    ];
+
+    #[cfg(target_os = "linux")]
+    let candidates = [
+        app_dir.join("orbshacker.AppImage"),
+        app_dir.join("orbshacker"),
+        app_dir.join("linux-unpacked").join("orbshacker"),
+        root_dir.join("orbshacker.AppImage"),
+        root_dir.join("dist").join("orbshacker.AppImage"),
+        root_dir.join("dist").join("orbshacker"),
+    ];
+
+    #[cfg(target_os = "macos")]
+    let candidates = [
+        app_dir.join("Orbshacker.app"),
+        app_dir.join("Orbshacker.app").join("Contents").join("MacOS").join("orbshacker"),
+        root_dir.join("Orbshacker.app"),
+        root_dir.join("dist").join("mac").join("Orbshacker.app"),
+        root_dir.join("dist").join("mac-arm64").join("Orbshacker.app"),
     ];
 
     for c in &candidates {
@@ -43,11 +76,39 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
     None
 }
 
+fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        if exe.to_string_lossy().ends_with(".app") || exe.is_dir() {
+            let mut cmd = Command::new("open");
+            cmd.arg(exe);
+            if !args.is_empty() {
+                cmd.arg("--args");
+                cmd.args(args);
+            }
+            return cmd.spawn().map(|_| ()).map_err(|e| format!("Не удалось запустить через open: {}", e));
+        }
+    }
+
+    #[cfg(unix)]
+    {
+        if let Ok(meta) = fs::metadata(exe) {
+            let mut perms = meta.permissions();
+            perms.set_mode(0o755);
+            let _ = fs::set_permissions(exe, perms);
+        }
+    }
+
+    let mut cmd = Command::new(exe);
+    cmd.args(args);
+    cmd.spawn().map(|_| ()).map_err(|e| format!("Не удалось запустить: {}", e))
+}
+
 // =========================================================
 // DOWNLOAD & EXTRACT LOGIC
 // =========================================================
 
-fn get_download_url_and_version() -> (String, String) {
+fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
     let api_url = format!("https://api.github.com/repos/{}/releases/latest", GITHUB_REPO);
     let req = minreq::get(&api_url)
         .with_header("User-Agent", "Orbshacker-Launcher")
@@ -59,30 +120,113 @@ fn get_download_url_and_version() -> (String, String) {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(resp.as_bytes()) {
                 let tag = json["tag_name"].as_str().unwrap_or(DEFAULT_VERSION).to_string();
                 if let Some(assets) = json["assets"].as_array() {
-                    for asset in assets {
-                        if let Some(name) = asset["name"].as_str() {
-                            if name.ends_with(".zip") && name.contains("win") {
-                                if let Some(download_url) = asset["browser_download_url"].as_str() {
-                                    return (download_url.to_string(), tag);
+                    #[cfg(windows)]
+                    {
+                        for asset in assets {
+                            if let Some(name) = asset["name"].as_str() {
+                                if name.ends_with(".zip") && name.contains("win") {
+                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
+                                        return (download_url.to_string(), tag, ArchiveKind::Zip);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    #[cfg(target_os = "linux")]
+                    {
+                        // Prefer AppImage or tar.gz for Linux
+                        for asset in assets {
+                            if let Some(name) = asset["name"].as_str() {
+                                if name.ends_with(".AppImage") {
+                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
+                                        return (download_url.to_string(), tag, ArchiveKind::AppImage);
+                                    }
+                                }
+                            }
+                        }
+                        for asset in assets {
+                            if let Some(name) = asset["name"].as_str() {
+                                if (name.ends_with(".tar.gz") || name.ends_with(".tgz")) && name.contains("linux") {
+                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
+                                        return (download_url.to_string(), tag, ArchiveKind::TarGz);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    #[cfg(target_os = "macos")]
+                    {
+                        for asset in assets {
+                            if let Some(name) = asset["name"].as_str() {
+                                if name.ends_with(".zip") && (name.contains("mac") || name.contains("darwin")) {
+                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
+                                        return (download_url.to_string(), tag, ArchiveKind::Zip);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                let fallback = format!(
-                    "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
-                    GITHUB_REPO, tag, tag
-                );
-                return (fallback, tag);
+
+                // Fallbacks per OS
+                #[cfg(windows)]
+                {
+                    let fallback = format!(
+                        "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
+                        GITHUB_REPO, tag, tag
+                    );
+                    return (fallback, tag, ArchiveKind::Zip);
+                }
+
+                #[cfg(target_os = "linux")]
+                {
+                    let fallback = format!(
+                        "https://github.com/{}/releases/download/{}/orbshacker-{}-linux-x64.tar.gz",
+                        GITHUB_REPO, tag, tag
+                    );
+                    return (fallback, tag, ArchiveKind::TarGz);
+                }
+
+                #[cfg(target_os = "macos")]
+                {
+                    let fallback = format!(
+                        "https://github.com/{}/releases/download/{}/orbshacker-{}-mac-universal.zip",
+                        GITHUB_REPO, tag, tag
+                    );
+                    return (fallback, tag, ArchiveKind::Zip);
+                }
             }
         }
     }
 
-    let fallback = format!(
-        "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
-        GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
-    );
-    (fallback, DEFAULT_VERSION.to_string())
+    #[cfg(windows)]
+    {
+        let fallback = format!(
+            "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
+            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
+        );
+        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::Zip)
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let fallback = format!(
+            "https://github.com/{}/releases/download/{}/orbshacker-{}-linux-x64.tar.gz",
+            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
+        );
+        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::TarGz)
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let fallback = format!(
+            "https://github.com/{}/releases/download/{}/orbshacker-{}-mac-universal.zip",
+            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
+        );
+        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::Zip)
+    }
 }
 
 fn download_file_with_progress(
@@ -218,12 +362,58 @@ fn extract_zip(
             }
             let mut outfile = File::create(&outpath).map_err(|e| format!("Не удалось распаковать: {}", e))?;
             let _ = std::io::copy(&mut entry, &mut outfile);
+
+            #[cfg(unix)]
+            {
+                if let Some(mode) = entry.unix_mode() {
+                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(mode));
+                } else if outpath.file_name().map_or(false, |n| n == "orbshacker" || n == "orbshacker-core") {
+                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(0o755));
+                }
+            }
         }
 
         if i % 10 == 0 || i == total_files - 1 {
             let pct = ((i + 1) as f64 / total_files as f64 * 100.0) as u32;
             if let Ok(mut st) = state.lock() {
                 st.detail = format!("Распаковка: {} / {} файлов ({}%)", i + 1, total_files, pct);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn extract_tar_gz(
+    archive_path: &Path,
+    target_dir: &Path,
+    state: &Arc<Mutex<ProgressState>>,
+    _cancel_flag: &Arc<AtomicBool>,
+) -> Result<(), String> {
+    if let Ok(mut st) = state.lock() {
+        st.status = "Распаковка компонентов Linux (.tar.gz)...".to_string();
+        st.detail = "Извлечение файлов...".to_string();
+        st.percent = 100;
+    }
+
+    let _ = fs::create_dir_all(target_dir);
+    let tar_gz = File::open(archive_path).map_err(|e| format!("Не удалось открыть архив: {}", e))?;
+    let tar = flate2::read::GzDecoder::new(tar_gz);
+    let mut archive = tar::Archive::new(tar);
+
+    archive.unpack(target_dir).map_err(|e| format!("Ошибка распаковки архива tar.gz: {}", e))?;
+
+    #[cfg(unix)]
+    {
+        for entry in fs::read_dir(target_dir).into_iter().flatten().flatten() {
+            let p = entry.path();
+            if p.is_file() {
+                if let Ok(meta) = p.metadata() {
+                    let mut perms = meta.permissions();
+                    perms.set_mode(0o755);
+                    let _ = fs::set_permissions(&p, perms);
+                }
             }
         }
     }
@@ -333,24 +523,37 @@ mod win_gui {
         pt: POINT,
     }
 
+    const WS_OVERLAPPED: u32 = 0x00000000;
+    const WS_CAPTION: u32 = 0x00C00000;
+    const WS_SYSMENU: u32 = 0x00080000;
+    const WS_MINIMIZEBOX: u32 = 0x00020000;
+    const WS_VISIBLE: u32 = 0x10000000;
+    const WS_CHILD: u32 = 0x40000000;
+    const WM_DESTROY: u32 = 0x0002;
+    const WM_CTLCOLORSTATIC: u32 = 0x0138;
+    const PM_REMOVE: u32 = 0x0001;
+    const PBM_SETRANGE32: u32 = 0x0406;
+    const PBM_SETPOS: u32 = 0x0402;
+    const WM_SETFONT: u32 = 0x0030;
+    const SM_CXSCREEN: i32 = 0;
+    const SM_CYSCREEN: i32 = 1;
+
     static mut BG_BRUSH: *mut std::ffi::c_void = std::ptr::null_mut();
 
-    unsafe extern "system" fn wnd_proc(hwnd: *mut std::ffi::c_void, msg: u32, wparam: usize, lparam: isize) -> isize {
+    unsafe extern "system" fn window_proc(
+        hwnd: *mut std::ffi::c_void,
+        msg: u32,
+        wparam: usize,
+        lparam: isize,
+    ) -> isize {
         match msg {
-            0x0138 => {
-                // WM_CTLCOLORSTATIC: Paint labels with dark background and neon text
+            WM_CTLCOLORSTATIC => {
                 let hdc = wparam as *mut std::ffi::c_void;
                 SetBkMode(hdc, 1); // TRANSPARENT
-                SetTextColor(hdc, 0x00E2E8F0); // Light slate text
-                return BG_BRUSH as isize;
+                SetTextColor(hdc, 0x00F0F0F0); // White text
+                BG_BRUSH as isize
             }
-            0x0010 => {
-                // WM_CLOSE
-                DestroyWindow(hwnd);
-                0
-            }
-            0x0002 => {
-                // WM_DESTROY
+            WM_DESTROY => {
                 PostQuitMessage(0);
                 0
             }
@@ -358,8 +561,8 @@ mod win_gui {
         }
     }
 
-    fn to_wide(s: &str) -> Vec<u16> {
-        OsStr::new(s).encode_wide().chain(Some(0)).collect()
+    fn to_wstring(s: &str) -> Vec<u16> {
+        OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
     }
 
     pub fn run_launcher_gui(
@@ -367,124 +570,163 @@ mod win_gui {
         cancel_flag: Arc<AtomicBool>,
     ) {
         unsafe {
-            let icc = INITCOMMONCONTROLSEX {
+            let iccex = INITCOMMONCONTROLSEX {
                 dwSize: std::mem::size_of::<INITCOMMONCONTROLSEX>() as u32,
                 dwICC: 0x00000020, // ICC_PROGRESS_CLASS
             };
-            InitCommonControlsEx(&icc);
+            InitCommonControlsEx(&iccex);
 
-            let h_inst = GetModuleHandleW(std::ptr::null());
-            let class_name = to_wide("OrbshackerLauncherWnd");
+            let h_instance = GetModuleHandleW(std::ptr::null());
+            BG_BRUSH = CreateSolidBrush(0x001B120F); // #0f121b (Dark neon background)
 
-            // Dark blue-gray theme background RGB(14, 18, 26)
-            BG_BRUSH = CreateSolidBrush(0x001A120E);
-
-            let wc = WNDCLASSW {
-                style: 0x0002 | 0x0001,
-                lpfnWndProc: wnd_proc,
+            let class_name = to_wstring("OrbshackerLauncherWindow");
+            let wnd_class = WNDCLASSW {
+                style: 0,
+                lpfnWndProc: window_proc,
                 cbClsExtra: 0,
                 cbWndExtra: 0,
-                hInstance: h_inst,
+                hInstance: h_instance,
                 hIcon: std::ptr::null_mut(),
                 hCursor: std::ptr::null_mut(),
                 hbrBackground: BG_BRUSH,
                 lpszMenuName: std::ptr::null(),
                 lpszClassName: class_name.as_ptr(),
             };
-            RegisterClassW(&wc);
+            RegisterClassW(&wnd_class);
 
-            let w = 500;
-            let h = 260;
-            let screen_w = GetSystemMetrics(0);
-            let screen_h = GetSystemMetrics(1);
-            let x = (screen_w - w) / 2;
-            let y = (screen_h - h) / 2;
+            let win_w = 480;
+            let win_h = 240;
+            let screen_w = GetSystemMetrics(SM_CXSCREEN);
+            let screen_h = GetSystemMetrics(SM_CYSCREEN);
+            let win_x = (screen_w - win_w) / 2;
+            let win_y = (screen_h - win_h) / 2;
 
-            let wnd_title = to_wide("ORBSHACKER Launcher");
+            let title = to_wstring(&format!("ORBSHACKER Launcher {}", DEFAULT_VERSION));
             let hwnd = CreateWindowExW(
-                0x00000008, // WS_EX_TOPMOST
+                0,
                 class_name.as_ptr(),
-                wnd_title.as_ptr(),
-                0x00CF0000 & !0x00010000 & !0x00040000, // WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU (fixed size)
-                x, y, w, h,
+                title.as_ptr(),
+                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE,
+                win_x,
+                win_y,
+                win_w,
+                win_h,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
-                h_inst,
+                h_instance,
                 std::ptr::null_mut(),
             );
 
-            if hwnd.is_null() {
-                return;
-            }
-
-            // Fonts
-            let font_name = to_wide("Segoe UI");
-            let title_font = CreateFontW(26, 0, 0, 0, 700, 0, 0, 0, 1, 0, 0, 4, 0, font_name.as_ptr());
-            let main_font = CreateFontW(16, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 4, 0, font_name.as_ptr());
-            let bold_font = CreateFontW(16, 0, 0, 0, 600, 0, 0, 0, 1, 0, 0, 4, 0, font_name.as_ptr());
-
-            // 1. Header Title: "⚡ ORBSHACKER"
-            let static_class = to_wide("STATIC");
-            let title_text = to_wide("⚡ ORBSHACKER");
-            let h_title = CreateWindowExW(
-                0, static_class.as_ptr(), title_text.as_ptr(),
-                0x50000000, // WS_CHILD | WS_VISIBLE
-                30, 20, 440, 32,
-                hwnd, std::ptr::null_mut(), h_inst, std::ptr::null_mut()
+            let font_name = to_wstring("Segoe UI");
+            let title_font = CreateFontW(
+                22, 0, 0, 0, 700, 0, 0, 0, 1, 0, 0, 5, 0, font_name.as_ptr(),
             );
-            SendMessageW(h_title, 0x0030, title_font as usize, 1);
-
-            // 2. Subtitle: "Загрузчик компонентов программы"
-            let sub_text = to_wide("Лаунчер автоматического обновления и загрузки с GitHub Releases");
-            let h_sub = CreateWindowExW(
-                0, static_class.as_ptr(), sub_text.as_ptr(),
-                0x50000000,
-                30, 56, 440, 20,
-                hwnd, std::ptr::null_mut(), h_inst, std::ptr::null_mut()
+            let text_font = CreateFontW(
+                16, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, font_name.as_ptr(),
             );
-            SendMessageW(h_sub, 0x0030, main_font as usize, 1);
-
-            // 3. Progress Bar
-            let progress_class = to_wide("msctls_progress32");
-            let h_prog = CreateWindowExW(
-                0, progress_class.as_ptr(), std::ptr::null(),
-                0x50000000 | 0x01, // WS_CHILD | WS_VISIBLE | PBS_SMOOTH
-                30, 95, 424, 24,
-                hwnd, std::ptr::null_mut(), h_inst, std::ptr::null_mut()
+            let sub_font = CreateFontW(
+                13, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, font_name.as_ptr(),
             );
-            SendMessageW(h_prog, 0x0400 + 6, 0, 100); // PBM_SETRANGE32 (0..100)
 
-            // 4. Status Text
-            let status_init = to_wide("Подключение к GitHub Releases...");
-            let h_status = CreateWindowExW(
-                0, static_class.as_ptr(), status_init.as_ptr(),
-                0x50000000,
-                30, 130, 440, 22,
-                hwnd, std::ptr::null_mut(), h_inst, std::ptr::null_mut()
-            );
-            SendMessageW(h_status, 0x0030, bold_font as usize, 1);
+            let static_class = to_wstring("STATIC");
+            let progress_class = to_wstring("msctls_progress32");
 
-            // 5. Detail Text
-            let detail_init = to_wide("Пожалуйста, подождите...");
-            let h_detail = CreateWindowExW(
-                0, static_class.as_ptr(), detail_init.as_ptr(),
-                0x50000000,
-                30, 155, 440, 22,
-                hwnd, std::ptr::null_mut(), h_inst, std::ptr::null_mut()
+            // Header Title
+            let lbl_title = CreateWindowExW(
+                0,
+                static_class.as_ptr(),
+                to_wstring("ORBSHACKER").as_ptr(),
+                WS_CHILD | WS_VISIBLE,
+                30,
+                22,
+                420,
+                26,
+                hwnd,
+                std::ptr::null_mut(),
+                h_instance,
+                std::ptr::null_mut(),
             );
-            SendMessageW(h_detail, 0x0030, main_font as usize, 1);
+            SendMessageW(lbl_title, WM_SETFONT, title_font as usize, 1);
+
+            // Status message
+            let lbl_status = CreateWindowExW(
+                0,
+                static_class.as_ptr(),
+                to_wstring("Подключение к GitHub...").as_ptr(),
+                WS_CHILD | WS_VISIBLE,
+                30,
+                64,
+                420,
+                22,
+                hwnd,
+                std::ptr::null_mut(),
+                h_instance,
+                std::ptr::null_mut(),
+            );
+            SendMessageW(lbl_status, WM_SETFONT, text_font as usize, 1);
+
+            // Progress Bar
+            let pbar = CreateWindowExW(
+                0,
+                progress_class.as_ptr(),
+                std::ptr::null(),
+                WS_CHILD | WS_VISIBLE,
+                30,
+                96,
+                420,
+                22,
+                hwnd,
+                std::ptr::null_mut(),
+                h_instance,
+                std::ptr::null_mut(),
+            );
+            SendMessageW(pbar, PBM_SETRANGE32, 0, 100);
+            SendMessageW(pbar, PBM_SETPOS, 0, 0);
+
+            // Detail line
+            let lbl_detail = CreateWindowExW(
+                0,
+                static_class.as_ptr(),
+                to_wstring("Проверка файлов...").as_ptr(),
+                WS_CHILD | WS_VISIBLE,
+                30,
+                130,
+                420,
+                20,
+                hwnd,
+                std::ptr::null_mut(),
+                h_instance,
+                std::ptr::null_mut(),
+            );
+            SendMessageW(lbl_detail, WM_SETFONT, sub_font as usize, 1);
+
+            // Footer brand note
+            let lbl_footer = CreateWindowExW(
+                0,
+                static_class.as_ptr(),
+                to_wstring("Discord Quests & Profile Badges Spoofer • GitHub Releases").as_ptr(),
+                WS_CHILD | WS_VISIBLE,
+                30,
+                168,
+                420,
+                18,
+                hwnd,
+                std::ptr::null_mut(),
+                h_instance,
+                std::ptr::null_mut(),
+            );
+            SendMessageW(lbl_footer, WM_SETFONT, sub_font as usize, 1);
 
             ShowWindow(hwnd, 5); // SW_SHOW
             UpdateWindow(hwnd);
 
-            // Responsive loop
-            let mut last_percent = 0u32;
+            let mut msg: MSG = std::mem::zeroed();
+            let mut last_percent = 999;
             let mut last_status = String::new();
             let mut last_detail = String::new();
-            let mut msg: MSG = std::mem::zeroed();
 
             loop {
-                while PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, 1) != 0 {
+                while PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, PM_REMOVE) != 0 {
                     if msg.message == 0x0012 { // WM_QUIT
                         cancel_flag.store(true, Ordering::SeqCst);
                         return;
@@ -493,24 +735,27 @@ mod win_gui {
                     DispatchMessageW(&msg);
                 }
 
-                // Update UI from ProgressState
+                // Check worker state
                 if let Ok(st) = state.lock() {
                     if st.percent != last_percent {
                         last_percent = st.percent;
-                        SendMessageW(h_prog, 0x0400 + 2, st.percent as usize, 0); // PBM_SETPOS
+                        SendMessageW(pbar, PBM_SETPOS, st.percent as usize, 0);
                     }
+
                     if st.status != last_status {
                         last_status = st.status.clone();
-                        let wide = to_wide(&last_status);
-                        SetWindowTextW(h_status, wide.as_ptr());
+                        let ws = to_wstring(&last_status);
+                        SetWindowTextW(lbl_status, ws.as_ptr());
                     }
+
                     if st.detail != last_detail {
                         last_detail = st.detail.clone();
-                        let wide = to_wide(&last_detail);
-                        SetWindowTextW(h_detail, wide.as_ptr());
+                        let ws = to_wstring(&last_detail);
+                        SetWindowTextW(lbl_detail, ws.as_ptr());
                     }
+
                     if st.finished {
-                        thread::sleep(Duration::from_millis(500));
+                        thread::sleep(Duration::from_millis(800));
                         DestroyWindow(hwnd);
                         break;
                     }
@@ -518,6 +763,73 @@ mod win_gui {
 
                 thread::sleep(Duration::from_millis(30));
             }
+        }
+    }
+}
+
+// =========================================================
+// NON-WINDOWS (LINUX & MACOS) TERMINAL RUNNER
+// =========================================================
+
+#[cfg(not(windows))]
+fn run_launcher_terminal(
+    state: Arc<Mutex<ProgressState>>,
+    _cancel_flag: Arc<AtomicBool>,
+) {
+    println!("\x1b[1;36m========================================================\x1b[0m");
+    println!("\x1b[1;35m           🚀 ORBSHACKER LAUNCHER v{}                 \x1b[0m", DEFAULT_VERSION);
+    println!("\x1b[1;36m========================================================\x1b[0m");
+
+    let mut last_percent = 999;
+    let mut last_detail = String::new();
+
+    loop {
+        thread::sleep(Duration::from_millis(100));
+
+        let (status, detail, percent, finished, error) = {
+            if let Ok(st) = state.lock() {
+                (st.status.clone(), st.detail.clone(), st.percent, st.finished, st.error.clone())
+            } else {
+                break;
+            }
+        };
+
+        if percent != last_percent || detail != last_detail {
+            last_percent = percent;
+            last_detail = detail.clone();
+
+            let bar_width = 30;
+            let filled = (percent as usize * bar_width) / 100;
+            let empty = bar_width.saturating_sub(filled);
+            let bar: String = "█".repeat(filled) + &"░".repeat(empty);
+
+            print!("\r\x1b[2K\x1b[1;33m[{}]\x1b[0m \x1b[1;32m{:3}%\x1b[0m │ \x1b[1;37m{}\x1b[0m", bar, percent, detail);
+            let _ = std::io::stdout().flush();
+        }
+
+        if finished {
+            println!();
+            if let Some(err) = error {
+                println!("\x1b[1;31m✖ Ошибка: {}\x1b[0m", err);
+            } else {
+                println!("\x1b[1;32m✔ {}\x1b[0m", status);
+                println!("\x1b[1;34m✨ Запуск ORBSHACKER...\x1b[0m");
+
+                #[cfg(target_os = "macos")]
+                {
+                    let _ = Command::new("osascript")
+                        .args(["-e", "display notification \"Установка завершена! Запуск ORBSHACKER...\" with title \"ORBSHACKER\""])
+                        .spawn();
+                }
+
+                #[cfg(target_os = "linux")]
+                {
+                    let _ = Command::new("notify-send")
+                        .args(["ORBSHACKER", "Установка завершена! Запуск программы..."])
+                        .spawn();
+                }
+            }
+            break;
         }
     }
 }
@@ -538,15 +850,13 @@ fn main() {
     // 1. If already installed and no --update flag passed, directly start the program!
     if !has_update_flag {
         if let Some(exe) = find_installed_executable(&root_dir) {
-            let mut cmd = Command::new(&exe);
-            cmd.args(&args[1..]);
-            if let Ok(_) = cmd.spawn() {
+            if spawn_executable(&exe, &args[1..]).is_ok() {
                 return;
             }
         }
     }
 
-    // 2. Launch GUI downloader to fetch all files from GitHub
+    // 2. Launch downloader to fetch all files from GitHub
     let state = Arc::new(Mutex::new(ProgressState {
         status: "Подключение к GitHub...".to_string(),
         detail: "Получение информации о релизе...".to_string(),
@@ -562,9 +872,15 @@ fn main() {
 
     // Background worker: download from GitHub & extract
     let _worker_thread = thread::spawn(move || {
-        let (download_url, version) = get_download_url_and_version();
+        let (download_url, version, archive_kind) = get_download_url_and_kind();
         let app_dir = get_app_dir(&root_worker);
-        let temp_zip = root_worker.join("orbshacker_update.tmp");
+        let _ = fs::create_dir_all(&app_dir);
+
+        let temp_file = match archive_kind {
+            ArchiveKind::Zip => root_worker.join("orbshacker_update.tmp.zip"),
+            ArchiveKind::TarGz => root_worker.join("orbshacker_update.tmp.tar.gz"),
+            ArchiveKind::AppImage => app_dir.join("orbshacker.AppImage"),
+        };
 
         if let Ok(mut st) = state_worker.lock() {
             st.status = format!("Найдена версия {} на GitHub", version);
@@ -573,7 +889,7 @@ fn main() {
         }
 
         // Download
-        if let Err(e) = download_file_with_progress(&download_url, &temp_zip, &state_worker, &cancel_worker) {
+        if let Err(e) = download_file_with_progress(&download_url, &temp_file, &state_worker, &cancel_worker) {
             if let Ok(mut st) = state_worker.lock() {
                 st.status = "Ошибка загрузки".to_string();
                 st.detail = e.clone();
@@ -583,19 +899,46 @@ fn main() {
             return;
         }
 
-        // Extract
-        if let Err(e) = extract_zip(&temp_zip, &app_dir, &state_worker, &cancel_worker) {
-            let _ = fs::remove_file(&temp_zip);
-            if let Ok(mut st) = state_worker.lock() {
-                st.status = "Ошибка распаковки".to_string();
-                st.detail = e.clone();
-                st.error = Some(e);
-                st.finished = true;
+        // Handle unpack / setup based on format
+        match archive_kind {
+            ArchiveKind::Zip => {
+                if let Err(e) = extract_zip(&temp_file, &app_dir, &state_worker, &cancel_worker) {
+                    let _ = fs::remove_file(&temp_file);
+                    if let Ok(mut st) = state_worker.lock() {
+                        st.status = "Ошибка распаковки".to_string();
+                        st.detail = e.clone();
+                        st.error = Some(e);
+                        st.finished = true;
+                    }
+                    return;
+                }
+                let _ = fs::remove_file(&temp_file);
             }
-            return;
+            ArchiveKind::TarGz => {
+                if let Err(e) = extract_tar_gz(&temp_file, &app_dir, &state_worker, &cancel_worker) {
+                    let _ = fs::remove_file(&temp_file);
+                    if let Ok(mut st) = state_worker.lock() {
+                        st.status = "Ошибка распаковки".to_string();
+                        st.detail = e.clone();
+                        st.error = Some(e);
+                        st.finished = true;
+                    }
+                    return;
+                }
+                let _ = fs::remove_file(&temp_file);
+            }
+            ArchiveKind::AppImage => {
+                #[cfg(unix)]
+                {
+                    if let Ok(meta) = fs::metadata(&temp_file) {
+                        let mut perms = meta.permissions();
+                        perms.set_mode(0o755);
+                        let _ = fs::set_permissions(&temp_file, perms);
+                    }
+                }
+            }
         }
 
-        let _ = fs::remove_file(&temp_zip);
         let _ = fs::write(app_dir.join("version.txt"), &version);
 
         // Success - spawn the installed app
@@ -608,7 +951,7 @@ fn main() {
         thread::sleep(Duration::from_millis(600));
 
         if let Some(exe) = find_installed_executable(&root_worker) {
-            let _ = Command::new(&exe).spawn();
+            let _ = spawn_executable(&exe, &[]);
         }
 
         if let Ok(mut st) = state_worker.lock() {
@@ -621,7 +964,7 @@ fn main() {
 
     #[cfg(not(windows))]
     {
-        println!("🚀 ORBSHACKER Launcher: Downloading files from GitHub...");
+        run_launcher_terminal(state, cancel_flag);
         let _ = _worker_thread.join();
     }
 }
