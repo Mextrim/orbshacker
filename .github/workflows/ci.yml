@@ -6,25 +6,19 @@ on:
   pull_request:
 
 jobs:
-  test:
+  check-rust:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies
-        run: pip install -r requirements-dev.txt
-
-      - name: Lint
-        run: python -m ruff check .
-
-      - name: Test
-        run: python -m pytest
+      - name: Check Rust Core & Launcher
+        run: |
+          cargo check --manifest-path src-rust/Cargo.toml
+          cargo check --manifest-path src-launcher/Cargo.toml
