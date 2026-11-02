@@ -48,10 +48,11 @@ jobs:
         run: |
           mkdir -p artifacts
           cp src-launcher/target/release/orbshacker-launcher.exe artifacts/orbshacker-launcher.exe
-          cp dist/orbshacker-portable.exe artifacts/orbshacker.exe
-          cp dist/orbshacker-core.exe artifacts/orbshacker-core.exe
-          if [ -f dist/orbshacker-v*.zip ]; then
-            cp dist/orbshacker-v*.zip artifacts/
+          cp dist/orbshacker-portable.exe artifacts/orbshacker.exe || true
+          cp src-rust/target/release/orbshacker-core.exe artifacts/orbshacker-core.exe
+          cp dist/*.zip artifacts/ || true
+          if [ -d dist/win-unpacked ]; then
+            cd dist/win-unpacked && zip -r ../../artifacts/orbshacker-v2.5.0-win-x64.zip . && cd ../..
           fi
 
       - name: Upload Windows Artifacts

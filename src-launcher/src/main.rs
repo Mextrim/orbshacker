@@ -61,6 +61,16 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
 
     for c in &candidates {
         if c.exists() {
+            #[cfg(windows)]
+            {
+                // For raw orbshacker.exe (non-portable), ensure ffmpeg.dll exists next to it
+                if let Some(p) = c.parent() {
+                    let name = c.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                    if name == "orbshacker.exe" && !p.join("ffmpeg.dll").exists() {
+                        continue;
+                    }
+                }
+            }
             return Some(c.clone());
         }
     }
@@ -78,6 +88,9 @@ fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
     }
 
     let mut cmd = Command::new(exe);
+    if let Some(parent) = exe.parent() {
+        cmd.current_dir(parent);
+    }
     cmd.args(args);
     cmd.spawn().map(|_| ()).map_err(|e| format!("Не удалось запустить: {}", e))
 }
