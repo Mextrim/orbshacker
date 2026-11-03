@@ -101,7 +101,7 @@
   const hoursStatusText = document.getElementById('hoursStatusText');
   const hoursTimerDisplay = document.getElementById('hoursTimerDisplay');
   const hoursProgressFill = document.getElementById('hoursProgressFill');
-  const presetChips = document.querySelectorAll('.preset-chip');
+  const hoursPresetChips = document.querySelectorAll('.hours-presets .preset-chip');
 
   // Custom Game elements
   const customGameNameInput = document.getElementById('customGameNameInput');
@@ -268,6 +268,21 @@
   btnMinimize.addEventListener('click', () => window.orbshacker.minimize());
   btnMaximize.addEventListener('click', () => window.orbshacker.maximize());
   btnClose.addEventListener('click', () => window.orbshacker.close());
+
+  // Desktop Push Notifications
+  function showDesktopNotification(title, message) {
+    try {
+      if (typeof Notification !== 'undefined') {
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body: message });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((p) => {
+            if (p === 'granted') new Notification(title, { body: message });
+          });
+        }
+      }
+    } catch (_) {}
+  }
 
   // Audio Chime
   function playCompletionChime() {
@@ -523,8 +538,8 @@
       card.innerHTML = `
         <div class="quest-header">
           <div class="quest-title-block">
-            <span class="quest-title">${q.title}</span>
-            <span class="quest-publisher">${q.publisher}</span>
+            <span class="quest-title">${q.title || q.name}</span>
+            <span class="quest-publisher">${q.publisher || ''}</span>
           </div>
           <span class="${badgeClass}">${badgeText}</span>
         </div>
@@ -668,19 +683,30 @@
         </div>
       `;
 
-      chip.querySelector('.game-chip-info').addEventListener('click', () => {
-        if (hoursGameSelect) {
-          hoursGameSelect.value = g.id;
-          addLog(`Выбрана игра '${g.name}' для фарма часов.`, 'info');
+      function selectGameForHours(game) {
+        if (!hoursGameSelect) return;
+        hoursGameSelect.value = game.id;
+        const hoursCard = hoursGameSelect.closest('.badge-feature-card');
+        if (hoursCard) {
+          hoursCard.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+          hoursCard.style.borderColor = 'var(--accent-primary)';
+          hoursCard.style.boxShadow = '0 0 24px var(--accent-primary-glow)';
+          setTimeout(() => {
+            hoursCard.style.borderColor = '';
+            hoursCard.style.boxShadow = '';
+          }, 1200);
+          hoursCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+        addLog(`Выбрана игра '${game.name}' для фарма часов.`, 'info');
+      }
+
+      chip.querySelector('.game-chip-info').addEventListener('click', () => {
+        selectGameForHours(g);
       });
 
       chip.querySelector('.btn-chip-hours').addEventListener('click', (e) => {
         e.stopPropagation();
-        if (hoursGameSelect) {
-          hoursGameSelect.value = g.id;
-          addLog(`Выбрана игра '${g.name}' для фарма часов.`, 'info');
-        }
+        selectGameForHours(g);
       });
 
       chip.querySelector('.btn-chip-launch').addEventListener('click', (e) => {
@@ -794,7 +820,7 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(105, 0));
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(150, 0));
   btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 0));
   btnFarmNext2.addEventListener('click', () => startBadgeCount(5, 0));
 
@@ -803,9 +829,22 @@
   // ==========================================
   // 8. BADGES: PLAYTIME HOURS BOOSTER
   // ==========================================
-  presetChips.forEach((chip) => {
+  function populateHoursGameSelect() {
+    if (!hoursGameSelect || !detectableGames || !detectableGames.length) return;
+    const currentVal = hoursGameSelect.value;
+    hoursGameSelect.innerHTML = detectableGames
+      .map((g) => `<option value="${g.id}">${g.name} (${g.exe_name})</option>`)
+      .join('');
+    if (currentVal && detectableGames.some((g) => g.id === currentVal)) {
+      hoursGameSelect.value = currentVal;
+    } else {
+      hoursGameSelect.value = 'cs2';
+    }
+  }
+
+  hoursPresetChips.forEach((chip) => {
     chip.addEventListener('click', () => {
-      presetChips.forEach((c) => c.classList.remove('active'));
+      hoursPresetChips.forEach((c) => c.classList.remove('active'));
       chip.classList.add('active');
       selectedTargetHours = parseInt(chip.getAttribute('data-hours'), 10);
     });
@@ -889,6 +928,9 @@
     stalker2: { name: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl', exe: 'Stalker2-Win64-Shipping.exe', appid: '1643320' },
     wukong: { name: 'Black Myth: Wukong', exe: 'b1.exe', appid: '2358720' },
     spacemarine2: { name: 'Warhammer 40,000: Space Marine 2', exe: 'Warhammer 40000 Space Marine 2 - Retail.exe', appid: '2183900' },
+    wilds: { name: 'Monster Hunter Wilds', exe: 'MonsterHunterWilds.exe', appid: '2246340' },
+    deadlock: { name: 'Deadlock', exe: 'project8.exe', appid: '1422450' },
+    helldivers2: { name: 'HELLDIVERS™ 2', exe: 'helldivers2.exe', appid: '553850' },
     silenthill2: { name: 'SILENT HILL 2', exe: 'SHProto-Win64-Shipping.exe', appid: '2124490' },
     manorlords: { name: 'Manor Lords', exe: 'ManorLords-Win64-Shipping.exe', appid: '1363080' },
   };
@@ -930,6 +972,7 @@
     } else if (event === 'farm_completed') {
       resetFarmingState();
       playCompletionChime();
+      showDesktopNotification('ORBSHACKER', `🎉 Все задания Discord выполнены! +${data.total_orbs} Orbs получено!`);
       modalCompleted.classList.add('active');
       addLog(`🎉 All quests completed! +${data.total_orbs} Orbs earned!`, 'success');
     } else if (event === 'badge_tick') {
@@ -952,12 +995,14 @@
       if (data.mode === 'count' || data.mode === 'single') {
         resetBadgeCountState();
         playCompletionChime();
+        showDesktopNotification('ORBSHACKER', data.message || `🎉 Пакет игр завершён! Нажмите Ctrl+R в Discord.`);
         addLog(data.message || `🎉 Пакет игр завершён! Нажмите Ctrl+R в Discord для обновления окна профиля.`, 'success');
         // Refresh live stats from Discord servers
         setTimeout(checkDiscordStatus, 1500);
       } else if (data.mode === 'hours') {
         resetHoursFarmState();
         playCompletionChime();
+        showDesktopNotification('ORBSHACKER', `🎉 Достигнута цель по времени: ${data.hours_farmed} ч!`);
         addLog(`🎉 Hours goal reached: ${data.hours_farmed} hours!`, 'success');
       }
     } else if (event === 'log') {
@@ -977,10 +1022,11 @@
       const quests = await window.orbshacker.call('get_quests');
       activeQuests = quests || [];
 
-      // 3. Load 105 Detectable Games
+      // 3. Load 150 Detectable Games
       const games = await window.orbshacker.call('get_detectable_games');
       detectableGames = games || [];
       renderDetectableGames();
+      populateHoursGameSelect();
 
       // 4. Load Badge Tiers
       const tiers = await window.orbshacker.call('get_badge_tiers');

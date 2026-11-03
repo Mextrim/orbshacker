@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -9,6 +9,9 @@ const pkg = require('./package.json');
 
 let mainWindow = null;
 let rustProcess = null;
+let tray = null;
+let isQuitting = false;
+let hasShownTrayNotice = false;
 let nextRequestId = 1;
 const pendingRequests = new Map();
 
@@ -111,6 +114,83 @@ function sendRustRpc(method, params = {}) {
   });
 }
 
+function createTray() {
+  const iconPath = process.platform === 'win32'
+    ? path.join(__dirname, 'assets', 'icon.ico')
+    : path.join(__dirname, 'assets', 'icon.png');
+  const fallbackPath = path.join(__dirname, 'assets', 'icon.png');
+
+  let trayIcon = null;
+  if (fs.existsSync(iconPath)) {
+    trayIcon = nativeImage.createFromPath(iconPath);
+  } else if (fs.existsSync(fallbackPath)) {
+    trayIcon = nativeImage.createFromPath(fallbackPath);
+  }
+
+  if (!trayIcon || trayIcon.isEmpty()) {
+    return;
+  }
+
+  tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
+  tray.setToolTip('ORBSHACKER v2.5.0 — Discord Quests & Badges Spoofer');
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: '⚡ ORBSHACKER v2.5.0', enabled: false },
+    { type: 'separator' },
+    {
+      label: '⚡ Показать окно',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    {
+      label: 'Скрыть в трей',
+      click: () => {
+        if (mainWindow) mainWindow.hide();
+      },
+    },
+    { type: 'separator' },
+    {
+      label: '⏹️ Остановить фарм',
+      click: () => {
+        sendRustRpc('stop_farm').catch(() => {});
+        sendRustRpc('stop_badge_farm').catch(() => {});
+      },
+    },
+    { type: 'separator' },
+    {
+      label: '❌ Полный выход',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
+  });
+
+  tray.on('double-click', () => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
 function createWindow() {
   const iconPath = path.join(__dirname, 'assets', 'icon.png');
   mainWindow = new BrowserWindow({
@@ -134,6 +214,20 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+  });
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      if (!hasShownTrayNotice && tray && process.platform === 'win32') {
+        hasShownTrayNotice = true;
+        tray.displayBalloon({
+          title: 'ORBSHACKER v2.5.0',
+          content: 'Приложение свёрнуто в системный трей и продолжает работу в фоне.',
+        });
+      }
+    }
   });
 
   mainWindow.on('closed', () => {
@@ -218,12 +312,17 @@ app.whenReady().then(() => {
   updater.cleanupOldExe();
   startRustCore();
   createWindow();
+  createTray();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 app.on('window-all-closed', () => {

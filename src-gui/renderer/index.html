@@ -157,14 +157,14 @@
             <div class="badge-title-with-pill">
               <span class="badge-header-icon">🎮</span>
               <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
-              <span class="badge-counter-pill">105 игр</span>
+              <span class="badge-counter-pill">150 игр</span>
             </div>
-            <p data-i18n="badge_games_desc">Запуск каталога из 100+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
+            <p data-i18n="badge_games_desc">Запуск каталога из 150+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
           </div>
           <div class="badge-action-bar">
             <button id="btnFarmAll100" class="btn btn-primary btn-glow">
               <span class="btn-icon">✨</span>
-              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 100+ игр</span>
+              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 150 игр</span>
             </button>
             <button id="btnFarmNext10" class="btn btn-secondary">
               <span class="btn-icon">⚡</span>
@@ -176,7 +176,7 @@
             </button>
             <button id="btnStopBadges" class="btn btn-danger" style="display: none;">
               <span class="btn-icon">⏹</span>
-              <span data-i18n="stop_badge_btn">Остановить</span>
+              <span data-i18n="stop_badge_btn">Остановить игры</span>
             </button>
           </div>
 
@@ -206,9 +206,9 @@
         <div class="games-filter-bar">
           <div class="search-input-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 100+ играм (CS2, GTA V, Dota 2, Rust...)" />
+            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 150+ играм (CS2, GTA V, Dota 2, Rust...)" />
           </div>
-          <span id="catalogCountLabel" class="catalog-badge">105 игр готово</span>
+          <span id="catalogCountLabel" class="catalog-badge">150 игр готово</span>
         </div>
         <div id="detectableGamesGrid" class="detectable-games-grid">
           <!-- Injected by app.js -->
@@ -237,7 +237,7 @@
             </button>
             <button id="btnStopHoursFarm" class="btn btn-danger" style="display: none;">
               <span class="btn-icon">⏹</span>
-              <span data-i18n="stop_badge_btn">Остановить</span>
+              <span data-i18n="stop_hours_btn">Остановить фарм часов</span>
             </button>
           </div>
         </div>
@@ -252,19 +252,20 @@
               <button class="preset-chip" data-hours="10">10ч</button>
               <button class="preset-chip" data-hours="24">24ч</button>
               <button class="preset-chip" data-hours="100">100ч</button>
+              <button class="preset-chip" data-hours="500">500ч</button>
+              <button class="preset-chip" data-hours="1000">1 000ч</button>
               <button class="preset-chip" data-hours="0">∞ AFK</button>
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" data-i18n="choose_game">Игра:</span>
-            <select id="hoursGameSelect" class="form-input" style="padding: 4px 10px; font-size: 12px; width: 220px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" data-i18n="choose_game">Игра для фарма:</span>
+            <select id="hoursGameSelect" class="form-input" style="padding: 6px 32px 6px 12px; font-size: 12px; width: 260px;">
+              <!-- Populated dynamically with all 150+ detectable games -->
               <option value="cs2">Counter-Strike 2 (cs2.exe)</option>
               <option value="dota2">Dota 2 (dota2.exe)</option>
               <option value="gta5">Grand Theft Auto V (GTA5.exe)</option>
               <option value="cyberpunk">Cyberpunk 2077 (Cyberpunk2077.exe)</option>
               <option value="rust">Rust (RustClient.exe)</option>
-              <option value="ea_fc27">EA SPORTS FC™ 27 (fc27.exe)</option>
-              <option value="wukong">Black Myth: Wukong (b1.exe)</option>
             </select>
           </div>
         </div>
@@ -314,8 +315,10 @@
               <button type="button" class="preset-pill-btn" data-preset="stalker2">☢️ S.T.A.L.K.E.R. 2</button>
               <button type="button" class="preset-pill-btn" data-preset="wukong">🐒 Black Myth: Wukong</button>
               <button type="button" class="preset-pill-btn" data-preset="spacemarine2">⚔️ Space Marine 2</button>
+              <button type="button" class="preset-pill-btn" data-preset="wilds">🐉 MH Wilds</button>
+              <button type="button" class="preset-pill-btn" data-preset="deadlock">💀 Deadlock</button>
+              <button type="button" class="preset-pill-btn" data-preset="helldivers2">💥 Helldivers 2</button>
               <button type="button" class="preset-pill-btn" data-preset="silenthill2">🌫️ Silent Hill 2</button>
-              <button type="button" class="preset-pill-btn" data-preset="manorlords">🏰 Manor Lords</button>
             </div>
           </div>
 

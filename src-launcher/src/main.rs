@@ -77,7 +77,34 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
     None
 }
 
+#[cfg(windows)]
+fn create_desktop_shortcut(exe: &Path) {
+    if let Ok(userprofile) = env::var("USERPROFILE") {
+        let desktop = PathBuf::from(userprofile).join("Desktop");
+        if desktop.is_dir() {
+            let shortcut = desktop.join("ORBSHACKER.lnk");
+            if !shortcut.exists() {
+                let current_exe = env::current_exe().unwrap_or_else(|_| exe.to_path_buf());
+                let target = if current_exe.exists() { &current_exe } else { exe };
+                let target_str = target.to_string_lossy().replace('\'', "''");
+                let dir_str = target.parent().unwrap_or(target).to_string_lossy().replace('\'', "''");
+                let sc_str = shortcut.to_string_lossy().replace('\'', "''");
+                let script = format!(
+                    "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('{}'); $s.TargetPath = '{}'; $s.WorkingDirectory = '{}'; $s.Save()",
+                    sc_str, target_str, dir_str
+                );
+                let _ = Command::new("powershell")
+                    .args(["-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", &script])
+                    .status();
+            }
+        }
+    }
+}
+
 fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
+    #[cfg(windows)]
+    create_desktop_shortcut(exe);
+
     #[cfg(unix)]
     {
         if let Ok(meta) = fs::metadata(exe) {
