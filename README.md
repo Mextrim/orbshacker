@@ -4,11 +4,11 @@
 
 <br/>
 
-[![Release](https://img.shields.io/badge/Release-v2.5.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.6.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Website](https://img.shields.io/badge/Official_Site-GitHub_Pages-70e000?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mextrim.github.io/orbshacker/)
 [![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Rust Core](https://img.shields.io/badge/Rust_Engine-507_KB-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Launcher](https://img.shields.io/badge/Native_Launcher-1.8_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher.exe)
+[![Launcher](https://img.shields.io/badge/Native_Launcher-1.8_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-launcher.exe)
 [![License](https://img.shields.io/badge/License-GPL_v3-ef4444?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
 <br/>
@@ -19,13 +19,13 @@
 
 | 🪟 **Windows (x64)** | 🐧 **Linux (x64 - Любой дистрибутив)** |
 | :---: | :---: |
-| 🚀 **[Скачать Лаунчер orbshacker-launcher.exe (1.8 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher.exe)**<br/>*(Автоматически скачивает и распаковывает все файлы с GitHub)* | 🚀 **[Скачать Лаунчер orbshacker-launcher-linux-x64 (1.8 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher-linux-x64)**<br/>*(Для всех дистрибутивов: Ubuntu, Arch, Fedora, Debian)* |
-| 📦 **[Скачать полный ZIP-архив (115 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-v2.5.0-win-x64.zip)** | 📦 **[Скачать AppImage (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-2.5.0.AppImage)** |
-| ⚡ **[Портативный orbshacker.exe (80 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker.exe)** | 🐧 **[Скачать tar.gz архив (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-v2.5.0-linux-x64.tar.gz)** |
+| 🚀 **[Скачать Лаунчер orbshacker-launcher.exe (1.8 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-launcher.exe)**<br/>*(Автоматически скачивает и распаковывает все файлы с GitHub)* | 🚀 **[Скачать Лаунчер orbshacker-launcher-linux-x64 (1.8 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-launcher-linux-x64)**<br/>*(Для всех дистрибутивов: Ubuntu, Arch, Fedora, Debian)* |
+| 📦 **[Скачать полный ZIP-архив (115 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-v2.6.0-win-x64.zip)** | 📦 **[Скачать AppImage (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-2.6.0.AppImage)** |
+| ⚡ **[Портативный orbshacker.exe (80 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker.exe)** | 🐧 **[Скачать tar.gz архив (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-v2.6.0-linux-x64.tar.gz)** |
 
 <br/>
 
-**⚡ ORBSHACKER v2.5.0** — мощный комплекс для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), плавающего мини-виджета поверх всех окон и безопасного авто-выключения ПК после завершения фарма.
+**⚡ ORBSHACKER v2.6.0** — мощный комплекс для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), плавающего мини-виджета поверх всех окон и безопасного авто-выключения ПК после завершения фарма.
 
 *Поддерживаются исключительно **Windows** и **Linux**.*
 
@@ -35,7 +35,7 @@
 
 <br/>
 
-## 🌟 Новые возможности и плюшки v2.5.0
+## 🌟 Новые возможности и плюшки v2.6.0
 
 ### 1. 📌 Плавающий мини-виджет (Mini-Widget Always-on-Top)
 * Нажмите кнопку **`📌`** в правом верхнем углу окна, чтобы свернуть Orbshacker в компактную стильную полупрозрачную карточку (`360x130`).
@@ -136,12 +136,12 @@
 ## 🛠️ Быстрый старт
 
 ### 🪟 Для Windows:
-1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher.exe)**.
+1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-launcher.exe)**.
 2. Поместите в любую удобную папку и запустите.
 3. Лаунчер сам скачает всё необходимое с GitHub и запустит ORBSHACKER!
 
 ### 🐧 Для Linux:
-1. Скачайте **[orbshacker-launcher-linux-x64](https://github.com/Mextrim/orbshacker/releases/download/v2.5.0/orbshacker-launcher-linux-x64)**.
+1. Скачайте **[orbshacker-launcher-linux-x64](https://github.com/Mextrim/orbshacker/releases/download/v2.6.0/orbshacker-launcher-linux-x64)**.
 2. Дайте права на исполнение:
    ```bash
    chmod +x orbshacker-launcher-linux-x64
@@ -149,8 +149,8 @@
    ```
 3. Или запустите портативный AppImage:
    ```bash
-   chmod +x orbshacker-2.5.0.AppImage
-   ./orbshacker-2.5.0.AppImage
+   chmod +x orbshacker-2.6.0.AppImage
+   ./orbshacker-2.6.0.AppImage
    ```
 
 ---

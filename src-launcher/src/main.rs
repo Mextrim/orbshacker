@@ -14,7 +14,7 @@ use std::time::Duration;
 use std::os::unix::fs::PermissionsExt;
 
 const GITHUB_REPO: &str = "Mextrim/orbshacker";
-const DEFAULT_VERSION: &str = "v2.5.0";
+const DEFAULT_VERSION: &str = "v2.6.0";
 
 #[derive(Clone, Default)]
 struct ProgressState {

@@ -560,7 +560,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.5.0',
+        version: 'v2.6.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -671,10 +671,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.5.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.6.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.5.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.6.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -687,8 +687,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.5.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.5.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.6.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.6.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = info.releaseNotes || 'Улучшения производительности и исправления ошибок.';
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
