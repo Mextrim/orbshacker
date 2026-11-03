@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('orbshacker', {
   setAutoLaunch: (enabled) => ipcRenderer.invoke('app:set-auto-launch', enabled),
   shutdownSystem: () => ipcRenderer.invoke('system:shutdown'),
   copyToClipboard: (text) => ipcRenderer.invoke('clipboard:write', text),
+  setDiscordRpc: (data) => ipcRenderer.invoke('rpc:call', { method: 'set_discord_rpc', params: data }),
+  stopDiscordRpc: () => ipcRenderer.invoke('rpc:call', { method: 'stop_discord_rpc' }),
+  getDiscordRpcStatus: () => ipcRenderer.invoke('rpc:call', { method: 'get_discord_rpc_status' }),
 });

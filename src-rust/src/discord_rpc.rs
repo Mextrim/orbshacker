@@ -5,9 +5,111 @@ use std::os::unix::net::UnixStream;
 #[cfg(unix)]
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CustomPresenceData {
+    pub application_id: String,
+    pub app_key: Option<String>,
+    pub state: Option<String>,
+    pub details: Option<String>,
+    pub start_timestamp: Option<u64>,
+    pub end_timestamp: Option<u64>,
+    pub large_image_key: Option<String>,
+    pub large_image_text: Option<String>,
+    pub small_image_key: Option<String>,
+    pub small_image_text: Option<String>,
+    pub party_id: Option<String>,
+    pub party_size: Option<u32>,
+    pub party_max: Option<u32>,
+    pub join_secret: Option<String>,
+}
+
+impl Default for CustomPresenceData {
+    fn default() -> Self {
+        Self {
+            application_id: "1567134974031962272".to_string(),
+            app_key: Some("79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9".to_string()),
+            state: Some("Playing Solo".to_string()),
+            details: Some("Competitive".to_string()),
+            start_timestamp: Some(1507665886),
+            end_timestamp: Some(1507665886),
+            large_image_key: Some("numbani".to_string()),
+            large_image_text: Some("Numbani".to_string()),
+            small_image_key: Some("rogue".to_string()),
+            small_image_text: Some("Rogue - Level 100".to_string()),
+            party_id: Some("ae488379-351d-4a4f-ad32-2b9b01c91657".to_string()),
+            party_size: Some(1),
+            party_max: Some(5),
+            join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+        }
+    }
+}
+
+pub struct CustomRpcClient {
+    data: Arc<Mutex<CustomPresenceData>>,
+    stop_signal: Arc<AtomicBool>,
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+impl CustomRpcClient {
+    pub fn new(data: CustomPresenceData) -> Self {
+        Self {
+            data: Arc::new(Mutex::new(data)),
+            stop_signal: Arc::new(AtomicBool::new(false)),
+            handle: None,
+        }
+    }
+
+    pub fn start(&mut self) -> Result<(), String> {
+        self.stop();
+        self.stop_signal.store(false, Ordering::SeqCst);
+        let data_arc = self.data.clone();
+        let stop_arc = self.stop_signal.clone();
+
+        let handle = thread::spawn(move || {
+            custom_rpc_worker_loop(data_arc, stop_arc);
+        });
+
+        self.handle = Some(handle);
+        Ok(())
+    }
+
+    pub fn update(&self, new_data: CustomPresenceData) {
+        if let Ok(mut d) = self.data.lock() {
+            *d = new_data;
+        }
+    }
+
+    pub fn stop(&mut self) {
+        self.stop_signal.store(true, Ordering::SeqCst);
+        if let Some(h) = self.handle.take() {
+            let _ = h.join();
+        }
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.handle.is_some() && !self.stop_signal.load(Ordering::SeqCst)
+    }
+
+    pub fn get_data(&self) -> CustomPresenceData {
+        if let Ok(d) = self.data.lock() {
+            d.clone()
+        } else {
+            CustomPresenceData::default()
+        }
+    }
+}
+
+impl Drop for CustomRpcClient {
+    fn drop(&mut self) {
+        self.stop();
+    }
+}
 
 pub struct DiscordRpcClient {
     application_id: String,
@@ -260,6 +362,171 @@ fn rpc_worker_loop(application_id: &str, game_title: &str, stop: Arc<AtomicBool>
         }
 
         // 4. Clear activity on shutdown
+        if stop.load(Ordering::SeqCst) {
+            let clear_payload = format!(
+                r#"{{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":null}},"nonce":"clear"}}"#,
+                pid
+            );
+            let _ = stream.write_packet(1, &clear_payload);
+            break;
+        }
+    }
+}
+
+fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
+    let mut activity = serde_json::Map::new();
+    activity.insert("type".to_string(), serde_json::json!(0));
+    activity.insert("application_id".to_string(), serde_json::json!(data.application_id));
+    activity.insert("instance".to_string(), serde_json::json!(true));
+
+    if let Some(ref st) = data.state {
+        if !st.trim().is_empty() {
+            activity.insert("state".to_string(), serde_json::json!(st));
+        }
+    }
+    if let Some(ref dt) = data.details {
+        if !dt.trim().is_empty() {
+            activity.insert("details".to_string(), serde_json::json!(dt));
+        }
+    }
+
+    // Timestamps
+    let mut timestamps = serde_json::Map::new();
+    if let Some(start) = data.start_timestamp {
+        if start > 0 {
+            timestamps.insert("start".to_string(), serde_json::json!(start));
+        }
+    }
+    if let Some(end) = data.end_timestamp {
+        if end > 0 {
+            timestamps.insert("end".to_string(), serde_json::json!(end));
+        }
+    }
+    if !timestamps.is_empty() {
+        activity.insert("timestamps".to_string(), serde_json::Value::Object(timestamps));
+    }
+
+    // Assets
+    let mut assets = serde_json::Map::new();
+    if let Some(ref lk) = data.large_image_key {
+        if !lk.trim().is_empty() {
+            assets.insert("large_image".to_string(), serde_json::json!(lk));
+        }
+    }
+    if let Some(ref lt) = data.large_image_text {
+        if !lt.trim().is_empty() {
+            assets.insert("large_text".to_string(), serde_json::json!(lt));
+        }
+    }
+    if let Some(ref sk) = data.small_image_key {
+        if !sk.trim().is_empty() {
+            assets.insert("small_image".to_string(), serde_json::json!(sk));
+        }
+    }
+    if let Some(ref st) = data.small_image_text {
+        if !st.trim().is_empty() {
+            assets.insert("small_text".to_string(), serde_json::json!(st));
+        }
+    }
+    if !assets.is_empty() {
+        activity.insert("assets".to_string(), serde_json::Value::Object(assets));
+    }
+
+    // Party
+    if let (Some(size), Some(max)) = (data.party_size, data.party_max) {
+        let mut party = serde_json::Map::new();
+        if let Some(ref pid) = data.party_id {
+            if !pid.trim().is_empty() {
+                party.insert("id".to_string(), serde_json::json!(pid));
+            }
+        }
+        party.insert("size".to_string(), serde_json::json!([size, max]));
+        activity.insert("party".to_string(), serde_json::Value::Object(party));
+    }
+
+    // Secrets
+    if let Some(ref join) = data.join_secret {
+        if !join.trim().is_empty() {
+            let mut secrets = serde_json::Map::new();
+            secrets.insert("join".to_string(), serde_json::json!(join));
+            activity.insert("secrets".to_string(), serde_json::Value::Object(secrets));
+        }
+    }
+
+    let activity_json = serde_json::json!({
+        "cmd": "SET_ACTIVITY",
+        "args": {
+            "pid": pid,
+            "activity": serde_json::Value::Object(activity)
+        },
+        "nonce": format!("act_{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs())
+    });
+
+    activity_json.to_string()
+}
+
+fn custom_rpc_worker_loop(data_arc: Arc<Mutex<CustomPresenceData>>, stop: Arc<AtomicBool>) {
+    let pid = std::process::id();
+
+    while !stop.load(Ordering::SeqCst) {
+        let mut stream = match PipeStream::connect() {
+            Ok(s) => s,
+            Err(_) => {
+                for _ in 0..4 {
+                    if stop.load(Ordering::SeqCst) {
+                        return;
+                    }
+                    thread::sleep(Duration::from_millis(500));
+                }
+                continue;
+            }
+        };
+
+        let initial_app_id = {
+            let d = data_arc.lock().unwrap();
+            d.application_id.clone()
+        };
+
+        // Handshake
+        let handshake_payload = format!(r#"{{"v":1,"client_id":"{}"}}"#, initial_app_id);
+        if stream.write_packet(0, &handshake_payload).is_err() {
+            thread::sleep(Duration::from_secs(1));
+            continue;
+        }
+
+        if stream.read_packet().is_err() {
+            thread::sleep(Duration::from_secs(1));
+            continue;
+        }
+
+        // Main activity broadcast loop
+        while !stop.load(Ordering::SeqCst) {
+            let current_data = {
+                let d = data_arc.lock().unwrap();
+                d.clone()
+            };
+
+            // If application_id changed, reconnect with new client_id
+            if current_data.application_id != initial_app_id {
+                break;
+            }
+
+            let payload = build_activity_payload(pid, &current_data);
+            if stream.write_packet(1, &payload).is_err() {
+                break; // Broken pipe: reconnect
+            }
+            let _ = stream.read_packet();
+
+            // Heartbeat refresh every 10 seconds
+            for _ in 0..20 {
+                if stop.load(Ordering::SeqCst) {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(500));
+            }
+        }
+
+        // Clear activity on shutdown
         if stop.load(Ordering::SeqCst) {
             let clear_payload = format!(
                 r#"{{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":null}},"nonce":"clear"}}"#,

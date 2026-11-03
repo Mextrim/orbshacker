@@ -11,10 +11,10 @@
     <div class="titlebar-brand">
       <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.6.0</span>
+      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.7.0</span>
       <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
         <span class="update-icon">🔥</span>
-        <span id="updateAvailableText">v2.6.0</span>
+        <span id="updateAvailableText">v2.7.0</span>
       </button>
     </div>
 
@@ -85,6 +85,10 @@
     <button class="tab-btn" data-tab="custom">
       <span>🎮</span>
       <span data-i18n="tab_custom">Своя Игра</span>
+    </button>
+    <button class="tab-btn" data-tab="rpc">
+      <span>🔮</span>
+      <span data-i18n="tab_rpc">Discord RPC</span>
     </button>
   </div>
 
@@ -349,6 +353,197 @@
       </div>
     </div>
 
+    <!-- ==========================================
+         TAB 4: DISCORD RICH PRESENCE (RPC)
+         ========================================== -->
+    <div id="panelRpc" class="tab-panel">
+      <div class="rpc-layout">
+        <!-- Left: RPC Configurator Card -->
+        <div class="badge-feature-card rpc-editor-card">
+          <div class="badge-title-group" style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 data-i18n="rpc_title">Discord Rich Presence (RPC)</h3>
+              <span id="rpcStatusBadge" class="rpc-status-badge inactive">○ Выключен</span>
+            </div>
+            <p data-i18n="rpc_desc">Прямая трансляция кастомной игровой активности и интерактивного статуса в Discord профиль через IPC.</p>
+          </div>
+
+          <!-- Presets row -->
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="font-size: 11px; color: var(--text-muted);">Быстрые пресеты активности (1 клик):</label>
+            <div class="custom-presets-row" id="rpcPresetsRow">
+              <button type="button" class="preset-pill-btn active" data-rpc-preset="numbani">⭐ Overwatch (Numbani)</button>
+              <button type="button" class="preset-pill-btn" data-rpc-preset="orbshacker">🚀 Orbshacker Elite Pro</button>
+              <button type="button" class="preset-pill-btn" data-rpc-preset="cyberpunk">🤖 Cyberpunk 2077</button>
+              <button type="button" class="preset-pill-btn" data-rpc-preset="cs2">🔫 CS2 Premier</button>
+              <button type="button" class="preset-pill-btn" data-rpc-preset="dota">🛡️ Dota 2 Ranked</button>
+            </div>
+          </div>
+
+          <div class="rpc-form-grid">
+            <!-- Row 1: App ID & App Key -->
+            <div class="form-group">
+              <label for="rpcAppId" data-i18n="rpc_app_id">Application ID (Client ID):</label>
+              <input type="text" id="rpcAppId" class="form-input" value="1567134974031962272" placeholder="1567134974031962272" />
+            </div>
+            <div class="form-group">
+              <label for="rpcAppKey" data-i18n="rpc_app_key">Ключ приложения (App Secret/Key):</label>
+              <input type="text" id="rpcAppKey" class="form-input" value="79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9" placeholder="79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9" />
+            </div>
+
+            <!-- Row 2: Details & State -->
+            <div class="form-group">
+              <label for="rpcDetails" data-i18n="rpc_details">Details (Верхняя строка):</label>
+              <input type="text" id="rpcDetails" class="form-input" value="Competitive" placeholder="Competitive" />
+            </div>
+            <div class="form-group">
+              <label for="rpcState" data-i18n="rpc_state">State (Нижняя строка):</label>
+              <input type="text" id="rpcState" class="form-input" value="Playing Solo" placeholder="Playing Solo" />
+            </div>
+
+            <!-- Row 3: Timestamps -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="rpcStartTimestamp" data-i18n="rpc_start_time">Start Timestamp:</label>
+                <div style="display: flex; gap: 4px;">
+                  <button type="button" id="btnRpcTimeNow" class="btn btn-secondary" style="padding: 2px 6px; font-size: 10px;">🕒 Сейчас</button>
+                  <button type="button" id="btnRpcTimeClear" class="btn btn-secondary" style="padding: 2px 6px; font-size: 10px;">✕ Сброс</button>
+                </div>
+              </div>
+              <input type="number" id="rpcStartTimestamp" class="form-input" value="1507665886" placeholder="1507665886" />
+            </div>
+            <div class="form-group">
+              <label for="rpcEndTimestamp" data-i18n="rpc_end_time">End Timestamp:</label>
+              <input type="number" id="rpcEndTimestamp" class="form-input" value="1507665886" placeholder="1507665886" />
+            </div>
+
+            <!-- Row 4: Large Asset -->
+            <div class="form-group">
+              <label for="rpcLargeKey" data-i18n="rpc_large_key">Large Image Key:</label>
+              <input type="text" id="rpcLargeKey" class="form-input" value="numbani" placeholder="numbani" />
+            </div>
+            <div class="form-group">
+              <label for="rpcLargeText" data-i18n="rpc_large_text">Large Image Text (Tooltip):</label>
+              <input type="text" id="rpcLargeText" class="form-input" value="Numbani" placeholder="Numbani" />
+            </div>
+
+            <!-- Row 5: Small Asset -->
+            <div class="form-group">
+              <label for="rpcSmallKey" data-i18n="rpc_small_key">Small Image Key:</label>
+              <input type="text" id="rpcSmallKey" class="form-input" value="rogue" placeholder="rogue" />
+            </div>
+            <div class="form-group">
+              <label for="rpcSmallText" data-i18n="rpc_small_text">Small Image Text (Tooltip):</label>
+              <input type="text" id="rpcSmallText" class="form-input" value="Rogue - Level 100" placeholder="Rogue - Level 100" />
+            </div>
+
+            <!-- Row 6: Party -->
+            <div class="form-group">
+              <label for="rpcPartyId" data-i18n="rpc_party_id">Party ID:</label>
+              <input type="text" id="rpcPartyId" class="form-input" value="ae488379-351d-4a4f-ad32-2b9b01c91657" placeholder="ae488379-351d-4a4f-ad32-2b9b01c91657" />
+            </div>
+            <div class="form-group">
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1;">
+                  <label for="rpcPartySize" data-i18n="rpc_party_size">Размер:</label>
+                  <input type="number" id="rpcPartySize" class="form-input" value="1" min="1" max="100" />
+                </div>
+                <div style="flex: 1;">
+                  <label for="rpcPartyMax" data-i18n="rpc_party_max">Макс:</label>
+                  <input type="number" id="rpcPartyMax" class="form-input" value="5" min="1" max="100" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 7: Join Secret (full width) -->
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="rpcJoinSecret" data-i18n="rpc_secret">Секрет присоединения (Join Secret):</label>
+              <input type="text" id="rpcJoinSecret" class="form-input" value="MTI4NzM0OjFpMmhuZToxMjMxMjM= " placeholder="MTI4NzM0OjFpMmhuZToxMjMxMjM= " />
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+            <button id="btnStartRpc" class="btn btn-primary" style="padding: 8px 18px;">
+              <span>▶ Запустить Discord RPC</span>
+            </button>
+            <button id="btnUpdateRpc" class="btn btn-secondary" style="padding: 8px 14px;">
+              <span>🔄 Обновить статус</span>
+            </button>
+            <button id="btnStopRpc" class="btn btn-danger" style="display: none; padding: 8px 14px;">
+              <span>⏹ Отключить</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Discord Live Mockup Card Preview -->
+        <div class="discord-preview-wrap">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;" data-i18n="rpc_preview_title">
+            Превью в Discord (Live)
+          </div>
+          <div class="discord-card">
+            <!-- Banner -->
+            <div class="discord-banner">
+              <div class="discord-avatar-wrap">
+                <div class="discord-avatar">
+                  <span>🎮</span>
+                  <div class="discord-status-dot" title="В сети"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Body -->
+            <div class="discord-profile-body">
+              <div class="discord-user-info">
+                <div class="discord-username" id="discordPreviewUsername">User Profile</div>
+                <div class="discord-usertag">@user • Играет на ПК</div>
+              </div>
+
+              <div class="discord-divider"></div>
+
+              <!-- Activity Box -->
+              <div class="discord-activity-section">
+                <div class="discord-section-header">
+                  <span style="font-size: 13px;">🎮</span>
+                  <span>ИГРАЕТ В ИГРУ</span>
+                </div>
+
+                <div class="discord-activity-box">
+                  <!-- Large & Small image stack -->
+                  <div class="discord-images-container">
+                    <div class="discord-large-img" id="discordPreviewLargeImg" title="Numbani">
+                      <span id="discordLargeFallback">🏛️</span>
+                    </div>
+                    <div class="discord-small-img" id="discordPreviewSmallImg" title="Rogue - Level 100">
+                      <span id="discordSmallFallback">⚔️</span>
+                    </div>
+                  </div>
+
+                  <!-- Text stack -->
+                  <div class="discord-activity-texts">
+                    <div class="discord-activity-app" id="discordPreviewApp">Overwatch</div>
+                    <div class="discord-activity-details" id="discordPreviewDetails">Competitive</div>
+                    <div class="discord-activity-state" id="discordPreviewState">Playing Solo (1 of 5)</div>
+                    <div class="discord-activity-time" id="discordPreviewTime">00:00:00 прошло</div>
+                  </div>
+                </div>
+
+                <!-- Join Party button -->
+                <div class="discord-buttons-group">
+                  <button type="button" class="discord-btn-join" id="discordPreviewJoinBtn">
+                    <span>👥 Присоединиться к пати (1/5)</span>
+                  </button>
+                  <button type="button" class="discord-btn-secondary">
+                    <span>Смотреть трансляцию</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Live Telemetry Drawer -->
     <div class="telemetry-card">
       <div class="telemetry-header">
@@ -360,7 +555,7 @@
         </div>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
-        <div class="log-entry info">[Engine] Native Core v2.6.0 initialized.</div>
+        <div class="log-entry info">[Engine] Native Core v2.7.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
       </div>
     </div>
@@ -411,7 +606,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; flex-direction: column; gap: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Обновления с GitHub</span>
-              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.6.0</span>
+              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.7.0</span>
             </div>
             <button id="btnCheckUpdateManual" class="btn btn-secondary" style="padding: 5px 12px; font-size: 11px; white-space: nowrap;">
               <span>🔄 Проверить</span>
@@ -437,9 +632,9 @@
       </div>
 
       <div class="update-version-badge">
-        <span>Текущая: <b id="updateCurrentVer">v2.6.0</b></span>
+        <span>Текущая: <b id="updateCurrentVer">v2.7.0</b></span>
         <span style="color: var(--accent-primary);">➔</span>
-        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.7.0</b></span>
+        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.8.0</b></span>
       </div>
 
       <div class="update-notes-box">

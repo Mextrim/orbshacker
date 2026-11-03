@@ -5,7 +5,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::badges::{get_detectable_games_catalog, DetectableGame};
-use crate::discord_rpc::DiscordRpcClient;
+use crate::discord_rpc::{CustomPresenceData, CustomRpcClient, DiscordRpcClient};
 use crate::faker::FakerManager;
 use crate::quests::{get_active_quests, QuestInfo};
 use crate::steam::SteamHelper;
@@ -57,6 +57,9 @@ pub struct FarmSession {
     badge_faker_mgr: Arc<Mutex<FakerManager>>,
     badge_rpc_clients: Arc<Mutex<Vec<DiscordRpcClient>>>,
     badge_ticker_handle: Option<thread::JoinHandle<()>>,
+
+    // Custom Discord RPC state
+    custom_rpc: Arc<Mutex<Option<CustomRpcClient>>>,
 }
 
 impl FarmSession {
@@ -81,6 +84,8 @@ impl FarmSession {
             badge_faker_mgr: Arc::new(Mutex::new(FakerManager::new(None))),
             badge_rpc_clients: Arc::new(Mutex::new(Vec::new())),
             badge_ticker_handle: None,
+
+            custom_rpc: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -697,6 +702,47 @@ impl FarmSession {
             active_exes: Vec::new(),
         }
     }
+
+    // ==========================================
+    // 4. CUSTOM DISCORD RICH PRESENCE (RPC)
+    // ==========================================
+
+    pub fn set_custom_rpc(&mut self, data: CustomPresenceData) -> Result<bool, String> {
+        let mut rpc_guard = self.custom_rpc.lock().unwrap();
+        if let Some(ref mut client) = *rpc_guard {
+            if client.is_running() {
+                client.update(data);
+                return Ok(true);
+            }
+        }
+        let mut new_client = CustomRpcClient::new(data);
+        new_client.start()?;
+        *rpc_guard = Some(new_client);
+        Ok(true)
+    }
+
+    pub fn stop_custom_rpc(&mut self) -> Result<bool, String> {
+        let mut rpc_guard = self.custom_rpc.lock().unwrap();
+        if let Some(mut client) = rpc_guard.take() {
+            client.stop();
+        }
+        Ok(true)
+    }
+
+    pub fn get_custom_rpc_status(&self) -> serde_json::Value {
+        let rpc_guard = self.custom_rpc.lock().unwrap();
+        if let Some(ref client) = *rpc_guard {
+            serde_json::json!({
+                "is_active": client.is_running(),
+                "data": client.get_data()
+            })
+        } else {
+            serde_json::json!({
+                "is_active": false,
+                "data": CustomPresenceData::default()
+            })
+        }
+    }
 }
 
 impl Default for FarmSession {
@@ -709,5 +755,6 @@ impl Drop for FarmSession {
     fn drop(&mut self) {
         self.stop_farm();
         self.stop_badge_farm();
+        let _ = self.stop_custom_rpc();
     }
 }

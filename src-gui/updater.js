@@ -213,7 +213,7 @@ async function downloadAndInstall(downloadUrl, checksumUrl, assetName, onProgres
       try {
         const sumsText = await downloadText(checksumUrl);
         const sumsMap = parseSha256sums(sumsText);
-        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'] || sumsMap['orbshacker-2.6.0.AppImage'];
+        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'] || Object.entries(sumsMap).find(([k]) => k.endsWith('.AppImage'))?.[1];
         if (expectedHash) {
           const actualHash = await computeFileSha256(tempExe);
           if (actualHash !== expectedHash) {

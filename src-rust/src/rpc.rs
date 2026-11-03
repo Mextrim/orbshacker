@@ -210,6 +210,32 @@ pub fn run_json_rpc_service() {
                 }
                 res = Some(serde_json::json!({ "opened": true }));
             }
+
+            // --- Custom Discord Rich Presence (RPC) ---
+            "set_discord_rpc" => {
+                let data: crate::discord_rpc::CustomPresenceData = match serde_json::from_value(req.params.clone()) {
+                    Ok(d) => d,
+                    Err(_) => crate::discord_rpc::CustomPresenceData::default(),
+                };
+                let mut s = session.lock().unwrap();
+                match s.set_custom_rpc(data) {
+                    Ok(_) => res = Some(serde_json::json!({ "success": true })),
+                    Err(e) => err = Some(e),
+                }
+            }
+            "stop_discord_rpc" => {
+                let mut s = session.lock().unwrap();
+                match s.stop_custom_rpc() {
+                    Ok(_) => res = Some(serde_json::json!({ "stopped": true })),
+                    Err(e) => err = Some(e),
+                }
+            }
+            "get_discord_rpc_status" => {
+                let s = session.lock().unwrap();
+                let status = s.get_custom_rpc_status();
+                res = Some(status);
+            }
+
             other => {
                 err = Some(format!("Unknown method: {}", other));
             }
