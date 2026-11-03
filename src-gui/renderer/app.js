@@ -116,6 +116,7 @@
   const rpcBroadcastBadge = document.getElementById('rpcBroadcastBadge');
   const rpcBroadcastText = document.getElementById('rpcBroadcastText');
   const settingsRpcBroadcastToggle = document.getElementById('settingsRpcBroadcastToggle');
+  const linkRpcGithub = document.getElementById('linkRpcGithub');
 
   // Logs & Modals
   const telemetryLogs = document.getElementById('telemetryLogs');
@@ -1410,7 +1411,7 @@
       if (rpcBroadcastText) {
         rpcBroadcastText.textContent = dict.rpc_pill_online || 'RPC В сети';
       }
-      rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: статус и ход фарма транслируются в ваш профиль Discord');
+      rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: статус и ход фарма транслируются в ваш профиль с кнопкой перехода на GitHub');
     } else if (enabled && !connected) {
       rpcBroadcastBadge.className = 'rpc-status-pill connecting';
       if (rpcBroadcastText) {
@@ -1424,6 +1425,17 @@
       }
       rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: трансляция выключена в настройках');
     }
+  }
+
+  if (linkRpcGithub) {
+    linkRpcGithub.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.orbshacker && window.orbshacker.openExternal) {
+        window.orbshacker.openExternal('https://github.com/Mextrim/orbshacker');
+      } else {
+        window.open('https://github.com/Mextrim/orbshacker', '_blank');
+      }
+    });
   }
 
   async function syncAppPresenceStatus() {

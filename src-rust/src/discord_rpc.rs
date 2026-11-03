@@ -12,6 +12,12 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PresenceButton {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CustomPresenceData {
     pub application_id: String,
     pub app_key: Option<String>,
@@ -27,6 +33,24 @@ pub struct CustomPresenceData {
     pub party_size: Option<u32>,
     pub party_max: Option<u32>,
     pub join_secret: Option<String>,
+    #[serde(default)]
+    pub buttons: Option<Vec<PresenceButton>>,
+}
+
+pub const ORBSHACKER_GITHUB_URL: &str = "https://github.com/Mextrim/orbshacker";
+pub const ORBSHACKER_RELEASES_URL: &str = "https://github.com/Mextrim/orbshacker/releases";
+
+pub fn default_github_buttons() -> Option<Vec<PresenceButton>> {
+    Some(vec![
+        PresenceButton {
+            label: "GitHub Репозиторий".to_string(),
+            url: ORBSHACKER_GITHUB_URL.to_string(),
+        },
+        PresenceButton {
+            label: "Скачать Orbshacker".to_string(),
+            url: ORBSHACKER_RELEASES_URL.to_string(),
+        },
+    ])
 }
 
 impl Default for CustomPresenceData {
@@ -45,7 +69,8 @@ impl Default for CustomPresenceData {
             party_id: Some("ae488379-351d-4a4f-ad32-2b9b01c91657".to_string()),
             party_size: Some(1),
             party_max: Some(5),
-            join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+            join_secret: None,
+            buttons: default_github_buttons(),
         }
     }
 }
@@ -168,6 +193,7 @@ impl PresenceState {
                 party_size: None,
                 party_max: None,
                 join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::FarmingQuests { quest_count, total_orbs, start_ts, end_ts } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -183,7 +209,8 @@ impl PresenceState {
                 party_id: Some("orbshacker_quests_party".to_string()),
                 party_size: Some(*quest_count as u32),
                 party_max: Some(*quest_count as u32),
-                join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+                join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::QuestsCompleted { total_orbs } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -200,6 +227,7 @@ impl PresenceState {
                 party_size: None,
                 party_max: None,
                 join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::FarmingBadges { game_name, current_index, total_games, start_ts } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -215,7 +243,8 @@ impl PresenceState {
                 party_id: Some("orbshacker_badge_party".to_string()),
                 party_size: Some(*current_index as u32),
                 party_max: Some(*total_games as u32),
-                join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+                join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::BadgesCompleted { total_games } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -232,6 +261,7 @@ impl PresenceState {
                 party_size: None,
                 party_max: None,
                 join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::FarmingHours { game_name, target_hours, is_infinite, start_ts } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -256,6 +286,7 @@ impl PresenceState {
                 party_size: None,
                 party_max: None,
                 join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::CustomGame { game_name, exe_name, start_ts } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
@@ -272,6 +303,7 @@ impl PresenceState {
                 party_size: None,
                 party_max: None,
                 join_secret: None,
+                buttons: default_github_buttons(),
             }),
             PresenceState::Disabled => None,
         }
@@ -676,6 +708,24 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
         activity.insert("assets".to_string(), serde_json::Value::Object(assets));
     }
 
+    // Buttons (Discord IPC allows up to 2 clickable URL buttons)
+    if let Some(ref btns) = data.buttons {
+        let valid_btns: Vec<serde_json::Value> = btns
+            .iter()
+            .take(2)
+            .filter(|b| !b.label.trim().is_empty() && !b.url.trim().is_empty())
+            .map(|b| {
+                serde_json::json!({
+                    "label": b.label.chars().take(32).collect::<String>(),
+                    "url": b.url
+                })
+            })
+            .collect();
+        if !valid_btns.is_empty() {
+            activity.insert("buttons".to_string(), serde_json::Value::Array(valid_btns));
+        }
+    }
+
     // Party
     if let (Some(size), Some(max)) = (data.party_size, data.party_max) {
         let mut party = serde_json::Map::new();
@@ -688,12 +738,14 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
         activity.insert("party".to_string(), serde_json::Value::Object(party));
     }
 
-    // Secrets
-    if let Some(ref join) = data.join_secret {
-        if !join.trim().is_empty() {
-            let mut secrets = serde_json::Map::new();
-            secrets.insert("join".to_string(), serde_json::json!(join));
-            activity.insert("secrets".to_string(), serde_json::Value::Object(secrets));
+    // Secrets (only if no buttons are present, as Discord does not allow both simultaneously)
+    if !activity.contains_key("buttons") {
+        if let Some(ref join) = data.join_secret {
+            if !join.trim().is_empty() {
+                let mut secrets = serde_json::Map::new();
+                secrets.insert("join".to_string(), serde_json::json!(join));
+                activity.insert("secrets".to_string(), serde_json::Value::Object(secrets));
+            }
         }
     }
 
