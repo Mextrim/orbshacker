@@ -5,7 +5,7 @@ use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::badges::{get_detectable_games_catalog, DetectableGame};
-use crate::discord_rpc::{AppPresenceManager, CustomPresenceData, CustomRpcClient, DiscordRpcClient, PresenceState};
+use crate::discord_rpc::{AppPresenceManager, CustomPresenceData, CustomRpcClient, DiscordRpcClient, PresenceMemeConfig, PresenceState};
 use crate::faker::FakerManager;
 use crate::quests::{get_active_quests, QuestInfo};
 use crate::steam::SteamHelper;
@@ -815,6 +815,14 @@ impl FarmSession {
             "enabled": self.app_presence.is_enabled(),
             "connected": self.app_presence.is_connected()
         })
+    }
+
+    pub fn set_presence_meme_config(&self, config: PresenceMemeConfig) {
+        self.app_presence.set_meme_config(config);
+    }
+
+    pub fn get_presence_meme_config(&self) -> PresenceMemeConfig {
+        self.app_presence.get_meme_config()
     }
 }
 

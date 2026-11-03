@@ -571,7 +571,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.8.0',
+        version: 'v2.9.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -682,10 +682,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.8.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.9.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.8.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.9.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -741,8 +741,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.8.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.8.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.9.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.9.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
@@ -1492,6 +1492,197 @@
   }
 
   // ==========================================
+  // 11.1 DISCORD RPC MEME PRESETS & CUSTOM CAPTIONS
+  // ==========================================
+  const RPC_MEME_PRESETS = {
+    furry: {
+      name: '🦊 Мастурбирует на фурри',
+      details: 'Мастурбирует на фурри',
+      state: 'Занят важным делом (99% прогресс)'
+    },
+    beer: {
+      name: '🍺 Пьёт Балтику 9 в гараже с мужиками',
+      details: 'Пьёт Балтику 9 в гараже с мужиками',
+      state: 'Настраивает карбюратор и геополитику'
+    },
+    hacker: {
+      name: '💻 Взламывает Пентагон через Блокнот',
+      details: 'Взламывает Пентагон через Блокнот',
+      state: 'ACCESS GRANTED • Matrix 100%'
+    },
+    socks: {
+      name: '🧦 Ищет второй носок по всей квартире',
+      details: 'Ищет второй носок по всей квартире',
+      state: 'Сложность: Экстремальная (0/2)'
+    },
+    pizza: {
+      name: '🍕 Ждёт курьера с шаурмой и пиццей',
+      details: 'Ждёт курьера с шаурмой и пиццей',
+      state: 'Смотрит в глазок уже 45 минут'
+    },
+    cat: {
+      name: '🐱 Гладит котика одной рукой',
+      details: 'Гладит кота и боится пошевелиться',
+      state: 'Мурчание на полную мощность'
+    },
+    casino: {
+      name: '🤡 Крутит кейсы и ставит всё на красное',
+      details: 'Крутит кейсы и ставит всё на красное',
+      state: 'Осталось 5 рублей и надежда'
+    },
+    sleep: {
+      name: '🛌 Спит с открытыми глазами на созвоне',
+      details: 'Спит с открытыми глазами на созвоне',
+      state: 'Кивает головой каждые 2 минуты'
+    },
+    stalker: {
+      name: '☢️ Ловит маслину на ЧАЭС',
+      details: 'Ловит маслину на ЧАЭС',
+      state: 'Чики-брики и в дамки!'
+    },
+    grind: {
+      name: '⚡ Фармит миллионы Orbs на чиле',
+      details: 'Фармит миллионы Orbs на чиле',
+      state: 'AFK-бустер активирован на максимум'
+    },
+    custom: {
+      name: '✍️ Свой вариант...',
+      details: '',
+      state: ''
+    }
+  };
+
+  const settingsRpcMemeToggle = document.getElementById('settingsRpcMemeToggle');
+  const settingsRpcMemeSelect = document.getElementById('settingsRpcMemeSelect');
+  const settingsRpcMemeDetails = document.getElementById('settingsRpcMemeDetails');
+  const settingsRpcMemeState = document.getElementById('settingsRpcMemeState');
+  const settingsRpcMemeMode = document.getElementById('settingsRpcMemeMode');
+  const previewMemeDetails = document.getElementById('previewMemeDetails');
+  const previewMemeState = document.getElementById('previewMemeState');
+  const rpcMemePills = document.querySelectorAll('.rpc-meme-pill');
+
+  function updateMemePreview() {
+    const isEnabled = settingsRpcMemeToggle ? settingsRpcMemeToggle.checked : false;
+    const detailsVal = settingsRpcMemeDetails ? settingsRpcMemeDetails.value.trim() : '';
+    const stateVal = settingsRpcMemeState ? settingsRpcMemeState.value.trim() : '';
+
+    if (previewMemeDetails) {
+      previewMemeDetails.textContent = isEnabled && detailsVal ? detailsVal : 'В главном меню • Orbshacker';
+    }
+    if (previewMemeState) {
+      previewMemeState.textContent = isEnabled && stateVal ? stateVal : 'Готов к запуску (+5,600 Orbs)';
+    }
+  }
+
+  async function sendMemeRpcConfig() {
+    if (!window.orbshacker || !window.orbshacker.call) return;
+    const enabled = settingsRpcMemeToggle ? settingsRpcMemeToggle.checked : false;
+    const details = settingsRpcMemeDetails ? settingsRpcMemeDetails.value.trim() : '';
+    const state = settingsRpcMemeState ? settingsRpcMemeState.value.trim() : '';
+    const apply_mode = settingsRpcMemeMode ? settingsRpcMemeMode.value : 'idle_only';
+
+    const payload = {
+      enabled,
+      apply_mode,
+      details: details ? details : null,
+      state: state ? state : null,
+    };
+
+    try {
+      await window.orbshacker.call('set_app_presence_meme_config', payload);
+    } catch (_) {}
+  }
+
+  if (rpcMemePills && rpcMemePills.length > 0) {
+    rpcMemePills.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-meme');
+        if (key && RPC_MEME_PRESETS[key]) {
+          rpcMemePills.forEach((p) => p.classList.remove('active'));
+          btn.classList.add('active');
+          if (settingsRpcMemeSelect) settingsRpcMemeSelect.value = key;
+          if (settingsRpcMemeDetails) settingsRpcMemeDetails.value = RPC_MEME_PRESETS[key].details;
+          if (settingsRpcMemeState) settingsRpcMemeState.value = RPC_MEME_PRESETS[key].state;
+          if (settingsRpcMemeToggle && !settingsRpcMemeToggle.checked) {
+            settingsRpcMemeToggle.checked = true;
+          }
+          localStorage.setItem('orbshacker_rpc_meme_preset', key);
+          localStorage.setItem('orbshacker_rpc_meme_details', RPC_MEME_PRESETS[key].details);
+          localStorage.setItem('orbshacker_rpc_meme_state', RPC_MEME_PRESETS[key].state);
+          localStorage.setItem('orbshacker_rpc_meme_enabled', 'true');
+          updateMemePreview();
+          sendMemeRpcConfig();
+          addLog(`🎭 Discord RPC: Активирован мем-статус «${RPC_MEME_PRESETS[key].details}»`, 'success');
+        }
+      });
+    });
+  }
+
+  if (settingsRpcMemeSelect) {
+    settingsRpcMemeSelect.addEventListener('change', (e) => {
+      const key = e.target.value;
+      if (key && RPC_MEME_PRESETS[key]) {
+        rpcMemePills.forEach((p) => {
+          if (p.getAttribute('data-meme') === key) p.classList.add('active');
+          else p.classList.remove('active');
+        });
+        if (key !== 'custom') {
+          if (settingsRpcMemeDetails) settingsRpcMemeDetails.value = RPC_MEME_PRESETS[key].details;
+          if (settingsRpcMemeState) settingsRpcMemeState.value = RPC_MEME_PRESETS[key].state;
+        }
+        if (settingsRpcMemeToggle && !settingsRpcMemeToggle.checked) {
+          settingsRpcMemeToggle.checked = true;
+        }
+        localStorage.setItem('orbshacker_rpc_meme_preset', key);
+        if (key !== 'custom') {
+          localStorage.setItem('orbshacker_rpc_meme_details', RPC_MEME_PRESETS[key].details);
+          localStorage.setItem('orbshacker_rpc_meme_state', RPC_MEME_PRESETS[key].state);
+        }
+        localStorage.setItem('orbshacker_rpc_meme_enabled', 'true');
+        updateMemePreview();
+        sendMemeRpcConfig();
+      }
+    });
+  }
+
+  if (settingsRpcMemeDetails) {
+    settingsRpcMemeDetails.addEventListener('input', () => {
+      localStorage.setItem('orbshacker_rpc_meme_details', settingsRpcMemeDetails.value);
+      updateMemePreview();
+      sendMemeRpcConfig();
+    });
+  }
+
+  if (settingsRpcMemeState) {
+    settingsRpcMemeState.addEventListener('input', () => {
+      localStorage.setItem('orbshacker_rpc_meme_state', settingsRpcMemeState.value);
+      updateMemePreview();
+      sendMemeRpcConfig();
+    });
+  }
+
+  if (settingsRpcMemeToggle) {
+    settingsRpcMemeToggle.addEventListener('change', (e) => {
+      localStorage.setItem('orbshacker_rpc_meme_enabled', e.target.checked ? 'true' : 'false');
+      updateMemePreview();
+      sendMemeRpcConfig();
+      addLog(
+        e.target.checked
+          ? '🎭 Discord RPC: Мем-подпись включена'
+          : '🎭 Discord RPC: Мем-подпись отключена (стандартный статус)',
+        'info'
+      );
+    });
+  }
+
+  if (settingsRpcMemeMode) {
+    settingsRpcMemeMode.addEventListener('change', (e) => {
+      localStorage.setItem('orbshacker_rpc_meme_mode', e.target.value);
+      sendMemeRpcConfig();
+    });
+  }
+
+  // ==========================================
   // 12. INITIALIZATION
   // ==========================================
   async function init() {
@@ -1557,6 +1748,31 @@
         await window.orbshacker.call('set_app_presence_enabled', { enabled: rpcBroadcastEnabled });
         await syncAppPresenceStatus();
       } catch (_) {}
+
+      // 8.1 Initialize Meme RPC Presets
+      const savedMemeEnabled = localStorage.getItem('orbshacker_rpc_meme_enabled') === 'true';
+      const savedPreset = localStorage.getItem('orbshacker_rpc_meme_preset') || 'furry';
+      const savedDetails = localStorage.getItem('orbshacker_rpc_meme_details') || RPC_MEME_PRESETS.furry.details;
+      const savedState = localStorage.getItem('orbshacker_rpc_meme_state') || RPC_MEME_PRESETS.furry.state;
+      const savedMode = localStorage.getItem('orbshacker_rpc_meme_mode') || 'idle_only';
+
+      if (settingsRpcMemeToggle) settingsRpcMemeToggle.checked = savedMemeEnabled;
+      if (settingsRpcMemeSelect) settingsRpcMemeSelect.value = savedPreset;
+      if (settingsRpcMemeDetails) settingsRpcMemeDetails.value = savedDetails;
+      if (settingsRpcMemeState) settingsRpcMemeState.value = savedState;
+      if (settingsRpcMemeMode) settingsRpcMemeMode.value = savedMode;
+      if (rpcMemePills) {
+        rpcMemePills.forEach((p) => {
+          if (p.getAttribute('data-meme') === savedPreset) p.classList.add('active');
+          else p.classList.remove('active');
+        });
+      }
+      updateMemePreview();
+      if (savedMemeEnabled) {
+        try {
+          await sendMemeRpcConfig();
+        } catch (_) {}
+      }
 
       // 9. Silently check for updates from GitHub in background
       setTimeout(() => {

@@ -11,10 +11,10 @@
     <div class="titlebar-brand">
       <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.8.0</span>
+      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.9.0</span>
       <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
         <span class="update-icon">🔥</span>
-        <span id="updateAvailableText">v2.8.0</span>
+        <span id="updateAvailableText">v2.9.0</span>
       </button>
     </div>
 
@@ -364,7 +364,7 @@
         </div>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
-        <div class="log-entry info">[Engine] Native Core v2.8.0 initialized.</div>
+        <div class="log-entry info">[Engine] Native Core v2.9.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
       </div>
     </div>
@@ -417,13 +417,78 @@
           <span>🐙 Кнопка перехода в профиле Discord:</span>
           <a href="#" id="linkRpcGithub" style="color: var(--accent-primary); text-decoration: none; font-weight: 600;">github.com/Mextrim/orbshacker ↗</a>
         </div>
+
+        <!-- RPC Funny/Meme Status Presets Section -->
+        <div class="settings-meme-box" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <span>🎭 Прикольная подпись в Discord RPC</span>
+            </span>
+            <label style="font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; cursor: pointer;">
+              <input type="checkbox" id="settingsRpcMemeToggle" style="cursor: pointer;">
+              <span>Включить</span>
+            </label>
+          </div>
+
+          <!-- Presets dropdown & 1-click pills -->
+          <div id="settingsRpcMemeContainer" style="display: flex; flex-direction: column; gap: 8px;">
+            <select id="settingsRpcMemeSelect" class="form-input" style="padding: 5px 10px; font-size: 11.5px; width: 100%;">
+              <option value="furry">🦊 Мастурбирует на фурри</option>
+              <option value="beer">🍺 Пьёт Балтику 9 в гараже с мужиками</option>
+              <option value="hacker">💻 Взламывает Пентагон через Блокнот</option>
+              <option value="socks">🧦 Ищет второй носок по всей квартире</option>
+              <option value="pizza">🍕 Ждёт курьера с шаурмой и пиццей</option>
+              <option value="cat">🐱 Гладит котика одной рукой</option>
+              <option value="casino">🤡 Крутит кейсы и ставит всё на красное</option>
+              <option value="sleep">🛌 Спит с открытыми глазами на созвоне</option>
+              <option value="stalker">☢️ Ловит маслину на ЧАЭС</option>
+              <option value="grind">⚡ Фармит миллионы Orbs на чиле</option>
+              <option value="custom">✍️ Свой вариант...</option>
+            </select>
+
+            <div class="custom-presets-row" style="display: flex; flex-wrap: wrap; gap: 4px;">
+              <button type="button" class="preset-pill-btn rpc-meme-pill active" data-meme="furry">🦊 Фурри</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="beer">🍺 Балтика 9</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="hacker">💻 Пентагон</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="socks">🧦 Носок</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="pizza">🍕 Шаурма</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="cat">🐱 Котик</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="stalker">☢️ Маслина</button>
+            </div>
+
+            <!-- Custom text inputs -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <input type="text" id="settingsRpcMemeDetails" class="form-input" placeholder="Верхняя строка (Details)..." style="font-size: 11px; padding: 4px 8px;" value="Мастурбирует на фурри" />
+              <input type="text" id="settingsRpcMemeState" class="form-input" placeholder="Нижняя строка (State)..." style="font-size: 11px; padding: 4px 8px;" value="Занят важным делом (99% прогресс)" />
+            </div>
+
+            <!-- Apply mode & Live Preview -->
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-dim);">
+              <span>Режим применения:</span>
+              <select id="settingsRpcMemeMode" class="form-input" style="padding: 2px 6px; font-size: 10.5px; width: auto;">
+                <option value="idle_only">Только в ожидании (Idle)</option>
+                <option value="always">Всегда (даже при фарме)</option>
+              </select>
+            </div>
+
+            <!-- Live Card Preview -->
+            <div class="rpc-live-preview" style="background: rgba(0,0,0,0.35); border: 1px dashed rgba(255,255,255,0.18); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 10px;">
+              <img src="../assets/icon.png" style="width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;" />
+              <div style="display: flex; flex-direction: column; overflow: hidden; width: 100%;">
+                <span style="font-size: 10.5px; font-weight: 700; color: #fff;">ORBSHACKER</span>
+                <span id="previewMemeDetails" style="font-size: 10px; color: var(--accent-green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">Мастурбирует на фурри</span>
+                <span id="previewMemeState" style="font-size: 9.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Занят важным делом (99% прогресс)</span>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <!-- Auto-Update Section -->
         <div class="settings-update-box">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; flex-direction: column; gap: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Обновления с GitHub</span>
-              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.8.0</span>
+              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.9.0</span>
             </div>
             <button id="btnCheckUpdateManual" class="btn btn-secondary" style="padding: 5px 12px; font-size: 11px; white-space: nowrap;">
               <span>🔄 Проверить</span>
@@ -449,9 +514,9 @@
       </div>
 
       <div class="update-version-badge">
-        <span>Текущая: <b id="updateCurrentVer">v2.8.0</b></span>
+        <span>Текущая: <b id="updateCurrentVer">v2.9.0</b></span>
         <span style="color: var(--accent-primary);">➔</span>
-        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.8.0</b></span>
+        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.9.0</b></span>
       </div>
 
       <div class="update-notes-box">

@@ -154,6 +154,25 @@ pub const ORBSHACKER_APP_ID: &str = "1567134974031962272";
 pub const ORBSHACKER_APP_KEY: &str = "79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PresenceMemeConfig {
+    pub enabled: bool,
+    pub apply_mode: String, // "idle_only" or "always"
+    pub details: Option<String>,
+    pub state: Option<String>,
+}
+
+impl Default for PresenceMemeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            apply_mode: "idle_only".to_string(),
+            details: None,
+            state: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PresenceState {
     Idle,
     FarmingQuests {
@@ -189,164 +208,268 @@ pub enum PresenceState {
 }
 
 impl PresenceState {
+    #[allow(dead_code)]
     pub fn to_presence_data(&self) -> Option<CustomPresenceData> {
+        self.to_presence_data_with_meme(&PresenceMemeConfig::default())
+    }
+
+    pub fn to_presence_data_with_meme(&self, meme: &PresenceMemeConfig) -> Option<CustomPresenceData> {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
         match self {
-            PresenceState::Idle => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("В главном меню".to_string()),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some("Готов к запуску (+5,600 Orbs)".to_string()),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(now),
-                end_timestamp: None,
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some("Orbshacker v2.8.0 • Перейти на GitHub".to_string()),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: None,
-                party_size: None,
-                party_max: None,
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::FarmingQuests { quest_count, total_orbs, start_ts, end_ts } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Фарм заданий Discord (Orbs)".to_string()),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(format!("Квестов: {} (+{} Orbs)", quest_count, total_orbs)),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(*start_ts),
-                end_timestamp: if *end_ts > *start_ts { Some(*end_ts) } else { None },
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some("Orbshacker • Фарминг Discord Quests".to_string()),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: Some("orbshacker_quests_party".to_string()),
-                party_size: Some(*quest_count as u32),
-                party_max: Some(*quest_count as u32),
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::QuestsCompleted { total_orbs } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Задания Discord выполнены!".to_string()),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(format!("Получено +{} Orbs • Orbshacker", total_orbs)),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(now),
-                end_timestamp: None,
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some("Orbshacker • Все задания завершены!".to_string()),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: None,
-                party_size: None,
-                party_max: None,
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::FarmingBadges { game_name, current_index, total_games, start_ts } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Фарм значков профиля (150+ игр)".to_string()),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(format!("Игра: {}", game_name)),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(*start_ts),
-                end_timestamp: None,
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some(format!("Orbshacker • Игра: {}", game_name)),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: Some("orbshacker_badge_party".to_string()),
-                party_size: Some(*current_index as u32),
-                party_max: Some(*total_games as u32),
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::BadgesCompleted { total_games } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Значок профиля получен!".to_string()),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(format!("Засчитано {} игр • Orbshacker", total_games)),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(now),
-                end_timestamp: None,
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some("Orbshacker • Значок профиля обновлен".to_string()),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: None,
-                party_size: None,
-                party_max: None,
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::FarmingHours { game_name, target_hours, is_infinite, start_ts } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some(format!("Фармит часы: {}", game_name)),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(if *is_infinite {
-                    "Бесконечный AFK-фарм • Orbshacker".to_string()
+            PresenceState::Idle => {
+                let default_details = "В главном меню".to_string();
+                let default_state = "Готов к запуску (+5,600 Orbs)".to_string();
+
+                let (details_text, state_text) = if meme.enabled {
+                    let d = meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details);
+                    let s = meme.state.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_state);
+                    (d, s)
                 } else {
-                    format!("Цель: {} ч игрового времени", target_hours)
-                }),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(*start_ts),
-                end_timestamp: if !*is_infinite && *target_hours > 0 {
-                    Some(*start_ts + (*target_hours as u64) * 3600)
+                    (default_details, default_state)
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(state_text),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(now),
+                    end_timestamp: None,
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some("Orbshacker v2.9.0 • Перейти на GitHub".to_string()),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: None,
+                    party_size: None,
+                    party_max: None,
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::FarmingQuests { quest_count, total_orbs, start_ts, end_ts } => {
+                let default_details = "Фарм заданий Discord (Orbs)".to_string();
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
                 } else {
-                    None
-                },
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some(format!("Orbshacker • Фарм часов: {}", game_name)),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: None,
-                party_size: None,
-                party_max: None,
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
-            PresenceState::CustomGame { game_name, exe_name, start_ts } => Some(CustomPresenceData {
-                application_id: ORBSHACKER_APP_ID.to_string(),
-                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some(format!("Фармит: {}", game_name)),
-                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                state: Some(format!("{} в онлайне • Orbshacker", exe_name)),
-                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                start_timestamp: Some(*start_ts),
-                end_timestamp: None,
-                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                large_image_text: Some(format!("Orbshacker • {}", game_name)),
-                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
-                small_image_key: None,
-                small_image_text: None,
-                small_url: None,
-                party_id: None,
-                party_size: None,
-                party_max: None,
-                join_secret: None,
-                buttons: default_github_buttons(),
-            }),
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(format!("Квестов: {} (+{} Orbs)", quest_count, total_orbs)),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(*start_ts),
+                    end_timestamp: if *end_ts > *start_ts { Some(*end_ts) } else { None },
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some("Orbshacker • Фарминг Discord Quests".to_string()),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: Some("orbshacker_quests_party".to_string()),
+                    party_size: Some(*quest_count as u32),
+                    party_max: Some(*quest_count as u32),
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::QuestsCompleted { total_orbs } => {
+                let default_details = "Задания Discord выполнены!".to_string();
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
+                } else {
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(format!("Получено +{} Orbs • Orbshacker", total_orbs)),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(now),
+                    end_timestamp: None,
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some("Orbshacker • Все задания завершены!".to_string()),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: None,
+                    party_size: None,
+                    party_max: None,
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::FarmingBadges { game_name, current_index, total_games, start_ts } => {
+                let default_details = "Фарм значков профиля (150+ игр)".to_string();
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
+                } else {
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(format!("Игра: {}", game_name)),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(*start_ts),
+                    end_timestamp: None,
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some(format!("Orbshacker • Игра: {}", game_name)),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: Some("orbshacker_badge_party".to_string()),
+                    party_size: Some(*current_index as u32),
+                    party_max: Some(*total_games as u32),
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::BadgesCompleted { total_games } => {
+                let default_details = "Значок профиля получен!".to_string();
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
+                } else {
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(format!("Засчитано {} игр • Orbshacker", total_games)),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(now),
+                    end_timestamp: None,
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some("Orbshacker • Значок профиля обновлен".to_string()),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: None,
+                    party_size: None,
+                    party_max: None,
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::FarmingHours { game_name, target_hours, is_infinite, start_ts } => {
+                let default_details = format!("Фармит часы: {}", game_name);
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
+                } else {
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(if *is_infinite {
+                        "Бесконечный AFK-фарм • Orbshacker".to_string()
+                    } else {
+                        format!("Цель: {} ч игрового времени", target_hours)
+                    }),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(*start_ts),
+                    end_timestamp: if !*is_infinite && *target_hours > 0 {
+                        Some(*start_ts + (*target_hours as u64) * 3600)
+                    } else {
+                        None
+                    },
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some(format!("Orbshacker • Фарм часов: {}", game_name)),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: None,
+                    party_size: None,
+                    party_max: None,
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
+            PresenceState::CustomGame { game_name, exe_name, start_ts } => {
+                let default_details = format!("Фармит: {}", game_name);
+                let details_text = if meme.enabled && meme.apply_mode == "always" {
+                    meme.details.as_ref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .unwrap_or(default_details)
+                } else {
+                    default_details
+                };
+
+                Some(CustomPresenceData {
+                    application_id: ORBSHACKER_APP_ID.to_string(),
+                    app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                    details: Some(details_text),
+                    details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    state: Some(format!("{} в онлайне • Orbshacker", exe_name)),
+                    state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    start_timestamp: Some(*start_ts),
+                    end_timestamp: None,
+                    large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                    large_image_text: Some(format!("Orbshacker • {}", game_name)),
+                    large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                    small_image_key: None,
+                    small_image_text: None,
+                    small_url: None,
+                    party_id: None,
+                    party_size: None,
+                    party_max: None,
+                    join_secret: None,
+                    buttons: default_github_buttons(),
+                })
+            }
             PresenceState::Disabled => None,
         }
     }
@@ -356,6 +479,7 @@ pub struct AppPresenceManager {
     enabled: Arc<AtomicBool>,
     client: Arc<Mutex<Option<CustomRpcClient>>>,
     current_state: Arc<Mutex<PresenceState>>,
+    meme_config: Arc<Mutex<PresenceMemeConfig>>,
 }
 
 impl AppPresenceManager {
@@ -364,6 +488,7 @@ impl AppPresenceManager {
             enabled: Arc::new(AtomicBool::new(true)),
             client: Arc::new(Mutex::new(None)),
             current_state: Arc::new(Mutex::new(PresenceState::Idle)),
+            meme_config: Arc::new(Mutex::new(PresenceMemeConfig::default())),
         };
         mgr.set_state(PresenceState::Idle);
         mgr
@@ -376,7 +501,8 @@ impl AppPresenceManager {
             return;
         }
 
-        if let Some(presence_data) = state.to_presence_data() {
+        let meme = self.meme_config.lock().unwrap().clone();
+        if let Some(presence_data) = state.to_presence_data_with_meme(&meme) {
             let mut client_guard = self.client.lock().unwrap();
             if let Some(ref mut c) = *client_guard {
                 if c.is_running() {
@@ -390,6 +516,16 @@ impl AppPresenceManager {
         } else {
             self.clear_presence();
         }
+    }
+
+    pub fn set_meme_config(&self, config: PresenceMemeConfig) {
+        *self.meme_config.lock().unwrap() = config;
+        let cur = self.current_state.lock().unwrap().clone();
+        self.set_state(cur);
+    }
+
+    pub fn get_meme_config(&self) -> PresenceMemeConfig {
+        self.meme_config.lock().unwrap().clone()
     }
 
     pub fn set_enabled(&self, enabled: bool) {
@@ -964,5 +1100,25 @@ mod tests {
         assert_eq!(party["id"], "orbshacker_badge_party");
         assert_eq!(party["size"][0], 5);
         assert_eq!(party["size"][1], 150);
+    }
+
+    #[test]
+    fn test_meme_presence_furry_payload() {
+        let meme = PresenceMemeConfig {
+            enabled: true,
+            apply_mode: "idle_only".to_string(),
+            details: Some("Мастурбирует на фурри".to_string()),
+            state: Some("Занят важным делом (99% прогресс)".to_string()),
+        };
+        let presence = PresenceState::Idle.to_presence_data_with_meme(&meme).expect("Meme presence");
+        let payload_str = build_activity_payload(1234, &presence);
+        let parsed: serde_json::Value = serde_json::from_str(&payload_str).expect("Valid JSON");
+
+        let activity = &parsed["args"]["activity"];
+        assert_eq!(activity["details"], "Мастурбирует на фурри");
+        assert_eq!(activity["state"], "Занят важным делом (99% прогресс)");
+        assert_eq!(activity["details_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["state_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["assets"]["large_image"], ORBSHACKER_ICON_URL);
     }
 }

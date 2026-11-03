@@ -248,6 +248,20 @@ pub fn run_json_rpc_service() {
                 res = Some(s.get_presence_status());
             }
 
+            "set_app_presence_meme_config" => {
+                let config: crate::discord_rpc::PresenceMemeConfig = match serde_json::from_value(req.params.clone()) {
+                    Ok(c) => c,
+                    Err(_) => crate::discord_rpc::PresenceMemeConfig::default(),
+                };
+                let s = session.lock().unwrap();
+                s.set_presence_meme_config(config);
+                res = Some(serde_json::json!({ "success": true }));
+            }
+            "get_app_presence_meme_config" => {
+                let s = session.lock().unwrap();
+                res = Some(serde_json::to_value(s.get_presence_meme_config()).unwrap_or_default());
+            }
+
             other => {
                 err = Some(format!("Unknown method: {}", other));
             }

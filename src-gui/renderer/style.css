@@ -2075,3 +2075,56 @@ body.mini-mode .mini-widget-view {
 .discord-btn-secondary:hover {
   background: #6d6f78;
 }
+
+/* ====================================================
+   RPC MEME PRESETS & STATUS CUSTOMIZATION
+   ==================================================== */
+.settings-meme-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-meme-box:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.08);
+}
+
+.rpc-meme-pill {
+  padding: 3px 8px;
+  font-size: 10.5px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rpc-meme-pill:hover {
+  border-color: var(--accent-primary);
+  color: #fff;
+  background: rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.rpc-meme-pill.active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+.rpc-live-preview {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.rpc-live-preview:hover {
+  border-color: var(--accent-green);
+}
