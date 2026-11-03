@@ -22,13 +22,17 @@ pub struct CustomPresenceData {
     pub application_id: String,
     pub app_key: Option<String>,
     pub state: Option<String>,
+    pub state_url: Option<String>,
     pub details: Option<String>,
+    pub details_url: Option<String>,
     pub start_timestamp: Option<u64>,
     pub end_timestamp: Option<u64>,
     pub large_image_key: Option<String>,
     pub large_image_text: Option<String>,
+    pub large_url: Option<String>,
     pub small_image_key: Option<String>,
     pub small_image_text: Option<String>,
+    pub small_url: Option<String>,
     pub party_id: Option<String>,
     pub party_size: Option<u32>,
     pub party_max: Option<u32>,
@@ -39,6 +43,7 @@ pub struct CustomPresenceData {
 
 pub const ORBSHACKER_GITHUB_URL: &str = "https://github.com/Mextrim/orbshacker";
 pub const ORBSHACKER_RELEASES_URL: &str = "https://github.com/Mextrim/orbshacker/releases";
+pub const ORBSHACKER_ICON_URL: &str = "https://raw.githubusercontent.com/Mextrim/orbshacker/main/src-gui/assets/icon.png";
 
 pub fn default_github_buttons() -> Option<Vec<PresenceButton>> {
     Some(vec![
@@ -59,13 +64,17 @@ impl Default for CustomPresenceData {
             application_id: "1567134974031962272".to_string(),
             app_key: Some("79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9".to_string()),
             state: Some("Playing Solo".to_string()),
+            state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
             details: Some("Competitive".to_string()),
+            details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
             start_timestamp: Some(1507665886),
             end_timestamp: Some(1507665886),
-            large_image_key: Some("numbani".to_string()),
-            large_image_text: Some("Numbani".to_string()),
+            large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+            large_image_text: Some("Orbshacker • Перейти на GitHub".to_string()),
+            large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
             small_image_key: Some("rogue".to_string()),
             small_image_text: Some("Rogue - Level 100".to_string()),
+            small_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
             party_id: Some("ae488379-351d-4a4f-ad32-2b9b01c91657".to_string()),
             party_size: Some(1),
             party_max: Some(5),
@@ -78,6 +87,7 @@ impl Default for CustomPresenceData {
 pub struct CustomRpcClient {
     data: Arc<Mutex<CustomPresenceData>>,
     stop_signal: Arc<AtomicBool>,
+    dirty_signal: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
 }
 
@@ -86,6 +96,7 @@ impl CustomRpcClient {
         Self {
             data: Arc::new(Mutex::new(data)),
             stop_signal: Arc::new(AtomicBool::new(false)),
+            dirty_signal: Arc::new(AtomicBool::new(true)),
             handle: None,
         }
     }
@@ -93,11 +104,13 @@ impl CustomRpcClient {
     pub fn start(&mut self) -> Result<(), String> {
         self.stop();
         self.stop_signal.store(false, Ordering::SeqCst);
+        self.dirty_signal.store(true, Ordering::SeqCst);
         let data_arc = self.data.clone();
         let stop_arc = self.stop_signal.clone();
+        let dirty_arc = self.dirty_signal.clone();
 
         let handle = thread::spawn(move || {
-            custom_rpc_worker_loop(data_arc, stop_arc);
+            custom_rpc_worker_loop(data_arc, stop_arc, dirty_arc);
         });
 
         self.handle = Some(handle);
@@ -107,6 +120,7 @@ impl CustomRpcClient {
     pub fn update(&self, new_data: CustomPresenceData) {
         if let Ok(mut d) = self.data.lock() {
             *d = new_data;
+            self.dirty_signal.store(true, Ordering::SeqCst);
         }
     }
 
@@ -182,13 +196,17 @@ impl PresenceState {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
                 details: Some("В главном меню".to_string()),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 state: Some("Готов к запуску (+5,600 Orbs)".to_string()),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(now),
                 end_timestamp: None,
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some("Orbshacker v2.8.0 • Quests & Badges Spoofer".to_string()),
-                small_image_key: Some("online".to_string()),
-                small_image_text: Some("В сети".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some("Orbshacker v2.8.0 • Перейти на GitHub".to_string()),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: None,
                 party_size: None,
                 party_max: None,
@@ -198,14 +216,18 @@ impl PresenceState {
             PresenceState::FarmingQuests { quest_count, total_orbs, start_ts, end_ts } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Фармит задания Discord (Orbs)".to_string()),
+                details: Some("Фарм заданий Discord (Orbs)".to_string()),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 state: Some(format!("Квестов: {} (+{} Orbs)", quest_count, total_orbs)),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(*start_ts),
                 end_timestamp: if *end_ts > *start_ts { Some(*end_ts) } else { None },
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some("Фарминг Discord Quests".to_string()),
-                small_image_key: Some("farming".to_string()),
-                small_image_text: Some("Фарм активен".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some("Orbshacker • Фарминг Discord Quests".to_string()),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: Some("orbshacker_quests_party".to_string()),
                 party_size: Some(*quest_count as u32),
                 party_max: Some(*quest_count as u32),
@@ -216,13 +238,17 @@ impl PresenceState {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
                 details: Some("Задания Discord выполнены!".to_string()),
-                state: Some(format!("Получено +{} Orbs", total_orbs)),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                state: Some(format!("Получено +{} Orbs • Orbshacker", total_orbs)),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(now),
                 end_timestamp: None,
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some("Все задания завершены!".to_string()),
-                small_image_key: Some("verified".to_string()),
-                small_image_text: Some("Готово к получению".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some("Orbshacker • Все задания завершены!".to_string()),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: None,
                 party_size: None,
                 party_max: None,
@@ -233,13 +259,17 @@ impl PresenceState {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
                 details: Some("Фарм значков профиля (150+ игр)".to_string()),
-                state: Some(format!("{}: {}/{}", game_name, current_index, total_games)),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                state: Some(format!("Игра: {}", game_name)),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(*start_ts),
                 end_timestamp: None,
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some(format!("Игра: {}", game_name)),
-                small_image_key: Some("badge".to_string()),
-                small_image_text: Some("Значки профиля".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some(format!("Orbshacker • Игра: {}", game_name)),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: Some("orbshacker_badge_party".to_string()),
                 party_size: Some(*current_index as u32),
                 party_max: Some(*total_games as u32),
@@ -249,14 +279,18 @@ impl PresenceState {
             PresenceState::BadgesCompleted { total_games } => Some(CustomPresenceData {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
-                details: Some("Пакет игр завершён!".to_string()),
-                state: Some(format!("Засчитано {} игр для значка", total_games)),
+                details: Some("Значок профиля получен!".to_string()),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                state: Some(format!("Засчитано {} игр • Orbshacker", total_games)),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(now),
                 end_timestamp: None,
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some("Значок профиля обновлен".to_string()),
-                small_image_key: Some("verified".to_string()),
-                small_image_text: Some("Успех".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some("Orbshacker • Значок профиля обновлен".to_string()),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: None,
                 party_size: None,
                 party_max: None,
@@ -267,21 +301,25 @@ impl PresenceState {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
                 details: Some(format!("Фармит часы: {}", game_name)),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 state: Some(if *is_infinite {
-                    "Бесконечный AFK-фарм (онлайн)".to_string()
+                    "Бесконечный AFK-фарм • Orbshacker".to_string()
                 } else {
                     format!("Цель: {} ч игрового времени", target_hours)
                 }),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(*start_ts),
                 end_timestamp: if !*is_infinite && *target_hours > 0 {
                     Some(*start_ts + (*target_hours as u64) * 3600)
                 } else {
                     None
                 },
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some(format!("Фарм часов: {}", game_name)),
-                small_image_key: Some("online".to_string()),
-                small_image_text: Some("0% CPU".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some(format!("Orbshacker • Фарм часов: {}", game_name)),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: None,
                 party_size: None,
                 party_max: None,
@@ -292,13 +330,17 @@ impl PresenceState {
                 application_id: ORBSHACKER_APP_ID.to_string(),
                 app_key: Some(ORBSHACKER_APP_KEY.to_string()),
                 details: Some(format!("Фармит: {}", game_name)),
-                state: Some(format!("{} в онлайне", exe_name)),
+                details_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                state: Some(format!("{} в онлайне • Orbshacker", exe_name)),
+                state_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                 start_timestamp: Some(*start_ts),
                 end_timestamp: None,
-                large_image_key: Some("orbshacker".to_string()),
-                large_image_text: Some(format!("Своя игра: {}", game_name)),
-                small_image_key: Some("online".to_string()),
-                small_image_text: Some("AFK Онлайн".to_string()),
+                large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
+                large_image_text: Some(format!("Orbshacker • {}", game_name)),
+                large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
+                small_image_key: None,
+                small_image_text: None,
+                small_url: None,
                 party_id: None,
                 party_size: None,
                 party_max: None,
@@ -660,9 +702,19 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
             activity.insert("state".to_string(), serde_json::json!(st));
         }
     }
+    if let Some(ref su) = data.state_url {
+        if !su.trim().is_empty() {
+            activity.insert("state_url".to_string(), serde_json::json!(su));
+        }
+    }
     if let Some(ref dt) = data.details {
         if !dt.trim().is_empty() {
             activity.insert("details".to_string(), serde_json::json!(dt));
+        }
+    }
+    if let Some(ref du) = data.details_url {
+        if !du.trim().is_empty() {
+            activity.insert("details_url".to_string(), serde_json::json!(du));
         }
     }
 
@@ -694,6 +746,11 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
             assets.insert("large_text".to_string(), serde_json::json!(lt));
         }
     }
+    if let Some(ref lu) = data.large_url {
+        if !lu.trim().is_empty() {
+            assets.insert("large_url".to_string(), serde_json::json!(lu));
+        }
+    }
     if let Some(ref sk) = data.small_image_key {
         if !sk.trim().is_empty() {
             assets.insert("small_image".to_string(), serde_json::json!(sk));
@@ -702,6 +759,11 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
     if let Some(ref st) = data.small_image_text {
         if !st.trim().is_empty() {
             assets.insert("small_text".to_string(), serde_json::json!(st));
+        }
+    }
+    if let Some(ref su) = data.small_url {
+        if !su.trim().is_empty() {
+            assets.insert("small_url".to_string(), serde_json::json!(su));
         }
     }
     if !assets.is_empty() {
@@ -722,7 +784,17 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
             })
             .collect();
         if !valid_btns.is_empty() {
+            let button_urls: Vec<serde_json::Value> = btns
+                .iter()
+                .take(2)
+                .filter(|b| !b.label.trim().is_empty() && !b.url.trim().is_empty())
+                .map(|b| serde_json::json!(b.url))
+                .collect();
             activity.insert("buttons".to_string(), serde_json::Value::Array(valid_btns));
+
+            let mut metadata = serde_json::Map::new();
+            metadata.insert("button_urls".to_string(), serde_json::Value::Array(button_urls));
+            activity.insert("metadata".to_string(), serde_json::Value::Object(metadata));
         }
     }
 
@@ -761,7 +833,11 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
     activity_json.to_string()
 }
 
-fn custom_rpc_worker_loop(data_arc: Arc<Mutex<CustomPresenceData>>, stop: Arc<AtomicBool>) {
+fn custom_rpc_worker_loop(
+    data_arc: Arc<Mutex<CustomPresenceData>>,
+    stop: Arc<AtomicBool>,
+    dirty: Arc<AtomicBool>,
+) {
     let pid = std::process::id();
 
     while !stop.load(Ordering::SeqCst) {
@@ -797,6 +873,7 @@ fn custom_rpc_worker_loop(data_arc: Arc<Mutex<CustomPresenceData>>, stop: Arc<At
 
         // Main activity broadcast loop
         while !stop.load(Ordering::SeqCst) {
+            dirty.store(false, Ordering::SeqCst);
             let current_data = {
                 let d = data_arc.lock().unwrap();
                 d.clone()
@@ -813,9 +890,9 @@ fn custom_rpc_worker_loop(data_arc: Arc<Mutex<CustomPresenceData>>, stop: Arc<At
             }
             let _ = stream.read_packet();
 
-            // Heartbeat refresh every 10 seconds
+            // Heartbeat refresh every 10 seconds or immediately when presence updates
             for _ in 0..20 {
-                if stop.load(Ordering::SeqCst) {
+                if stop.load(Ordering::SeqCst) || dirty.load(Ordering::SeqCst) {
                     break;
                 }
                 thread::sleep(Duration::from_millis(500));
@@ -831,5 +908,61 @@ fn custom_rpc_worker_loop(data_arc: Arc<Mutex<CustomPresenceData>>, stop: Arc<At
             let _ = stream.write_packet(1, &clear_payload);
             break;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_idle_presence_payload() {
+        let presence = PresenceState::Idle.to_presence_data().expect("Idle presence data");
+        let payload_str = build_activity_payload(1234, &presence);
+        let parsed: serde_json::Value = serde_json::from_str(&payload_str).expect("Valid JSON");
+
+        let activity = &parsed["args"]["activity"];
+        assert_eq!(activity["application_id"], ORBSHACKER_APP_ID);
+        assert_eq!(activity["details_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["state_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["assets"]["large_image"], ORBSHACKER_ICON_URL);
+        assert_eq!(activity["assets"]["large_url"], ORBSHACKER_GITHUB_URL);
+
+        let btns = activity["buttons"].as_array().expect("Buttons array");
+        assert_eq!(btns.len(), 2);
+        assert_eq!(btns[0]["url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(btns[1]["url"], ORBSHACKER_RELEASES_URL);
+
+        let urls = activity["metadata"]["button_urls"].as_array().expect("Metadata button_urls");
+        assert_eq!(urls.len(), 2);
+        assert_eq!(urls[0], ORBSHACKER_GITHUB_URL);
+        assert_eq!(urls[1], ORBSHACKER_RELEASES_URL);
+
+        assert!(activity.get("secrets").is_none());
+    }
+
+    #[test]
+    fn test_farming_badges_presence_payload() {
+        let state = PresenceState::FarmingBadges {
+            game_name: "Counter-Strike 2 (+4)".to_string(),
+            current_index: 5,
+            total_games: 150,
+            start_ts: 1700000000,
+        };
+        let presence = state.to_presence_data().expect("Badges presence data");
+        let payload_str = build_activity_payload(1234, &presence);
+        let parsed: serde_json::Value = serde_json::from_str(&payload_str).expect("Valid JSON");
+
+        let activity = &parsed["args"]["activity"];
+        assert_eq!(activity["details_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["state_url"], ORBSHACKER_GITHUB_URL);
+        assert_eq!(activity["state"], "Игра: Counter-Strike 2 (+4)");
+        assert_eq!(activity["assets"]["large_image"], ORBSHACKER_ICON_URL);
+        assert_eq!(activity["assets"]["large_url"], ORBSHACKER_GITHUB_URL);
+
+        let party = &activity["party"];
+        assert_eq!(party["id"], "orbshacker_badge_party");
+        assert_eq!(party["size"][0], 5);
+        assert_eq!(party["size"][1], 150);
     }
 }
