@@ -30,6 +30,11 @@
     amethyst: { name: 'Аметистовая Бездна', icon: '🔮' },
     solar: { name: 'Солнечная Вспышка', icon: '☀️' },
     tokyo: { name: 'Токио 2077', icon: '🏮' },
+    bootstrap: { name: 'Bootstrap 5 UI', icon: '🅱️' },
+    flat: { name: 'Flat Browser', icon: '🌐' },
+    slate: { name: 'Modern Tables', icon: '📊' },
+    liquid: { name: 'Apple Liquid Glass', icon: '💧' },
+    material: { name: 'Material You UI', icon: '🎨' },
   };
 
   const LANGS = {
@@ -182,7 +187,19 @@
     localStorage.setItem('orbshacker_theme', theme);
 
     if (currentThemeLabel) {
-      currentThemeLabel.textContent = THEMES[theme].name;
+      const dict = I18N[currentLang] || I18N['ru'];
+      if (dict && dict['theme_' + theme]) {
+        currentThemeLabel.textContent = dict['theme_' + theme].replace(/^[^\s]+\s*/, '');
+      } else {
+        currentThemeLabel.textContent = THEMES[theme].name;
+      }
+    }
+
+    if (themeDropdownBtn) {
+      const iconSpan = themeDropdownBtn.querySelector('span:first-child');
+      if (iconSpan && THEMES[theme] && THEMES[theme].icon) {
+        iconSpan.textContent = THEMES[theme].icon;
+      }
     }
 
     // Update checkmark in dropdown
@@ -232,6 +249,16 @@
     });
 
     const dict = I18N[lang];
+    if (currentThemeLabel && dict['theme_' + currentTheme]) {
+      currentThemeLabel.textContent = dict['theme_' + currentTheme].replace(/^[^\s]+\s*/, '');
+    }
+    document.querySelectorAll('#themeDropdownMenu .dropdown-item').forEach((item) => {
+      const val = item.getAttribute('data-theme-val');
+      const textSpan = item.querySelector('span:first-child');
+      if (textSpan && dict['theme_' + val]) {
+        textSpan.textContent = dict['theme_' + val];
+      }
+    });
     document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
       if (dict[key]) {
@@ -571,7 +598,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.9.0',
+        version: 'v2.10.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -682,10 +709,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.9.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.10.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.9.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.10.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -741,8 +768,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.9.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.9.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.10.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.10.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {

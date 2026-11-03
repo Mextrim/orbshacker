@@ -214,6 +214,146 @@
   --text-dim: #94a3b8;
 }
 
+/* ----------------------------------------------------
+   FIGMA THEME 1: BOOTSTRAP 5 UI KIT (Community)
+   Source: https://www.figma.com/design/09xdcXqXMBRxPKX2pe4qJR/Bootstrap-5-UI-Kit--Community-
+   ---------------------------------------------------- */
+[data-theme="bootstrap"] {
+  color-scheme: dark;
+  --bg-primary: #121519;
+  --bg-secondary: #1a1e24;
+  --bg-card: rgba(33, 37, 41, 0.86);
+  --bg-card-hover: rgba(43, 48, 53, 0.95);
+  --bg-elevated: #2b3035;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-glow: rgba(13, 110, 253, 0.45);
+  --accent-primary: #0d6efd;
+  --accent-primary-glow: rgba(13, 110, 253, 0.5);
+  --accent-green: #198754;
+  --accent-green-glow: rgba(25, 135, 84, 0.45);
+  --accent-blue: #0dcaf0;
+  --accent-purple: #6f42c1;
+  --accent-orange: #ffc107;
+  --accent-red: #dc3545;
+  --text-main: #f8f9fa;
+  --text-muted: #adb5bd;
+  --text-dim: #6c757d;
+}
+
+/* ----------------------------------------------------
+   FIGMA THEME 2: FLAT BROWSER MOCKUP (Minimalist Flat)
+   Source: https://www.figma.com/community/file/1053669533897633243
+   ---------------------------------------------------- */
+[data-theme="flat"] {
+  color-scheme: dark;
+  --bg-primary: #18191f;
+  --bg-secondary: #22232a;
+  --bg-card: rgba(38, 40, 48, 0.84);
+  --bg-card-hover: rgba(48, 51, 62, 0.94);
+  --bg-elevated: #2f323c;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(79, 70, 229, 0.35);
+  --accent-primary: #6366f1;
+  --accent-primary-glow: rgba(99, 102, 241, 0.45);
+  --accent-green: #10b981;
+  --accent-green-glow: rgba(16, 185, 129, 0.4);
+  --accent-blue: #38bdf8;
+  --accent-purple: #a855f7;
+  --accent-orange: #fb923c;
+  --accent-red: #f43f5e;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+}
+
+/* ----------------------------------------------------
+   FIGMA THEME 3: MODERN TABLES / ENTERPRISE SLATE
+   Source: https://www.figma.com/community/file/997888030168910817
+   ---------------------------------------------------- */
+[data-theme="slate"] {
+  color-scheme: dark;
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: rgba(23, 32, 51, 0.82);
+  --bg-card-hover: rgba(31, 44, 70, 0.92);
+  --bg-elevated: #1f293d;
+  --border-color: rgba(148, 163, 184, 0.16);
+  --border-glow: rgba(6, 182, 212, 0.42);
+  --accent-primary: #06b6d4;
+  --accent-primary-glow: rgba(6, 182, 212, 0.45);
+  --accent-green: #10b981;
+  --accent-green-glow: rgba(16, 185, 129, 0.45);
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+}
+
+/* ----------------------------------------------------
+   FIGMA THEME 4: APPLE LIQUID GLASS MATERIAL
+   Source: https://www.figma.com/community/file/1517585927151050631
+   ---------------------------------------------------- */
+[data-theme="liquid"] {
+  color-scheme: dark;
+  --bg-primary: #04060d;
+  --bg-secondary: #080d1a;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.09);
+  --bg-elevated: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.18);
+  --border-glow: rgba(0, 240, 255, 0.5);
+  --accent-primary: #00f0ff;
+  --accent-primary-glow: rgba(0, 240, 255, 0.55);
+  --accent-green: #4ade80;
+  --accent-green-glow: rgba(74, 222, 128, 0.45);
+  --accent-blue: #60a5fa;
+  --accent-purple: #d946ef;
+  --accent-orange: #fbbf24;
+  --accent-red: #fb7185;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.72);
+  --text-dim: rgba(255, 255, 255, 0.42);
+}
+
+[data-theme="liquid"] .hero-card,
+[data-theme="liquid"] .telemetry-card,
+[data-theme="liquid"] .quest-card,
+[data-theme="liquid"] .modal-content,
+[data-theme="liquid"] .settings-meme-box {
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* ----------------------------------------------------
+   FIGMA THEME 5: MATERIAL LEARNING APPS (Material You UI)
+   Source: https://www.figma.com/community/file/987736780525197517
+   ---------------------------------------------------- */
+[data-theme="material"] {
+  color-scheme: dark;
+  --bg-primary: #121019;
+  --bg-secondary: #1a1724;
+  --bg-card: rgba(36, 31, 51, 0.86);
+  --bg-card-hover: rgba(49, 42, 69, 0.95);
+  --bg-elevated: #2d2640;
+  --border-color: rgba(187, 134, 252, 0.2);
+  --border-glow: rgba(187, 134, 252, 0.45);
+  --accent-primary: #bb86fc;
+  --accent-primary-glow: rgba(187, 134, 252, 0.5);
+  --accent-green: #03dac6;
+  --accent-green-glow: rgba(3, 218, 198, 0.45);
+  --accent-blue: #80d8ff;
+  --accent-purple: #bb86fc;
+  --accent-orange: #ffd54f;
+  --accent-red: #cf6679;
+  --text-main: #f5eeff;
+  --text-muted: #d0bcff;
+  --text-dim: #9a82db;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -438,6 +578,8 @@ body {
   border-radius: 10px;
   box-shadow: 0 14px 35px rgba(0, 0, 0, 0.75), 0 0 15px var(--border-glow);
   min-width: 185px;
+  max-height: 390px;
+  overflow-y: auto;
   padding: 6px;
   display: none;
   flex-direction: column;
