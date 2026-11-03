@@ -47,36 +47,7 @@ impl SteamHelper {
             None
         }
 
-        #[cfg(target_os = "linux")]
-        {
-            if let Ok(home) = std::env::var("HOME") {
-                let home_p = PathBuf::from(home);
-                let candidates = [
-                    home_p.join(".local/share/Steam"),
-                    home_p.join(".steam/steam"),
-                    home_p.join(".steam/root"),
-                ];
-                for c in candidates {
-                    if c.exists() {
-                        return Some(c);
-                    }
-                }
-            }
-            None
-        }
-
-        #[cfg(target_os = "macos")]
-        {
-            if let Ok(home) = std::env::var("HOME") {
-                let p = PathBuf::from(home).join("Library/Application Support/Steam");
-                if p.exists() {
-                    return Some(p);
-                }
-            }
-            None
-        }
-
-        #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
+        #[cfg(not(windows))]
         {
             None
         }

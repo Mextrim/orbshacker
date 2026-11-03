@@ -53,7 +53,7 @@ jobs:
           }
           Copy-Item src-rust/target/release/orbshacker-core.exe artifacts/orbshacker-core.exe
           $tag = $env:GITHUB_REF_NAME
-          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v2.10.1" }
+          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v2.11.0" }
           if (Test-Path dist/win-unpacked) {
             Compress-Archive -Path dist/win-unpacked/* -DestinationPath "artifacts/orbshacker-$tag-win-x64.zip" -Force
             Copy-Item "artifacts/orbshacker-$tag-win-x64.zip" artifacts/orbshacker-win-x64.zip
@@ -65,80 +65,9 @@ jobs:
           name: windows-assets
           path: artifacts/*
 
-  build-linux:
-    name: Build Linux (x64)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Linux build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libarchive-tools libfuse2
-
-      - name: Build Launcher & Rust Core (Linux)
-        run: |
-          cargo build --release --manifest-path src-rust/Cargo.toml
-          cargo build --release --manifest-path src-launcher/Cargo.toml
-          mkdir -p src-gui/bin artifacts
-          cp src-rust/target/release/orbshacker-core src-gui/bin/orbshacker-core
-          chmod +x src-gui/bin/orbshacker-core
-          cp src-launcher/target/release/orbshacker-launcher artifacts/orbshacker-launcher-linux-x64
-          chmod +x artifacts/orbshacker-launcher-linux-x64
-
-      - name: Install GUI dependencies
-        run: |
-          cd src-gui
-          npm install
-
-      - name: Build Electron App (Linux AppImage & tar.gz)
-        run: |
-          cd src-gui
-          npm run build:linux
-
-      - name: Prepare Linux Binaries
-        run: |
-          mkdir -p artifacts
-          cp src-rust/target/release/orbshacker-core artifacts/orbshacker-core-linux-x64
-          TAG="${GITHUB_REF_NAME}"
-          if [[ ! "$TAG" =~ ^v[0-9] ]]; then
-            TAG="v2.10.1"
-          fi
-          cp dist/*.AppImage artifacts/ || true
-          cp dist/*.tar.gz artifacts/ || true
-          for f in artifacts/*.tar.gz; do
-            if [ -f "$f" ]; then
-              cp "$f" "artifacts/orbshacker-${TAG}-linux-x64.tar.gz"
-              cp "$f" "artifacts/orbshacker-linux-x64.tar.gz"
-              break
-            fi
-          done
-          for f in artifacts/*.AppImage; do
-            if [ -f "$f" ]; then
-              cp "$f" "artifacts/orbshacker-${TAG}-linux-x64.AppImage"
-              cp "$f" "artifacts/orbshacker-linux-x64.AppImage"
-              break
-            fi
-          done
-
-      - name: Upload Linux Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-assets
-          path: artifacts/*
-
   publish-release:
-    name: Publish Multi-Platform Release
-    needs: [build-windows, build-linux]
+    name: Publish Windows Release
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -162,7 +91,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [[ ! "$TAG" =~ ^v[0-9] ]]; then
-            TAG="v2.10.1"
+            TAG="v2.11.0"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -170,21 +99,16 @@ jobs:
         uses: softprops/action-gh-release@v2.6.1
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: Orbshacker ${{ steps.vars.outputs.tag }} - Windows & Linux
+          name: Orbshacker ${{ steps.vars.outputs.tag }} - Windows (x64)
           body: |
-            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows & Linux)
+            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} - Native Windows (x64)
             
-            Официальный релиз Orbshacker с бустером квестов (Orbs), значков профиля Discord и автоматическим Discord Rich Presence (RPC).
+            Официальный нативный релиз Orbshacker для Windows (x64) с бустером квестов (Orbs), значков профиля Discord и автоматическим Discord Rich Presence (RPC).
             
             ### ✨ Что нового:
+            - ⚡ **100% Native Windows Optimization**: полностью удалены лишние кроссплатформенные зависимости Linux, дистрибутив оптимизирован под архитектуру Windows (x64), размер пакета и лаунчера уменьшен.
             - 🔇 **100% бесшумный фоновый запуск игр (Zero Taskbar Spam)**: устранён спам миниатюрами и окнами на панели задач Windows. Процессы эмуляции запускаются полностью в фоне (`WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | CREATE_NO_WINDOW`), не появляются на панели задач и в Alt+Tab, не отвлекают пользователя и не воруют фокус, при этом на 100% корректно регистрируются в Discord.
-            - 🎨 **5 новых премиальных тем оформления по дизайнам Figma** (всего 15 тем):
-              - 🅱️ **Bootstrap 5 UI**: чистая корпоративная тема с акцентом Indigo Blue (#0d6efd) и изумрудным статусом (#198754).
-              - 🌐 **Flat Browser**: ультраминималистичный плоский дизайн браузера в пастельных тонах (#6366f1, #10b981).
-              - 📊 **Modern Tables (Slate)**: тёмно-графитовая тема дата-таблиц с микросеткой и бирюзовым неоном (#06b6d4).
-              - 💧 **Apple Liquid Glass**: фирменный жидкий полупрозрачный акрил с эффектом размытия 24px, сатурацией 180% и зеркальными бликами.
-              - 🎨 **Material You UI (Learning Apps)**: концепция Material Design 3 с палитрой Deep Purple (#bb86fc) и бирюзой (#03dac6).
-            - 📜 **Удобный скроллинг палитры тем**: выпадающее меню тем оптимизировано и комфортно вмещает все 15 вариантов.
+            - 🎨 **15 премиальных тем оформления**: в палитру включены Bootstrap 5 UI, Flat Browser, Modern Tables (Slate), Apple Liquid Glass, Material You UI и другие с плавной прокруткой меню.
             - 🔮 **Автоматический Discord Rich Presence (RPC)**: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 150+ игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID `1567134974031962272`.
             - ⚡ **Кнопка-индикатор RPC в шапке**: мгновенное отображение статуса вещания и возможность в один клик включить или выключить трансляцию.
             - 🔒 **Single-Instance Lock**: надёжная защита от запуска дублирующих процессов (в памяти гарантированно остаётся только один экземпляр).
@@ -198,19 +122,13 @@ jobs:
             
             ---
             
-            ### 📥 Файлы для загрузки:
-            
-            #### 🪟 Windows (x64):
-            - **`orbshacker-launcher.exe`**: Нативный ультралёгкий лаунчер (~1.6 МБ). Автоматически скачивает и распаковывает компоненты с GitHub.
+            ### 📥 Файлы для загрузки (Windows x64):
+            - **`orbshacker-launcher.exe`**: Нативный ультралёгкий лаунчер (~1.5 МБ). Автоматически скачивает и распаковывает компоненты с GitHub.
             - **`orbshacker.exe`**: Портативная автономная версия программы (один файл).
             - **`orbshacker-${{ steps.vars.outputs.tag }}-win-x64.zip`**: Полный распакованный архив с библиотеками ffmpeg и runtime.
-            - **`orbshacker-core.exe`**: Нативное Rust CLI ядро.
-            
-            #### 🐧 Linux (All Distros: Ubuntu, Debian, Arch, Fedora, openSUSE, etc.):
-            - **`orbshacker-launcher-linux-x64`**: Нативный Linux-лаунчер (~2.2 МБ).
-            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.AppImage`**: Standalone Linux AppImage.
-            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.tar.gz`**: Standalone tar.gz archive.
-            - **`orbshacker-core-linux-x64`**: Нативное Linux CLI ядро.
+            - **`orbshacker-core.exe`**: Высокопроизводительное нативное Rust CLI ядро.
           files: release-files/*
+          draft: false
+          prerelease: false
           draft: false
           prerelease: false

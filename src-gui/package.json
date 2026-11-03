@@ -1,6 +1,6 @@
 {
   "name": "orbshacker",
-  "version": "2.10.1",
+  "version": "2.11.0",
   "description": "Discord Quests & Profile Badges Spoofer (Rust + Electron)",
   "main": "main.js",
   "author": "Mextrim",
@@ -9,8 +9,7 @@
     "start": "electron .",
     "dev": "electron .",
     "build:portable": "electron-builder --win portable",
-    "build:win": "electron-builder --win portable zip",
-    "build:linux": "electron-builder --linux AppImage tar.gz"
+    "build:win": "electron-builder --win portable zip"
   },
   "build": {
     "appId": "com.mextrim.orbshacker",
@@ -55,24 +54,6 @@
     },
     "portable": {
       "artifactName": "orbshacker-portable.exe"
-    },
-    "linux": {
-      "icon": "assets/icon.png",
-      "category": "Utility",
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "tar.gz",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
     }
   },
   "devDependencies": {

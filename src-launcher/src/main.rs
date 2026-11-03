@@ -14,7 +14,7 @@ use std::time::Duration;
 use std::os::unix::fs::PermissionsExt;
 
 const GITHUB_REPO: &str = "Mextrim/orbshacker";
-const DEFAULT_VERSION: &str = "v2.8.0";
+const DEFAULT_VERSION: &str = "v2.11.0";
 
 #[derive(Clone, Default)]
 struct ProgressState {
@@ -25,14 +25,6 @@ struct ProgressState {
     error: Option<String>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-#[allow(dead_code)]
-enum ArchiveKind {
-    Zip,
-    TarGz,
-    AppImage,
-}
-
 fn get_app_dir(root_dir: &Path) -> PathBuf {
     root_dir.join("app")
 }
@@ -40,7 +32,6 @@ fn get_app_dir(root_dir: &Path) -> PathBuf {
 fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
     let app_dir = get_app_dir(root_dir);
 
-    #[cfg(windows)]
     let candidates = [
         app_dir.join("win-unpacked").join("orbshacker.exe"),
         app_dir.join("orbshacker.exe"),
@@ -49,26 +40,13 @@ fn find_installed_executable(root_dir: &Path) -> Option<PathBuf> {
         root_dir.join("dist").join("orbshacker.exe"),
     ];
 
-    #[cfg(target_os = "linux")]
-    let candidates = [
-        app_dir.join("orbshacker.AppImage"),
-        app_dir.join("orbshacker"),
-        app_dir.join("linux-unpacked").join("orbshacker"),
-        root_dir.join("orbshacker.AppImage"),
-        root_dir.join("dist").join("orbshacker.AppImage"),
-        root_dir.join("dist").join("orbshacker"),
-    ];
-
     for c in &candidates {
         if c.exists() {
-            #[cfg(windows)]
-            {
-                // For raw orbshacker.exe (non-portable), ensure ffmpeg.dll exists next to it
-                if let Some(p) = c.parent() {
-                    let name = c.file_name().and_then(|n| n.to_str()).unwrap_or("");
-                    if name == "orbshacker.exe" && !p.join("ffmpeg.dll").exists() {
-                        continue;
-                    }
+            // For raw orbshacker.exe (non-portable), ensure ffmpeg.dll exists next to it
+            if let Some(p) = c.parent() {
+                let name = c.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                if name == "orbshacker.exe" && !p.join("ffmpeg.dll").exists() {
+                    continue;
                 }
             }
             return Some(c.clone());
@@ -126,7 +104,7 @@ fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
 // DOWNLOAD & EXTRACT LOGIC
 // =========================================================
 
-fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
+fn get_download_url() -> (String, String) {
     let api_url = format!("https://api.github.com/repos/{}/releases/latest", GITHUB_REPO);
     let req = minreq::get(&api_url)
         .with_header("User-Agent", "Orbshacker-Launcher")
@@ -138,82 +116,31 @@ fn get_download_url_and_kind() -> (String, String, ArchiveKind) {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(resp.as_bytes()) {
                 let tag = json["tag_name"].as_str().unwrap_or(DEFAULT_VERSION).to_string();
                 if let Some(assets) = json["assets"].as_array() {
-                    #[cfg(windows)]
-                    {
-                        for asset in assets {
-                            if let Some(name) = asset["name"].as_str() {
-                                if name.ends_with(".zip") && name.contains("win") {
-                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
-                                        return (download_url.to_string(), tag, ArchiveKind::Zip);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    #[cfg(target_os = "linux")]
-                    {
-                        // Prefer AppImage or tar.gz for Linux
-                        for asset in assets {
-                            if let Some(name) = asset["name"].as_str() {
-                                if name.ends_with(".AppImage") {
-                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
-                                        return (download_url.to_string(), tag, ArchiveKind::AppImage);
-                                    }
-                                }
-                            }
-                        }
-                        for asset in assets {
-                            if let Some(name) = asset["name"].as_str() {
-                                if (name.ends_with(".tar.gz") || name.ends_with(".tgz")) && name.contains("linux") {
-                                    if let Some(download_url) = asset["browser_download_url"].as_str() {
-                                        return (download_url.to_string(), tag, ArchiveKind::TarGz);
-                                    }
+                    for asset in assets {
+                        if let Some(name) = asset["name"].as_str() {
+                            if name.ends_with(".zip") && name.contains("win") {
+                                if let Some(download_url) = asset["browser_download_url"].as_str() {
+                                    return (download_url.to_string(), tag);
                                 }
                             }
                         }
                     }
                 }
 
-                // Fallbacks per OS
-                #[cfg(windows)]
-                {
-                    let fallback = format!(
-                        "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
-                        GITHUB_REPO, tag, tag
-                    );
-                    return (fallback, tag, ArchiveKind::Zip);
-                }
-
-                #[cfg(target_os = "linux")]
-                {
-                    let fallback = format!(
-                        "https://github.com/{}/releases/download/{}/orbshacker-{}-linux-x64.tar.gz",
-                        GITHUB_REPO, tag, tag
-                    );
-                    return (fallback, tag, ArchiveKind::TarGz);
-                }
+                let fallback = format!(
+                    "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
+                    GITHUB_REPO, tag, tag
+                );
+                return (fallback, tag);
             }
         }
     }
 
-    #[cfg(windows)]
-    {
-        let fallback = format!(
-            "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
-            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
-        );
-        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::Zip)
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let fallback = format!(
-            "https://github.com/{}/releases/download/{}/orbshacker-{}-linux-x64.tar.gz",
-            GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
-        );
-        (fallback, DEFAULT_VERSION.to_string(), ArchiveKind::TarGz)
-    }
+    let fallback = format!(
+        "https://github.com/{}/releases/download/{}/orbshacker-{}-win-x64.zip",
+        GITHUB_REPO, DEFAULT_VERSION, DEFAULT_VERSION
+    );
+    (fallback, DEFAULT_VERSION.to_string())
 }
 
 fn download_file_with_progress(
@@ -364,43 +291,6 @@ fn extract_zip(
             let pct = ((i + 1) as f64 / total_files as f64 * 100.0) as u32;
             if let Ok(mut st) = state.lock() {
                 st.detail = format!("Распаковка: {} / {} файлов ({}%)", i + 1, total_files, pct);
-            }
-        }
-    }
-
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn extract_tar_gz(
-    archive_path: &Path,
-    target_dir: &Path,
-    state: &Arc<Mutex<ProgressState>>,
-    _cancel_flag: &Arc<AtomicBool>,
-) -> Result<(), String> {
-    if let Ok(mut st) = state.lock() {
-        st.status = "Распаковка компонентов Linux (.tar.gz)...".to_string();
-        st.detail = "Извлечение файлов...".to_string();
-        st.percent = 100;
-    }
-
-    let _ = fs::create_dir_all(target_dir);
-    let tar_gz = File::open(archive_path).map_err(|e| format!("Не удалось открыть архив: {}", e))?;
-    let tar = flate2::read::GzDecoder::new(tar_gz);
-    let mut archive = tar::Archive::new(tar);
-
-    archive.unpack(target_dir).map_err(|e| format!("Ошибка распаковки архива tar.gz: {}", e))?;
-
-    #[cfg(unix)]
-    {
-        for entry in fs::read_dir(target_dir).into_iter().flatten().flatten() {
-            let p = entry.path();
-            if p.is_file() {
-                if let Ok(meta) = p.metadata() {
-                    let mut perms = meta.permissions();
-                    perms.set_mode(0o755);
-                    let _ = fs::set_permissions(&p, perms);
-                }
             }
         }
     }
@@ -801,13 +691,6 @@ fn run_launcher_terminal(
             } else {
                 println!("\x1b[1;32m✔ {}\x1b[0m", status);
                 println!("\x1b[1;34m✨ Запуск ORBSHACKER...\x1b[0m");
-
-                #[cfg(target_os = "linux")]
-                {
-                    let _ = Command::new("notify-send")
-                        .args(["ORBSHACKER", "Установка завершена! Запуск программы..."])
-                        .spawn();
-                }
             }
             break;
         }
@@ -850,21 +733,17 @@ fn main() {
     let cancel_worker = cancel_flag.clone();
     let root_worker = root_dir.clone();
 
-    // Background worker: download from GitHub & extract
+    // Background worker: download Windows release from GitHub & extract
     let _worker_thread = thread::spawn(move || {
-        let (download_url, version, archive_kind) = get_download_url_and_kind();
+        let (download_url, version) = get_download_url();
         let app_dir = get_app_dir(&root_worker);
         let _ = fs::create_dir_all(&app_dir);
 
-        let temp_file = match archive_kind {
-            ArchiveKind::Zip => root_worker.join("orbshacker_update.tmp.zip"),
-            ArchiveKind::TarGz => root_worker.join("orbshacker_update.tmp.tar.gz"),
-            ArchiveKind::AppImage => app_dir.join("orbshacker.AppImage"),
-        };
+        let temp_file = root_worker.join("orbshacker_update.tmp.zip");
 
         if let Ok(mut st) = state_worker.lock() {
             st.status = format!("Найдена версия {} на GitHub", version);
-            st.detail = "Запуск загрузки дистрибутива...".to_string();
+            st.detail = "Запуск загрузки дистрибутива Windows...".to_string();
             st.percent = 5;
         }
 
@@ -879,45 +758,18 @@ fn main() {
             return;
         }
 
-        // Handle unpack / setup based on format
-        match archive_kind {
-            ArchiveKind::Zip => {
-                if let Err(e) = extract_zip(&temp_file, &app_dir, &state_worker, &cancel_worker) {
-                    let _ = fs::remove_file(&temp_file);
-                    if let Ok(mut st) = state_worker.lock() {
-                        st.status = "Ошибка распаковки".to_string();
-                        st.detail = e.clone();
-                        st.error = Some(e);
-                        st.finished = true;
-                    }
-                    return;
-                }
-                let _ = fs::remove_file(&temp_file);
+        // Extract Windows zip package
+        if let Err(e) = extract_zip(&temp_file, &app_dir, &state_worker, &cancel_worker) {
+            let _ = fs::remove_file(&temp_file);
+            if let Ok(mut st) = state_worker.lock() {
+                st.status = "Ошибка распаковки".to_string();
+                st.detail = e.clone();
+                st.error = Some(e);
+                st.finished = true;
             }
-            ArchiveKind::TarGz => {
-                if let Err(e) = extract_tar_gz(&temp_file, &app_dir, &state_worker, &cancel_worker) {
-                    let _ = fs::remove_file(&temp_file);
-                    if let Ok(mut st) = state_worker.lock() {
-                        st.status = "Ошибка распаковки".to_string();
-                        st.detail = e.clone();
-                        st.error = Some(e);
-                        st.finished = true;
-                    }
-                    return;
-                }
-                let _ = fs::remove_file(&temp_file);
-            }
-            ArchiveKind::AppImage => {
-                #[cfg(unix)]
-                {
-                    if let Ok(meta) = fs::metadata(&temp_file) {
-                        let mut perms = meta.permissions();
-                        perms.set_mode(0o755);
-                        let _ = fs::set_permissions(&temp_file, perms);
-                    }
-                }
-            }
+            return;
         }
+        let _ = fs::remove_file(&temp_file);
 
         let _ = fs::write(app_dir.join("version.txt"), &version);
 

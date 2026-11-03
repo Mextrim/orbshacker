@@ -26,7 +26,9 @@ if (fs.existsSync(rustBin)) {
   console.log('✅ Copied orbshacker-core.exe to dist');
 }
 
-const zipOut = path.join(distDir, 'orbshacker-v2.5.0-win-x64.zip');
+const pkg = require('../package.json');
+const currentVersion = 'v' + pkg.version;
+const zipOut = path.join(distDir, `orbshacker-${currentVersion}-win-x64.zip`);
 if (fs.existsSync(zipOut)) {
   fs.unlinkSync(zipOut);
 }
@@ -56,7 +58,7 @@ if (fs.existsSync(launcherBin)) {
 }
 
 const lines = [
-  `${sha256(zipOut)} *orbshacker-v2.5.0-win-x64.zip`,
+  `${sha256(zipOut)} *orbshacker-${currentVersion}-win-x64.zip`,
   `${sha256(path.join(distDir, 'orbshacker-core.exe'))} *orbshacker-core.exe`,
   `${sha256(path.join(distDir, 'orbshacker.exe'))} *orbshacker.exe`
 ];

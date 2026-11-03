@@ -162,23 +162,9 @@ async function checkForUpdates(currentVersion) {
       continue;
     }
 
-    if (platform === 'win32') {
-      if (name === 'orbshacker.exe' || name === 'orbshacker-portable.exe' || name.endsWith('.exe')) {
-        if (!exeAsset || name === 'orbshacker.exe' || name === 'orbshacker-portable.exe') {
-          exeAsset = a;
-        }
-      }
-    } else if (platform === 'linux') {
-      if (name.endsWith('.appimage') || name.includes('linux')) {
-        if (!exeAsset || name.endsWith('.appimage')) {
-          exeAsset = a;
-        }
-      }
-    } else if (platform === 'darwin') {
-      if (name.endsWith('.dmg') || name.includes('mac')) {
-        if (!exeAsset || name.endsWith('.dmg')) {
-          exeAsset = a;
-        }
+    if (name === 'orbshacker.exe' || name === 'orbshacker-portable.exe' || name.endsWith('.exe')) {
+      if (!exeAsset || name === 'orbshacker.exe' || name === 'orbshacker-portable.exe') {
+        exeAsset = a;
       }
     }
   }
@@ -199,10 +185,7 @@ async function checkForUpdates(currentVersion) {
 
 async function downloadAndInstall(downloadUrl, checksumUrl, assetName, onProgress) {
   const tempDir = os.tmpdir();
-  const isLinux = process.platform === 'linux';
-  const isWindows = process.platform === 'win32';
-  const ext = isLinux ? '.AppImage' : '.exe';
-  const tempExe = path.join(tempDir, `orbshacker-update-${Date.now()}${ext}`);
+  const tempExe = path.join(tempDir, `orbshacker-update-${Date.now()}.exe`);
 
   try {
     // 1. Download updated binary
@@ -213,7 +196,7 @@ async function downloadAndInstall(downloadUrl, checksumUrl, assetName, onProgres
       try {
         const sumsText = await downloadText(checksumUrl);
         const sumsMap = parseSha256sums(sumsText);
-        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'] || Object.entries(sumsMap).find(([k]) => k.endsWith('.AppImage'))?.[1];
+        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'];
         if (expectedHash) {
           const actualHash = await computeFileSha256(tempExe);
           if (actualHash !== expectedHash) {
@@ -297,37 +280,6 @@ del /f /q "!NEW_EXE!" >nul 2>&1
       return { success: true, restarted: true };
     }
 
-    // 5. Linux: use detached shell script to swap AppImage/binary and relaunch
-    if (isLinux) {
-      const targetDir = path.dirname(targetExe);
-      const updaterSh = path.join(tempDir, `orbshacker-updater-${Date.now()}.sh`);
-
-      const shScript = `#!/bin/sh
-sleep 1
-chmod +x "${tempExe}"
-mv -f "${tempExe}" "${targetExe}"
-chmod +x "${targetExe}"
-cd "${targetDir}"
-nohup "${targetExe}" >/dev/null 2>&1 &
-rm -f "$0"
-`;
-
-      fs.writeFileSync(updaterSh, shScript, { mode: 0o755 });
-
-      const child = spawn('/bin/sh', [updaterSh], {
-        detached: true,
-        stdio: 'ignore',
-      });
-      child.unref();
-
-      setTimeout(() => {
-        app.exit(0);
-      }, 400);
-
-      return { success: true, restarted: true };
-    }
-
-    // Fallback for other platforms
     app.quit();
     return { success: true, restarted: true };
   } catch (err) {

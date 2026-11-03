@@ -366,11 +366,7 @@ ipcMain.handle('system:shutdown', async () => {
         rustProcess.kill();
       } catch (_) {}
     }
-    if (process.platform === 'win32') {
-      spawn('shutdown.exe', ['/s', '/t', '0'], { detached: true });
-    } else {
-      spawn('shutdown', ['-h', 'now'], { detached: true });
-    }
+    spawn('shutdown.exe', ['/s', '/t', '0'], { detached: true });
     app.exit(0);
     return true;
   } catch (err) {

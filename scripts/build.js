@@ -13,7 +13,9 @@ const rustBin = path.join(rootDir, 'src-rust', 'target', 'release', binName);
 const guiBinDir = path.join(rootDir, 'src-gui', 'bin');
 const distDir = path.join(rootDir, 'dist');
 const packagedDir = path.join(distDir, 'orbshacker-win32-x64');
-const zipOut = path.join(distDir, 'orbshacker-v2.5.0-win-x64.zip');
+const pkg = require('../package.json');
+const currentVersion = 'v' + pkg.version;
+const zipOut = path.join(distDir, `orbshacker-${currentVersion}-win-x64.zip`);
 
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
@@ -92,9 +94,9 @@ function sha256File(filePath) {
   return crypto.createHash('sha256').update(data).digest('hex');
 }
 
-const zipHash = sha256File(zipOut);
+const zipHash = fs.existsSync(zipOut) ? sha256File(zipOut) : '';
 const coreHash = sha256File(path.join(distDir, binName));
-let shaSums = `${zipHash} *orbshacker-v2.5.0-win-x64.zip\n${coreHash} *orbshacker-core.exe\n`;
+let shaSums = `${zipHash} *orbshacker-${currentVersion}-win-x64.zip\n${coreHash} *orbshacker-core.exe\n`;
 
 const portableExe = path.join(distDir, 'orbshacker.exe');
 if (fs.existsSync(portableExe)) {
@@ -104,7 +106,9 @@ if (fs.existsSync(portableExe)) {
 
 fs.writeFileSync(path.join(distDir, 'SHA256SUMS'), shaSums, 'utf8');
 
-console.log(`\n🎉 Distribution ready in: ${distDir}`);
-console.log(`   - orbshacker-v2.5.0-win-x64.zip (${(fs.statSync(zipOut).size / 1024 / 1024).toFixed(1)} MB, SHA: ${zipHash.slice(0, 16)}...)`);
+console.log(`\n🎉 Windows distribution ready in: ${distDir}`);
+if (fs.existsSync(zipOut)) {
+  console.log(`   - orbshacker-${currentVersion}-win-x64.zip (${(fs.statSync(zipOut).size / 1024 / 1024).toFixed(1)} MB, SHA: ${zipHash.slice(0, 16)}...)`);
+}
 console.log(`   - orbshacker-core.exe (${(fs.statSync(path.join(distDir, binName)).size / 1024 / 1024).toFixed(1)} MB, SHA: ${coreHash.slice(0, 16)}...)`);
 console.log('   - SHA256SUMS generated.');

@@ -196,18 +196,6 @@ pub fn run_json_rpc_service() {
                         .args(["/c", "start discord:///quest-home || start https://discord.com/quest-home"])
                         .spawn();
                 }
-                #[cfg(target_os = "macos")]
-                {
-                    let _ = Command::new("open")
-                        .arg("discord:///quest-home")
-                        .spawn();
-                }
-                #[cfg(target_os = "linux")]
-                {
-                    let _ = Command::new("xdg-open")
-                        .arg("https://discord.com/quest-home")
-                        .spawn();
-                }
                 res = Some(serde_json::json!({ "opened": true }));
             }
 

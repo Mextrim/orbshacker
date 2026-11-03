@@ -598,7 +598,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.10.1',
+        version: 'v2.11.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -709,10 +709,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.10.1'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.11.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.10.1'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.11.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -747,7 +747,7 @@
     // Auto-translate English GitHub Release notes into clean Russian
     let translated = rawNotes
       .replace(/##?\s*🚀?\s*Orbshacker.*?(?=\n)/gi, `✨ Обновление Orbshacker ${newVer || ''}:`)
-      .replace(/Multi-platform release.*?(?=\n)/gi, 'Мультиплатформенный релиз для Windows и Linux.')
+      .replace(/Multi-platform release.*?(?=\n)/gi, 'Официальный нативный релиз для Windows.')
       .replace(/###?\s*✨?\s*What's New.*?(?=\n)/gi, 'Что нового:')
       .replace(/Discord Rich Presence \(RPC\)/gi, 'Discord Rich Presence (Автоматический RPC)')
       .replace(/Single-Instance Lock/gi, 'Защита от повторного запуска (Single-Instance)')
@@ -768,8 +768,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.10.1';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.10.1';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.11.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.11.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {

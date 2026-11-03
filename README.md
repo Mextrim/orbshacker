@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:090b10,50:111622,100:00f2fe&height=220&section=header&text=ORBSHACKER&fontSize=65&fontColor=00f2fe&fontAlignY=52&desc=Discord%20Quests%2C%20Profile%20Badges%20%26%20Hours%20Booster&descSize=18&descAlignY=72&descColor=94a3b8&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:090b10,50:111622,100:00f2fe&height=220&section=header&text=ORBSHACKER&fontSize=65&fontColor=00f2fe&fontAlignY=52&desc=Discord%20Quests%2C%20Profile%20Badges%20%26%20Hours%20Booster%20(Windows)&descSize=18&descAlignY=72&descColor=94a3b8&animation=fadeIn" width="100%"/>
 
 <br/>
 
-[![Release](https://img.shields.io/badge/Release-v2.8.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.11.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Website](https://img.shields.io/badge/Official_Site-GitHub_Pages-70e000?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mextrim.github.io/orbshacker/)
-[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
-[![Rust Core](https://img.shields.io/badge/Rust_Engine-507_KB-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Launcher](https://img.shields.io/badge/Native_Launcher-1.6_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)
+[![Platform](https://img.shields.io/badge/Platform-Windows_x64-0078d4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
+[![Rust Core](https://img.shields.io/badge/Rust_Engine-465_KB-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Launcher](https://img.shields.io/badge/Native_Launcher-1.5_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL_v3-ef4444?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
 <br/>
@@ -17,17 +17,13 @@
 
 <br/>
 
-| 🪟 **Windows (x64)** | 🐧 **Linux (x64 - Любой дистрибутив)** |
-| :---: | :---: |
-| 🚀 **[Скачать Лаунчер orbshacker-launcher.exe (1.6 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)**<br/>*(Автоматически скачивает и распаковывает все файлы с GitHub)* | 🚀 **[Скачать Лаунчер orbshacker-launcher-linux-x64 (2.2 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher-linux-x64)**<br/>*(Для всех дистрибутивов: Ubuntu, Arch, Fedora, Debian)* |
-| 📦 **[Скачать полный ZIP-архив (115 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-win-x64.zip)** | 📦 **[Скачать AppImage (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-linux-x64.AppImage)** |
-| ⚡ **[Портативный orbshacker.exe (80 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker.exe)** | 🐧 **[Скачать tar.gz архив (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-linux-x64.tar.gz)** |
+| 🚀 Нативный Лаунчер | ⚡ Портативная версия | 📦 Полный архив |
+| :---: | :---: | :---: |
+| **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(~1.5 МБ, авто-скачивание и запуск)* | **[orbshacker.exe](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(Автономный исполняемый файл)* | **[orbshacker-win-x64.zip](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(Полный пакет с runtime и ffmpeg)* |
 
 <br/>
 
-**⚡ ORBSHACKER v2.8.0** — мощный комплекс для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), живой трансляции статуса фарма в профиль через **Discord Rich Presence (RPC)**, плавающего мини-виджета поверх всех окон и безопасного авто-выключения ПК после завершения фарма.
-
-*Поддерживаются исключительно **Windows** и **Linux**.*
+**⚡ ORBSHACKER v2.11.0** — специализированный нативный комплекс для Windows (10/11 x64) для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), живой трансляции статуса через **Discord Rich Presence (RPC)**, 100% фонового запуска игр без засорения панели задач и безопасного авто-выключения ПК.
 
 ---
 
@@ -35,44 +31,51 @@
 
 <br/>
 
-## 🌟 Новые возможности и плюшки v2.8.0
+## 🌟 Ключевые возможности
 
-### 1. 🔮 Автоматический Discord Rich Presence (RPC)
-* **Динамическая трансляция текущей активности**: Программа в реальном времени транслирует в ваш профиль Discord текущую работу Orbshacker через официальный IPC канал:
-  - **В главном меню**: `Details`: *В главном меню*, `State`: *Готов к запуску (+5,600 Orbs)*
-  - **Фарм квестов Discord**: `Details`: *Фармит задания Discord (Orbs)*, `State`: *Квестов: X (+4,900 Orbs)* с живым таймером отсчёта.
-  - **Фарм значков (150+ игр)**: `Details`: *Фарм значков профиля (150+ игр)*, `State`: *<Игра>: X/150* со временем пакета.
-  - **Фарм игровых часов**: `Details`: *Фармит часы: <Игра>*, `State`: *Бесконечный AFK-фарм* или *Цель: X ч игрового времени*.
-  - **Своя игра**: `Details`: *Фармит: <Игра>*, `State`: *<exe_name> в онлайне*.
-* **Быстрое управление трансляцией**:
-  - Кнопка-индикатор в шапке с пульсирующей точкой (показывает «RPC В сети», «RPC Поиск...» или «RPC Выкл»). В один клик включает или отключает вещание.
-  - Тумблер в настройках: «🔮 Транслировать статус фарма в профиль Discord (Rich Presence)».
-* **Application ID**: `1567134974031962272` (Key: `79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9`).
-  - ⭐ *Overwatch (Numbani)* — точный пресет из спецификации
-  - 🚀 *Orbshacker Elite Pro* — статус продвинутого бустера
-  - 🤖 *Cyberpunk 2077* — атмосфера Найт-Сити
-  - 🔫 *CS2 Premier Match* — статус премьер-матча Mirage
-  - 🛡️ *Dota 2 Ranked* — игра за Инвокера на рейтинге Immortal
+### 1. 🔇 100% Бесшумный фоновый запуск игр (Zero Taskbar Spam)
+* Процессы эмуляции запускаются исключительно в скрытом системном фоне с Win32-флагами `WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | CREATE_NO_WINDOW`.
+* **Никакого спама на панели задач и в Alt+Tab**: окно размером 1×1 пиксель вынесено за координаты монитора (`-32000, -32000`), не перехватывает фокус мыши или клавиатуры у пользователя.
+* **100% зачёт в Discord**: флаг видимости окна остаётся активным (`IsWindowVisible == true`), благодаря чему клиент Discord стабильно засчитывает игровое время и все достижения.
 
 ---
 
-### 2. 📌 Плавающий мини-виджет (Mini-Widget Always-on-Top)
-* Нажмите кнопку **`📌`** в правом верхнем углу окна, чтобы свернуть Orbshacker в компактную стильную полупрозрачную карточку (`360x130`).
-* Виджет закрепляется поверх всех окон: играйте, смотрите фильмы на YouTube или работайте в браузере, наблюдая за таймером и прогрессом фарма.
-* Включает быстрые кнопки остановки (`⏹`) и мгновенного разворачивания (`🗖`).
+### 2. 🎨 15 Премиальных тем оформления
+Мгновенное переключение тем оформления на лету с плавной прокруткой меню:
+* 💧 **Apple Liquid Glass** — глубокий 24px блюр, сатурация 180% и зеркальные блики.
+* 🅱️ **Bootstrap 5 UI** — строгий корпоративный стиль (Indigo Blue + Emerald).
+* 🌐 **Flat Browser** — ультраминималистичный плоский дизайн.
+* 📊 **Modern Tables (Slate)** — эстетика дашбордов с микросеткой и бирюзовым неоном.
+* 🎨 **Material You UI** — палитра Deep Purple & Teal в стиле Material Design 3.
+* ⚡ **Кибер Неон (Cyber Neon)**, 🎮 **Discord Nitro**, 🌌 **Полночный OLED**, 🌆 **Неоновый Закат**, 🟩 **Матрица**, 🩸 **Кровавая Луна**, ✨ **Северное Сияние**, 🔮 **Аметистовая Бездна**, ☀️ **Солнечная Вспышка**, 🏮 **Токио 2077**.
 
 ---
 
-### 2. 🌙 Безопасное авто-выключение ПК по окончании фарма
-* Включите чекбокс `🌙 Авто-выключение ПК по завершении фарма` в настройках.
-* Ложитесь спать или уходите по делам: когда все квесты выполнятся или будет достигнута цель часов, запустится 30-секундный таймер выключения с возможностью отмены (`❌ Отменить`) или немедленного отключения (`🌙 Выключить сейчас`).
+### 3. 🔮 Автоматический Discord Rich Presence (RPC)
+* Программа напрямую транслирует в ваш профиль Discord текущее действие через официальный Application ID `1567134974031962272`:
+  - **Квесты Orbs**: статус фарма заданий с живым отсчётом времени.
+  - **Значки профиля**: текущая игра, номер в каталоге (например, `Counter-Strike 2 (+4): 5/150`).
+  - **Фарм часов AFK**: название игры и прошедшее время.
+  - **Своя игра**: кастомный запуск любой игры без скачивания файлов.
+* Кнопка-индикатор в заголовке окна для мгновенного включения/отключения RPC в один клик.
 
 ---
 
-### 3. 🏷️ Интерактивные фильтры по категориям для 150+ игр
-* Мгновенный поиск и умные фильтры категорий:
+### 4. 📌 Плавающий мини-виджет (Always-on-Top)
+* Нажмите кнопку **`📌`** в заголовке окна, чтобы свернуть Orbshacker в компактную карточку (`360x130`).
+* Виджет закрепляется поверх всех окон с живым таймером и кнопкой быстрой остановки.
+
+---
+
+### 5. 🌙 Безопасное авто-выключение ПК по завершении фарма
+* По окончании выполнения заданий или достижения цели игровых часов запускается 30-секундный таймер выключения с возможностью отмены (`❌ Отменить`).
+
+---
+
+### 6. 🏷️ Интерактивные фильтры по категориям для 150+ игр
+* Мгновенный поиск и умные фильтры:
   * `🎮 Все (150)`
-  * `🔥 Топ 2026` (S.T.A.L.K.E.R. 2, Black Myth: Wukong, Monster Hunter Wilds, Deadlock, Warhammer 40k Space Marine 2)
+  * `🔥 Топ 2026` (S.T.A.L.K.E.R. 2, Black Myth: Wukong, Monster Hunter Wilds, Deadlock, Space Marine 2)
   * `🔫 Шутеры` (CS2, Apex Legends, PUBG, Escape from Tarkov, Rainbow Six Siege)
   * `⚔️ RPG / Экшен` (Cyberpunk 2077, The Witcher 3, Elden Ring, Baldur's Gate 3)
   * `👑 MOBA & Кооп` (Dota 2, League of Legends, Helldivers 2, Lethal Company)
@@ -81,96 +84,27 @@
 
 ---
 
-### 4. 🔔 Встроенный синтезатор звуков (Web Audio API)
-* 4 чистых звуковых профиля без загрузки лишних файлов:
+### 7. 🔔 Встроенный синтезатор звуков (Web Audio API)
+* 4 звуковых профиля без загрузки лишних файлов:
   * `⚡ Кибер-сигнал (Tokyo 2077)`
   * `🎮 8-Bit Level Up (Ретро)`
   * `🔔 Мягкий колокольчик (Дзен)`
   * `🎺 Победный фанфар`
-* Кнопка `▶ Тест` в окне настроек для мгновенного прослушивания звука.
+* Кнопка `▶ Тест` в окне настроек для мгновенного прослушивания.
 
 ---
 
-### 5. 🚀 Тихий автозапуск вместе с системой в трей
-* Опция `🚀 Запускать с системой (свёрнутым в трей)`.
-* При включении ПК Orbshacker тихо стартует в фоновом режиме в системном трее Windows и Linux без навязчивых окон.
+### 8. 🚀 Тихий автозапуск в трей и экспорт телеметрии
+* Опция автоматического запуска свернутым в трей при старте Windows.
+* Копирование логов в буфер обмена (`📋 Скопировать`) и экспорт в JSON (`📊 Экспорт`).
 
 ---
 
-### 6. 📋 1-Click копирование телеметрии и JSON-экспорт
-* Кнопка **`📋 Скопировать`** мгновенно отправляет полный лог работы в буфер обмена для отправки в поддержку или Discord.
-* Кнопка **`📊 Экспорт`** формирует структурированный отчёт о фарме в формате JSON.
+## 🛠️ Быстрый старт (Windows x64)
 
-### 1. 🚀 Нативный ультралёгкий лаунчер (`orbshacker-launcher`)
-* **Размер всего 1.8 МБ**: написан на чистом Rust без тяжёлых сторонних библиотек.
-* **Автоматическая установка**: лаунчер подключается к GitHub Releases, скачивает последнюю версию дистрибутива, распаковывает все библиотеки (`ffmpeg.dll`, `d3dcompiler_47.dll`) и запускает приложение.
-* **Никаких ошибок missing DLL**: исключена ошибка `Не удается продолжить выполнение кода, поскольку система не обнаружила ffmpeg.dll`.
-* **Мгновенный старт**: если приложение уже скачано, запуск происходит за **0.05 секунды** без задержек.
-
----
-
-### 2. 🏆 Бустер значков профиля Discord (Profile Badges)
-Прокачивайте официальные значки Discord, отображаемые в вашем профиле:
-
-```
-[Значок: Количество игр на ПК]
-Пробующий (2 игры) ➔ Интересующийся (5) ➔ Энтузиаст (10) ➔ Рейнджер (15) ➔ Исследователь (20) 
-➔ Искатель приключений (30) ➔ Открыватель (40) ➔ Свободный дух (60) ➔ Многосторонняя личность (80) ➔ 👑 Универсал (От 100 игр)
-```
-
-* **Каталог из 105 обнаруживаемых игр**: CS2, Dota 2, GTA V, Rust, Cyberpunk 2077, Palworld, Helldivers 2, Apex Legends, Witcher 3 и др.
-* **Параллельный запуск по 5 игр одновременно**: быстрая прокачка уровня значка.
-* **100% зачёт Discord Heartbeat**: строгое соблюдение интервала фиксации активности Discord (от 5 до 10 минут).
-* **Минималистичный UI**: без громоздких плашек и лишних чисел — чистый прогресс `Игра: CS2 (04:12) [15%]`.
-
----
-
-### 3. ⏱️ Бесконечный AFK-фарм игровых часов
-Накрутка игрового времени для значка «Вечный игрок» (вплоть до 5 000+ часов):
-* **0.0% нагрузки на процессор и видеокарту**: процесс работает в фоне без нагрева ПК.
-* **Пресеты**: 1ч, 5ч, 10ч, 24ч, 100ч и **Бесконечный AFK-режим**.
-
----
-
-### 4. 🎮 Запуск любой игры без скачивания (Своя Игра)
-* Отображение любой игры в статусе Discord Rich Presence без скачивания гигабайтов данных на SSD:
-  * Введите любое название (например, *S.T.A.L.K.E.R. 2: Heart of Chornobyl*, *Grand Theft Auto VI*, *Black Myth: Wukong*).
-  * Укажите имя процесса (например, `Stalker2-Win64-Shipping.exe`).
-  * Нажмите «Запустить» — игра мгновенно видна в вашем Discord-статусе!
-
----
-
-### 5. 🎨 10 неоновых стилей оформления
-Мгновенное переключение тем оформления на лету:
-* ⚡ **Кибер Неон (Cyber Neon)**
-* 🎮 **Токио 2077 (Tokyo 2077)**
-* 🌌 **Discord Nitro**
-* 🖤 **Полночный OLED**
-* 🌆 **Неоновый Закат (Synthwave Sunset)**
-* 🟩 **Матрица (Matrix)**
-* 🩸 **Кровавая Луна (Crimson)**
-
----
-
-## 🛠️ Быстрый старт
-
-### 🪟 Для Windows:
-1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)**.
+1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/latest)** (~1.5 МБ).
 2. Поместите в любую удобную папку и запустите.
-3. Лаунчер сам скачает всё необходимое с GitHub и запустит ORBSHACKER!
-
-### 🐧 Для Linux:
-1. Скачайте **[orbshacker-launcher-linux-x64](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher-linux-x64)**.
-2. Дайте права на исполнение:
-   ```bash
-   chmod +x orbshacker-launcher-linux-x64
-   ./orbshacker-launcher-linux-x64
-   ```
-3. Или запустите портативный AppImage:
-   ```bash
-   chmod +x orbshacker-v2.8.0-linux-x64.AppImage
-   ./orbshacker-v2.8.0-linux-x64.AppImage
-   ```
+3. Лаунчер автоматически скачает последнюю версию программы с GitHub и запустит ORBSHACKER!
 
 ---
 

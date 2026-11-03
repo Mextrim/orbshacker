@@ -246,7 +246,7 @@ impl PresenceState {
                     start_timestamp: Some(now),
                     end_timestamp: None,
                     large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                    large_image_text: Some("Orbshacker v2.10.1 • Перейти на GitHub".to_string()),
+                    large_image_text: Some("Orbshacker v2.11.0 • Перейти на GitHub".to_string()),
                     large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                     small_image_key: None,
                     small_image_text: None,
