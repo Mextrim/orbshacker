@@ -70,13 +70,20 @@ impl FakerManager {
             }
         }
 
-        // Spawn child process with --stub mode
+        // Spawn child process with --stub mode in completely silent background
         let mut cmd = Command::new(&target_exe);
         cmd.arg("--stub")
             .arg("--title")
             .arg(game_title)
             .arg("--duration")
             .arg(duration_secs.to_string());
+
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
 
         let child = cmd.spawn().map_err(|e| {
             format!("Failed to spawn stub process for {}: {}", exe_name, e)

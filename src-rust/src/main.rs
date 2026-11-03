@@ -123,13 +123,23 @@ fn main() {
                 };
                 let _ = RegisterClassW(&wc);
 
-                // WS_OVERLAPPEDWINDOW = 0x00CF0000, SW_SHOWMINNOACTIVE = 7
+                // Background game stub window configuration:
+                // WS_EX_TOOLWINDOW (0x00000080): Prevents the window from ever showing on the Windows taskbar or in Alt+Tab.
+                // WS_EX_NOACTIVATE (0x08000000): Ensures the window never steals user focus while working/gaming.
+                // WS_POPUP (0x80000000): Borderless background window without taskbar button or window decorations.
+                // WS_VISIBLE (0x10000000): Sets the visible bit so Discord's EnumWindows and IsWindowVisible detects it.
+                const WS_EX_TOOLWINDOW: u32 = 0x00000080;
+                const WS_EX_NOACTIVATE: u32 = 0x08000000;
+                const WS_POPUP: u32 = 0x80000000;
+                const WS_VISIBLE: u32 = 0x10000000;
+                const SW_SHOWNA: i32 = 8; // Show window without activating or stealing focus
+
                 let hwnd = CreateWindowExW(
-                    0,
+                    WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
                     class_name.as_ptr(),
                     wide_title.as_ptr(),
-                    0x00CF0000,
-                    100, 100, 640, 480,
+                    WS_POPUP | WS_VISIBLE,
+                    -32000, -32000, 1, 1,
                     std::ptr::null_mut(),
                     std::ptr::null_mut(),
                     h_instance,
@@ -137,7 +147,7 @@ fn main() {
                 );
                 if !hwnd.is_null() {
                     let _ = SetWindowTextW(hwnd, wide_title.as_ptr());
-                    ShowWindow(hwnd, 7); // SW_SHOWMINNOACTIVE
+                    ShowWindow(hwnd, SW_SHOWNA);
                 }
 
                 let start = std::time::Instant::now();

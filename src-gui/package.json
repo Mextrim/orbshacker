@@ -1,6 +1,6 @@
 {
   "name": "orbshacker",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "Discord Quests & Profile Badges Spoofer (Rust + Electron)",
   "main": "main.js",
   "author": "Mextrim",
