@@ -598,7 +598,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.12.0',
+        version: 'v2.13.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -709,10 +709,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.12.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.13.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.12.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.13.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -768,8 +768,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.12.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.12.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.13.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.13.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
@@ -1537,6 +1537,71 @@
       details: 'Пьёт Балтику 9 в гараже с мужиками',
       state: 'Настраивает карбюратор и геополитику'
     },
+    dota_delete: {
+      name: '🗑️ Удаляет Доту в 47-й раз',
+      details: 'Удаляет Доту в 47-й раз',
+      state: 'Уже скачивает обратно (99%)'
+    },
+    cs_tilt: {
+      name: '🎯 Сливает звание в CS2',
+      details: 'Сливает Global Elite до Сильвера',
+      state: 'Тиммейты без звука и мониторов'
+    },
+    shrimp: {
+      name: '🦐 Сидит в позе креветки 8 часов',
+      details: 'Сидит в позе креветки 8 часов',
+      state: 'Позвоночник покинул этот мир'
+    },
+    reels_4am: {
+      name: '💀 Смотрит рилсы в 4:00 утра',
+      details: 'Смотрит рилсы в 4:00 утра',
+      state: '«Ещё одно видео и точно спать»'
+    },
+    night_cheese: {
+      name: '🧀 Ест сыр из холодильника в 3:00',
+      details: 'Ест сыр прямо из холодильника',
+      state: 'Кот смотрит с полным осуждением'
+    },
+    coder_bugs: {
+      name: '🐛 Фиксит один маленький баг',
+      details: 'Фиксит один маленький баг',
+      state: 'Появилось 17 новых критических багов'
+    },
+    crypto_investor: {
+      name: '📈 Инвестировал 500₽ в щиткоины',
+      details: 'Инвестировал 500 рублей в крипту',
+      state: 'Выбирает цвет будущей яхты'
+    },
+    souls_rage: {
+      name: '🤬 Умирает от босса 148-й раз',
+      details: 'Умирает от босса 148-й раз',
+      state: 'Геймпад летит в стену (гиперзвук)'
+    },
+    minecraft_diamonds: {
+      name: '⛏️ Копает алмазы на высоте Y: -58',
+      details: 'Копает алмазы на высоте Y: -58',
+      state: 'Провалился в лаву с Удачей III'
+    },
+    wb_cart: {
+      name: '🛒 Корзина на WB на 150 000₽',
+      details: 'Набрал корзину на WB на 150 000₽',
+      state: 'Баланс карты: ровно 34 рубля'
+    },
+    shower_debate: {
+      name: '🚿 Спорит сам с собой в душе',
+      details: 'Спорит сам с собой в душе',
+      state: 'Придумал идеальный ответ на спор 2017 года'
+    },
+    coffee_overdose: {
+      name: '☕ Пьёт 6-ю чашку эспрессо подряд',
+      details: 'Пьёт 6-ю чашку эспрессо подряд',
+      state: 'Сердце выбивает соло на барабанах'
+    },
+    silksong_clown: {
+      name: '🤡 Ждёт Silksong и Half-Life 3',
+      details: 'Ждёт Silksong и Half-Life 3',
+      state: 'Клоунский парик надет и зафиксирован'
+    },
     hacker: {
       name: '💻 Взламывает Пентагон через Блокнот',
       details: 'Взламывает Пентагон через Блокнот',
@@ -1558,7 +1623,7 @@
       state: 'Мурчание на полную мощность'
     },
     casino: {
-      name: '🤡 Крутит кейсы и ставит всё на красное',
+      name: '🎰 Крутит кейсы и ставит всё на красное',
       details: 'Крутит кейсы и ставит всё на красное',
       state: 'Осталось 5 рублей и надежда'
     },
@@ -1571,6 +1636,21 @@
       name: '☢️ Ловит маслину на ЧАЭС',
       details: 'Ловит маслину на ЧАЭС',
       state: 'Чики-брики и в дамки!'
+    },
+    rust_rock: {
+      name: '🪨 Бежит голым по пляжу с факелом',
+      details: 'Бежит голым по пляжу с факелом',
+      state: 'Убит турелью через 4 секунды'
+    },
+    gym_monday: {
+      name: '🏋️ Пойдёт в качалку с понедельника',
+      details: 'Пойдёт в качалку с понедельника',
+      state: 'Обещает себе это уже 6 лет подряд'
+    },
+    ghoul_1000_7: {
+      name: '💅 Превращается в дед инсайда (1000-7)',
+      details: 'Я гуль SSS-ранга (1000-7)',
+      state: 'Прости меня, мам, я фанат Канеки'
     },
     grind: {
       name: '⚡ Фармит миллионы Orbs на чиле',

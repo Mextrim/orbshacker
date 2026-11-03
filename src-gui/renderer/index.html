@@ -11,10 +11,10 @@
     <div class="titlebar-brand">
       <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.12.0</span>
+      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.13.0</span>
       <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
         <span class="update-icon">🔥</span>
-        <span id="updateAvailableText">v2.12.0</span>
+        <span id="updateAvailableText">v2.13.0</span>
       </button>
     </div>
 
@@ -370,7 +370,7 @@
         </div>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
-        <div class="log-entry info">[Engine] Native Core v2.12.0 initialized.</div>
+        <div class="log-entry info">[Engine] Native Core v2.13.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
       </div>
     </div>
@@ -378,7 +378,7 @@
 
   <!-- Settings Modal Dialog -->
   <div id="modalSettings" class="modal-overlay">
-    <div class="modal-content" style="text-align: left; max-width: 400px;">
+    <div class="modal-content" style="text-align: left; max-width: 420px; max-height: 90vh; overflow-y: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div class="modal-title" style="font-size: 16px;" data-i18n="settings_title">Параметры программы</div>
         <button id="btnSettingsClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
@@ -441,25 +441,59 @@
             <select id="settingsRpcMemeSelect" class="form-input" style="padding: 5px 10px; font-size: 11.5px; width: 100%;">
               <option value="furry">🦊 Мастурбирует на фурри</option>
               <option value="beer">🍺 Пьёт Балтику 9 в гараже с мужиками</option>
+              <option value="dota_delete">🗑️ Удаляет Доту в 47-й раз</option>
+              <option value="cs_tilt">🎯 Сливает звание в CS2</option>
+              <option value="shrimp">🦐 Сидит в позе креветки 8 часов</option>
+              <option value="reels_4am">💀 Смотрит рилсы в 4:00 утра</option>
+              <option value="night_cheese">🧀 Ест сыр из холодильника в 3:00</option>
+              <option value="coder_bugs">🐛 Фиксит один маленький баг</option>
+              <option value="crypto_investor">📈 Инвестировал 500₽ в щиткоины</option>
+              <option value="souls_rage">🤬 Умирает от босса 148-й раз</option>
+              <option value="minecraft_diamonds">⛏️ Копает алмазы на высоте Y: -58</option>
+              <option value="wb_cart">🛒 Корзина на WB на 150 000₽</option>
+              <option value="shower_debate">🚿 Спорит сам с собой в душе</option>
+              <option value="coffee_overdose">☕ Пьёт 6-ю чашку эспрессо подряд</option>
+              <option value="silksong_clown">🤡 Ждёт Silksong и Half-Life 3</option>
               <option value="hacker">💻 Взламывает Пентагон через Блокнот</option>
               <option value="socks">🧦 Ищет второй носок по всей квартире</option>
               <option value="pizza">🍕 Ждёт курьера с шаурмой и пиццей</option>
               <option value="cat">🐱 Гладит котика одной рукой</option>
-              <option value="casino">🤡 Крутит кейсы и ставит всё на красное</option>
+              <option value="casino">🎰 Крутит кейсы и ставит всё на красное</option>
               <option value="sleep">🛌 Спит с открытыми глазами на созвоне</option>
               <option value="stalker">☢️ Ловит маслину на ЧАЭС</option>
+              <option value="rust_rock">🪨 Бежит голым по пляжу с факелом</option>
+              <option value="gym_monday">🏋️ Пойдёт в качалку с понедельника</option>
+              <option value="ghoul_1000_7">💅 Превращается в дед инсайда (1000-7)</option>
               <option value="grind">⚡ Фармит миллионы Orbs на чиле</option>
               <option value="custom">✍️ Свой вариант...</option>
             </select>
 
-            <div class="custom-presets-row" style="display: flex; flex-wrap: wrap; gap: 4px;">
+            <div class="custom-presets-row" style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 85px; overflow-y: auto; padding-right: 2px;">
               <button type="button" class="preset-pill-btn rpc-meme-pill active" data-meme="furry">🦊 Фурри</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="beer">🍺 Балтика 9</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="dota_delete">🗑️ Дота</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="cs_tilt">🎯 CS2</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="shrimp">🦐 Креветка</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="reels_4am">💀 Рилсы</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="night_cheese">🧀 Сыр</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="coder_bugs">🐛 Баги</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="crypto_investor">📈 Крипта</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="souls_rage">🤬 Соулс</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="minecraft_diamonds">⛏️ Алмазы</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="wb_cart">🛒 WB</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="shower_debate">🚿 Душ</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="coffee_overdose">☕ Кофе</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="silksong_clown">🤡 Клоун</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="hacker">💻 Пентагон</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="socks">🧦 Носок</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="pizza">🍕 Шаурма</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="cat">🐱 Котик</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="casino">🎰 Казино</button>
               <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="stalker">☢️ Маслина</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="rust_rock">🪨 Rust</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="gym_monday">🏋️ Качалка</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="ghoul_1000_7">💅 1000-7</button>
+              <button type="button" class="preset-pill-btn rpc-meme-pill" data-meme="grind">⚡ Orbs</button>
             </div>
 
             <!-- Custom text inputs -->
@@ -494,7 +528,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; flex-direction: column; gap: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Обновления с GitHub</span>
-              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.12.0</span>
+              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.13.0</span>
             </div>
             <button id="btnCheckUpdateManual" class="btn btn-secondary" style="padding: 5px 12px; font-size: 11px; white-space: nowrap;">
               <span>🔄 Проверить</span>
@@ -520,9 +554,9 @@
       </div>
 
       <div class="update-version-badge">
-        <span>Текущая: <b id="updateCurrentVer">v2.12.0</b></span>
+        <span>Текущая: <b id="updateCurrentVer">v2.13.0</b></span>
         <span style="color: var(--accent-primary);">➔</span>
-        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.12.0</b></span>
+        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.13.0</b></span>
       </div>
 
       <div class="update-notes-box">
