@@ -354,6 +354,351 @@
   --text-dim: #9a82db;
 }
 
+/* ----------------------------------------------------
+   THEME 16: WINDOWS 98 RETRO
+   Authentic 90s OS aesthetic: 3D beveled borders, Classic Teal & Gray
+   ---------------------------------------------------- */
+[data-theme="win98"] {
+  color-scheme: light;
+  --bg-primary: #008080; /* Windows 98 Classic Teal Desktop */
+  --bg-secondary: #c0c0c0; /* Windows 98 Dialog Gray */
+  --bg-card: #c0c0c0;
+  --bg-card-hover: #d4d4d4;
+  --bg-elevated: #dfdfdf;
+  --border-color: #808080;
+  --border-glow: transparent;
+  --accent-primary: #000080; /* Navy Blue Active Titlebar */
+  --accent-primary-glow: rgba(0, 0, 128, 0.4);
+  --accent-green: #008000;
+  --accent-green-glow: rgba(0, 128, 0, 0.4);
+  --accent-blue: #1084d0;
+  --accent-purple: #800080;
+  --accent-orange: #ff8000;
+  --accent-red: #ff0000;
+  --text-main: #000000;
+  --text-muted: #222222;
+  --text-dim: #555555;
+  font-family: Tahoma, "MS Sans Serif", Arial, sans-serif;
+}
+
+[data-theme="win98"] .titlebar {
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%) !important;
+  color: #ffffff !important;
+  border-bottom: 2px outset #ffffff;
+}
+
+[data-theme="win98"] .titlebar-brand span,
+[data-theme="win98"] .titlebar-center span {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+[data-theme="win98"] .hero-card,
+[data-theme="win98"] .badge-feature-card,
+[data-theme="win98"] .telemetry-card,
+[data-theme="win98"] .quest-card,
+[data-theme="win98"] .modal-content,
+[data-theme="win98"] .dropdown-menu,
+[data-theme="win98"] .game-item-chip,
+[data-theme="win98"] .settings-meme-box {
+  background: #c0c0c0 !important;
+  border-radius: 0px !important;
+  border: none !important;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf !important;
+}
+
+[data-theme="win98"] .btn,
+[data-theme="win98"] .tab-btn,
+[data-theme="win98"] .preset-pill-btn,
+[data-theme="win98"] .category-chip,
+[data-theme="win98"] .preset-chip {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border-radius: 0px !important;
+  border: none !important;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf !important;
+  font-weight: 600;
+}
+
+[data-theme="win98"] .btn:active,
+[data-theme="win98"] .tab-btn.active,
+[data-theme="win98"] .preset-pill-btn.active,
+[data-theme="win98"] .category-chip.active,
+[data-theme="win98"] .preset-chip.active {
+  box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf !important;
+  background: #b5b5b5 !important;
+}
+
+[data-theme="win98"] .form-input,
+[data-theme="win98"] .search-input,
+[data-theme="win98"] .telemetry-logs {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 0px !important;
+  border: none !important;
+  box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf !important;
+}
+
+/* ----------------------------------------------------
+   THEME 17: WINDOWS XP (LUNA BLUE)
+   Iconic 2000s OS: Bliss sky & Luna Blue, glossy gradients, green Start accents
+   ---------------------------------------------------- */
+[data-theme="winxp"] {
+  color-scheme: light;
+  --bg-primary: #0055ea; /* Luna Royal Blue */
+  --bg-secondary: #ece9d8; /* Luna Dialog Beige/Gray */
+  --bg-card: #ffffff;
+  --bg-card-hover: #f5f8fd;
+  --bg-elevated: #d8e4f8;
+  --border-color: #0055ea;
+  --border-glow: rgba(0, 85, 234, 0.4);
+  --accent-primary: #0055ea;
+  --accent-primary-glow: rgba(0, 85, 234, 0.5);
+  --accent-green: #388e3c; /* Luna Start Button Green */
+  --accent-green-glow: rgba(56, 142, 60, 0.45);
+  --accent-blue: #2a87fd;
+  --accent-purple: #7b4397;
+  --accent-orange: #ff9900;
+  --accent-red: #cc0000;
+  --text-main: #000000;
+  --text-muted: #2d3748;
+  --text-dim: #718096;
+  font-family: Tahoma, "Segoe UI", sans-serif;
+}
+
+[data-theme="winxp"] .titlebar {
+  background: linear-gradient(180deg, #0058ee 0%, #3593ff 8%, #288eff 40%, #0055ea 88%, #004bd6 100%) !important;
+  border-bottom: 2px solid #003db3;
+  color: #ffffff !important;
+  border-radius: 8px 8px 0 0;
+}
+
+[data-theme="winxp"] .titlebar-brand span,
+[data-theme="winxp"] .titlebar-center span {
+  color: #ffffff !important;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+}
+
+[data-theme="winxp"] .btn-primary,
+[data-theme="winxp"] #btnFarmAll,
+[data-theme="winxp"] #btnFarmAll100 {
+  background: linear-gradient(180deg, #43b53f 0%, #388e3c 100%) !important;
+  border: 1px solid #255d28 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4) !important;
+  border-radius: 5px !important;
+}
+
+[data-theme="winxp"] .hero-card,
+[data-theme="winxp"] .badge-feature-card,
+[data-theme="winxp"] .telemetry-card,
+[data-theme="winxp"] .quest-card,
+[data-theme="winxp"] .modal-content,
+[data-theme="winxp"] .settings-meme-box {
+  background: #ffffff !important;
+  border: 1px solid #7f9db9 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 85, 234, 0.15) !important;
+}
+
+[data-theme="winxp"] .form-input,
+[data-theme="winxp"] .search-input {
+  background: #ffffff !important;
+  border: 1px solid #7f9db9 !important;
+  border-radius: 3px !important;
+  color: #000000 !important;
+}
+
+/* ----------------------------------------------------
+   THEME 18: MACOS BIG SUR (Cupertino UI Kit)
+   Source: https://www.figma.com/community/file/812721945562507554
+   Frosted glass, Apple SF Pro typography, traffic lights controls
+   ---------------------------------------------------- */
+[data-theme="macos"] {
+  color-scheme: dark;
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-card: rgba(44, 44, 46, 0.75);
+  --bg-card-hover: rgba(58, 58, 60, 0.88);
+  --bg-elevated: #3a3a3c;
+  --border-color: rgba(255, 255, 255, 0.15);
+  --border-glow: rgba(0, 122, 255, 0.4);
+  --accent-primary: #007aff; /* Apple Cupertino Blue */
+  --accent-primary-glow: rgba(0, 122, 255, 0.5);
+  --accent-green: #34c759; /* Traffic Light Green */
+  --accent-green-glow: rgba(52, 199, 89, 0.45);
+  --accent-blue: #5ac8fa;
+  --accent-purple: #af52de;
+  --accent-orange: #ff9500;
+  --accent-red: #ff3b30; /* Traffic Light Red */
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.75);
+  --text-dim: rgba(255, 255, 255, 0.45);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+[data-theme="macos"] .hero-card,
+[data-theme="macos"] .badge-feature-card,
+[data-theme="macos"] .telemetry-card,
+[data-theme="macos"] .quest-card,
+[data-theme="macos"] .modal-content,
+[data-theme="macos"] .settings-meme-box {
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="macos"] .btn {
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+[data-theme="macos"] .tab-btn {
+  border-radius: 7px !important;
+}
+
+/* ----------------------------------------------------
+   THEME 19: MS-DOS 6.22 CRT
+   Classic IBM PC CRT monitor: glowing green/cyan phosphor on black
+   ---------------------------------------------------- */
+[data-theme="msdos"] {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #000088; /* Norton Commander Blue */
+  --bg-card: #0000aa;
+  --bg-card-hover: #0000d0;
+  --bg-elevated: #000055;
+  --border-color: #55ff55;
+  --border-glow: rgba(85, 255, 85, 0.6);
+  --accent-primary: #55ffff; /* DOS Cyan */
+  --accent-primary-glow: rgba(85, 255, 255, 0.7);
+  --accent-green: #55ff55; /* DOS Phosphor Green */
+  --accent-green-glow: rgba(85, 255, 85, 0.7);
+  --accent-blue: #5555ff;
+  --accent-purple: #ff55ff;
+  --accent-orange: #ffff55; /* DOS Yellow */
+  --accent-red: #ff5555;
+  --text-main: #55ff55;
+  --text-muted: #55ffff;
+  --text-dim: #00aa00;
+  font-family: Consolas, "Lucida Console", "Courier New", monospace !important;
+}
+
+[data-theme="msdos"] * {
+  border-radius: 0px !important;
+  font-family: Consolas, "Lucida Console", "Courier New", monospace !important;
+}
+
+[data-theme="msdos"] .titlebar {
+  background: #00aaaa !important;
+  color: #000000 !important;
+  border-bottom: 2px solid #55ffff;
+}
+
+[data-theme="msdos"] .titlebar-brand span,
+[data-theme="msdos"] .titlebar-center span {
+  color: #000000 !important;
+  font-weight: 900;
+}
+
+[data-theme="msdos"] .hero-card,
+[data-theme="msdos"] .badge-feature-card,
+[data-theme="msdos"] .telemetry-card,
+[data-theme="msdos"] .quest-card,
+[data-theme="msdos"] .modal-content,
+[data-theme="msdos"] .settings-meme-box {
+  background: #0000aa !important;
+  border: 2px solid #55ff55 !important;
+  box-shadow: 0 0 10px rgba(85, 255, 85, 0.4) !important;
+}
+
+[data-theme="msdos"] .btn {
+  background: #00aaaa !important;
+  color: #000000 !important;
+  border: 1px solid #55ffff !important;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+[data-theme="msdos"] .btn:hover {
+  background: #55ffff !important;
+  color: #000000 !important;
+}
+
+[data-theme="msdos"] .form-input,
+[data-theme="msdos"] .search-input,
+[data-theme="msdos"] .telemetry-logs {
+  background: #000000 !important;
+  color: #55ff55 !important;
+  border: 1px solid #55ff55 !important;
+  text-shadow: 0 0 4px rgba(85, 255, 85, 0.6);
+}
+
+/* ----------------------------------------------------
+   THEME 20: DISCORD OFFICIAL
+   Authentic Discord Desktop Client: Blurple & Dark Theme
+   ---------------------------------------------------- */
+[data-theme="discord"] {
+  color-scheme: dark;
+  --bg-primary: #313338; /* Discord Chat Main */
+  --bg-secondary: #2b2d31; /* Discord Channels */
+  --bg-card: #2b2d31;
+  --bg-card-hover: #35373c;
+  --bg-elevated: #1e1f22; /* Discord Server List */
+  --border-color: #3f4147;
+  --border-glow: rgba(88, 101, 242, 0.45);
+  --accent-primary: #5865f2; /* Official Discord Blurple */
+  --accent-primary-glow: rgba(88, 101, 242, 0.55);
+  --accent-green: #23a55a; /* Discord Online Green */
+  --accent-green-glow: rgba(35, 165, 90, 0.45);
+  --accent-blue: #00a8fc;
+  --accent-purple: #9b84ec;
+  --accent-orange: #f0b232;
+  --accent-red: #f23f43; /* Discord DND Red */
+  --text-main: #f2f3f5;
+  --text-muted: #949ba4;
+  --text-dim: #80848e;
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+[data-theme="discord"] .hero-card,
+[data-theme="discord"] .badge-feature-card,
+[data-theme="discord"] .telemetry-card,
+[data-theme="discord"] .quest-card,
+[data-theme="discord"] .modal-content,
+[data-theme="discord"] .settings-meme-box {
+  background: #2b2d31 !important;
+  border: 1px solid #383a40 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="discord"] .btn-primary,
+[data-theme="discord"] #btnFarmAll,
+[data-theme="discord"] #btnFarmAll100 {
+  background: #5865f2 !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+}
+
+[data-theme="discord"] .btn-primary:hover,
+[data-theme="discord"] #btnFarmAll:hover,
+[data-theme="discord"] #btnFarmAll100:hover {
+  background: #4752c4 !important;
+}
+
+[data-theme="discord"] .form-input,
+[data-theme="discord"] .search-input {
+  background: #1e1f22 !important;
+  border: 1px solid #222428 !important;
+  border-radius: 4px !important;
+  color: #dbdee1 !important;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

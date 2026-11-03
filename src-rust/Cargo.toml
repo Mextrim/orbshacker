@@ -1,6 +1,6 @@
 [package]
 name = "orbshacker-core"
-version = "2.13.0"
+version = "2.14.0"
 edition = "2021"
 authors = ["Mextrim"]
 description = "Native Rust core for orbshacker Discord Quests & Badges Spoofer"

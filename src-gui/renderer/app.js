@@ -35,6 +35,11 @@
     slate: { name: 'Modern Tables', icon: '📊' },
     liquid: { name: 'Apple Liquid Glass', icon: '💧' },
     material: { name: 'Material You UI', icon: '🎨' },
+    win98: { name: 'Windows 98 Retro', icon: '🪟' },
+    winxp: { name: 'Windows XP Luna', icon: '💿' },
+    macos: { name: 'macOS Big Sur', icon: '🍏' },
+    msdos: { name: 'MS-DOS CRT', icon: '📟' },
+    discord: { name: 'Discord Official', icon: '💬' },
   };
 
   const LANGS = {
@@ -598,7 +603,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.13.0',
+        version: 'v2.14.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -709,10 +714,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.13.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.14.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.13.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.14.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -759,7 +764,7 @@
       .replace(/Telemetry Copy & Export/gi, 'Копирование и экспорт логов')
       .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (350+ игр)')
       .replace(/Zero-Download Game Spoofer/gi, 'Фарм игр без реального скачивания файлов')
-      .replace(/Theme Engine & Glassmorphism UI/gi, '10 неоновых тем оформления и чистый UI')
+      .replace(/Theme Engine & Glassmorphism UI/gi, '20 дизайнерских тем (Win 98, XP, macOS Big Sur, MS-DOS, Discord)')
       .replace(/Cross-Platform Auto-Updates/gi, 'Плавное авто-обновление без ошибок')
       .replace(/^#{1,6}\s*(.*)$/gm, '$1');
 
@@ -768,8 +773,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.13.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.13.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.14.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.14.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
