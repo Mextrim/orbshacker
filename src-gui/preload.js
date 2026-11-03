@@ -20,4 +20,14 @@ contextBridge.exposeInMainWorld('orbshacker', {
     return () => ipcRenderer.removeListener('updater:progress', handler);
   },
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  toggleMiniMode: () => ipcRenderer.invoke('window:toggle-mini-mode'),
+  onMiniModeChange: (callback) => {
+    const handler = (_event, isMini) => callback(isMini);
+    ipcRenderer.on('window:mini-mode-changed', handler);
+    return () => ipcRenderer.removeListener('window:mini-mode-changed', handler);
+  },
+  getAutoLaunch: () => ipcRenderer.invoke('app:get-auto-launch'),
+  setAutoLaunch: (enabled) => ipcRenderer.invoke('app:set-auto-launch', enabled),
+  shutdownSystem: () => ipcRenderer.invoke('system:shutdown'),
+  copyToClipboard: (text) => ipcRenderer.invoke('clipboard:write', text),
 });

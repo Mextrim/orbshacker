@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -12,6 +12,8 @@ let rustProcess = null;
 let tray = null;
 let isQuitting = false;
 let hasShownTrayNotice = false;
+let isMiniMode = false;
+let savedBounds = null;
 let nextRequestId = 1;
 const pendingRequests = new Map();
 
@@ -305,6 +307,85 @@ ipcMain.handle('updater:download', async (_event, { downloadUrl, checksumUrl, as
 ipcMain.handle('open-external', async (_event, url) => {
   if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
     await shell.openExternal(url);
+  }
+});
+
+// Mini-Widget Overlay Mode
+ipcMain.handle('window:toggle-mini-mode', () => {
+  if (!mainWindow) return { isMini: false };
+  if (!isMiniMode) {
+    savedBounds = mainWindow.getBounds();
+    isMiniMode = true;
+    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    mainWindow.setMinimumSize(340, 120);
+    mainWindow.setBounds({ width: 360, height: 130 });
+    mainWindow.webContents.send('window:mini-mode-changed', true);
+  } else {
+    isMiniMode = false;
+    mainWindow.setAlwaysOnTop(false);
+    mainWindow.setMinimumSize(920, 660);
+    if (savedBounds) {
+      mainWindow.setBounds(savedBounds);
+    } else {
+      mainWindow.setBounds({ width: 1080, height: 780 });
+    }
+    mainWindow.webContents.send('window:mini-mode-changed', false);
+  }
+  return { isMini: isMiniMode };
+});
+
+// Auto-Launch on OS Boot
+ipcMain.handle('app:get-auto-launch', () => {
+  try {
+    return app.getLoginItemSettings().openAtLogin;
+  } catch (_) {
+    return false;
+  }
+});
+
+ipcMain.handle('app:set-auto-launch', (_event, enabled) => {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: !!enabled,
+      openAsHidden: true,
+      name: 'ORBSHACKER',
+    });
+    return true;
+  } catch (err) {
+    console.error('Failed to set login item:', err);
+    return false;
+  }
+});
+
+// Safe System Shutdown after farm completion
+ipcMain.handle('system:shutdown', async () => {
+  try {
+    if (rustProcess) {
+      try {
+        rustProcess.stdin.write(JSON.stringify({ method: 'stop_farm' }) + '\n');
+        rustProcess.kill();
+      } catch (_) {}
+    }
+    if (process.platform === 'win32') {
+      spawn('shutdown.exe', ['/s', '/t', '0'], { detached: true });
+    } else {
+      spawn('shutdown', ['-h', 'now'], { detached: true });
+    }
+    app.exit(0);
+    return true;
+  } catch (err) {
+    console.error('Shutdown command failed:', err);
+    return false;
+  }
+});
+
+// Clipboard Helper
+ipcMain.handle('clipboard:write', (_event, text) => {
+  try {
+    clipboard.writeText(text || '');
+    return true;
+  } catch (_) {
+    return false;
   }
 });
 

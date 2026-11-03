@@ -124,7 +124,26 @@
   const settingsDurationInput = document.getElementById('settingsDurationInput');
   const settingsDurationVal = document.getElementById('settingsDurationVal');
   const settingsSoundToggle = document.getElementById('settingsSoundToggle');
+  const settingsSoundProfile = document.getElementById('settingsSoundProfile');
+  const btnTestSound = document.getElementById('btnTestSound');
+  const settingsAutoStartToggle = document.getElementById('settingsAutoStartToggle');
+  const settingsAutoShutdownToggle = document.getElementById('settingsAutoShutdownToggle');
   const settingsAutoDiscordToggle = document.getElementById('settingsAutoDiscordToggle');
+
+  // Mini-Widget & Shutdown Elements
+  const btnMiniMode = document.getElementById('btnMiniMode');
+  const btnMiniExpand = document.getElementById('btnMiniExpand');
+  const btnMiniStop = document.getElementById('btnMiniStop');
+  const miniGameLabel = document.getElementById('miniGameLabel');
+  const miniTimerDisplay = document.getElementById('miniTimerDisplay');
+  const miniPercentDisplay = document.getElementById('miniPercentDisplay');
+  const miniProgressFill = document.getElementById('miniProgressFill');
+  const modalShutdown = document.getElementById('modalShutdown');
+  const shutdownCountdownVal = document.getElementById('shutdownCountdownVal');
+  const btnCancelShutdown = document.getElementById('btnCancelShutdown');
+  const btnConfirmShutdown = document.getElementById('btnConfirmShutdown');
+  const btnCopyLogs = document.getElementById('btnCopyLogs');
+  const btnExportStats = document.getElementById('btnExportStats');
 
   // Updater Elements
   const btnUpdateAvailable = document.getElementById('btnUpdateAvailable');
@@ -284,25 +303,83 @@
     } catch (_) {}
   }
 
-  // Audio Chime
-  function playCompletionChime() {
+  // Multi-Profile Web Audio Chimes
+  let soundProfile = localStorage.getItem('orbshacker_sound_profile') || 'cyber';
+
+  function playCompletionChime(overrideProfile = null) {
     if (!soundEnabled) return;
     try {
+      const profile = overrideProfile || soundProfile || 'cyber';
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
-        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
-        gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + i * 0.12 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.12);
-        osc.stop(ctx.currentTime + i * 0.12 + 0.45);
-      });
+      const t = ctx.currentTime;
+
+      if (profile === 'retro') {
+        // 8-Bit Level Up Arpeggio
+        const freqs = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.5];
+        freqs.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, t + i * 0.07);
+          gain.gain.setValueAtTime(0.08, t + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.12);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t + i * 0.07);
+          osc.stop(t + i * 0.07 + 0.14);
+        });
+      } else if (profile === 'zen') {
+        // Meditative crystalline sine chime
+        [528, 792, 1056].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.15 / (i + 1), t + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 2.0);
+        });
+      } else if (profile === 'fanfare') {
+        // Victory Fanfare Triplet
+        const notes = [
+          { f: 440, delay: 0, dur: 0.12 },
+          { f: 440, delay: 0.14, dur: 0.12 },
+          { f: 440, delay: 0.28, dur: 0.12 },
+          { f: 587.33, delay: 0.44, dur: 0.5 },
+        ];
+        notes.forEach((c) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(c.f, t + c.delay);
+          gain.gain.setValueAtTime(0.2, t + c.delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + c.delay + c.dur);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t + c.delay);
+          osc.stop(t + c.delay + c.dur + 0.05);
+        });
+      } else {
+        // Cyber Neon Chime
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t + i * 0.1);
+          gain.gain.setValueAtTime(0, t + i * 0.1);
+          gain.gain.linearRampToValueAtTime(0.2, t + i * 0.1 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t + i * 0.1);
+          osc.stop(t + i * 0.1 + 0.4);
+        });
+      }
     } catch (_) {}
   }
 
@@ -352,9 +429,44 @@
     settingsDurationVal.textContent = `${e.target.value} мин`;
   });
 
+  let autoShutdownEnabled = localStorage.getItem('orbshacker_auto_shutdown') === 'true';
+  let shutdownTimerInterval = null;
+
+  if (settingsSoundProfile) {
+    settingsSoundProfile.value = soundProfile;
+  }
+  if (settingsAutoShutdownToggle) {
+    settingsAutoShutdownToggle.checked = autoShutdownEnabled;
+  }
+  if (btnTestSound) {
+    btnTestSound.addEventListener('click', () => {
+      const p = settingsSoundProfile ? settingsSoundProfile.value : soundProfile;
+      playCompletionChime(p);
+    });
+  }
+
+  // Load OS Autostart state
+  if (window.orbshacker && window.orbshacker.getAutoLaunch && settingsAutoStartToggle) {
+    window.orbshacker.getAutoLaunch().then((enabled) => {
+      settingsAutoStartToggle.checked = !!enabled;
+    }).catch(() => {});
+  }
+
   btnSettingsSave.addEventListener('click', () => {
     farmDurationMinutes = parseInt(settingsDurationInput.value, 10) || 15;
     soundEnabled = settingsSoundToggle.checked;
+    if (settingsSoundProfile) {
+      soundProfile = settingsSoundProfile.value;
+      localStorage.setItem('orbshacker_sound_profile', soundProfile);
+    }
+    if (settingsAutoShutdownToggle) {
+      autoShutdownEnabled = settingsAutoShutdownToggle.checked;
+      localStorage.setItem('orbshacker_auto_shutdown', autoShutdownEnabled.toString());
+    }
+    if (settingsAutoStartToggle && window.orbshacker && window.orbshacker.setAutoLaunch) {
+      window.orbshacker.setAutoLaunch(settingsAutoStartToggle.checked).catch(() => {});
+    }
+
     if (settingsAutoDiscordToggle.checked) {
       if (!discordPollInterval) {
         discordPollInterval = setInterval(checkDiscordStatus, 4000);
@@ -368,8 +480,167 @@
       timerText.textContent = `${m}:00`;
     }
     modalSettings.classList.remove('active');
-    addLog(`Settings applied: duration=${farmDurationMinutes}m, sound=${soundEnabled}`, 'info');
+    addLog(`Параметры сохранены: длительность=${farmDurationMinutes}мин, звук=${soundEnabled} (${soundProfile}), авто-выключение=${autoShutdownEnabled}`, 'info');
   });
+
+  // Auto-Shutdown Countdown Dialog Logic
+  function triggerAutoShutdownCountdown() {
+    if (!autoShutdownEnabled) return;
+    if (!modalShutdown || !shutdownCountdownVal) return;
+
+    modalShutdown.classList.add('active');
+    let secondsLeft = 30;
+    shutdownCountdownVal.textContent = `${secondsLeft} сек`;
+
+    if (shutdownTimerInterval) clearInterval(shutdownTimerInterval);
+    shutdownTimerInterval = setInterval(() => {
+      secondsLeft--;
+      if (shutdownCountdownVal) shutdownCountdownVal.textContent = `${secondsLeft} сек`;
+      if (secondsLeft <= 0) {
+        clearInterval(shutdownTimerInterval);
+        shutdownTimerInterval = null;
+        if (window.orbshacker && window.orbshacker.shutdownSystem) {
+          window.orbshacker.shutdownSystem();
+        }
+      }
+    }, 1000);
+  }
+
+  if (btnCancelShutdown) {
+    btnCancelShutdown.addEventListener('click', () => {
+      if (shutdownTimerInterval) {
+        clearInterval(shutdownTimerInterval);
+        shutdownTimerInterval = null;
+      }
+      if (modalShutdown) modalShutdown.classList.remove('active');
+      addLog('Авто-выключение компьютера отменено пользователем.', 'info');
+    });
+  }
+
+  if (btnConfirmShutdown) {
+    btnConfirmShutdown.addEventListener('click', () => {
+      if (shutdownTimerInterval) {
+        clearInterval(shutdownTimerInterval);
+        shutdownTimerInterval = null;
+      }
+      if (window.orbshacker && window.orbshacker.shutdownSystem) {
+        window.orbshacker.shutdownSystem();
+      }
+    });
+  }
+
+  // Copy Logs to Clipboard
+  if (btnCopyLogs) {
+    btnCopyLogs.addEventListener('click', async () => {
+      const logs = Array.from(telemetryLogs.querySelectorAll('.log-entry'))
+        .map((el) => el.textContent)
+        .join('\n');
+      if (!logs) return;
+      let ok = false;
+      if (window.orbshacker && window.orbshacker.copyToClipboard) {
+        ok = await window.orbshacker.copyToClipboard(logs);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(logs);
+        ok = true;
+      }
+      if (ok) {
+        const orig = btnCopyLogs.textContent;
+        btnCopyLogs.textContent = '✅ Скопировано!';
+        btnCopyLogs.style.color = 'var(--accent-green)';
+        setTimeout(() => {
+          btnCopyLogs.textContent = orig;
+          btnCopyLogs.style.color = '';
+        }, 1800);
+      }
+    });
+  }
+
+  // Export Stats to JSON
+  if (btnExportStats) {
+    btnExportStats.addEventListener('click', async () => {
+      const report = {
+        app: 'ORBSHACKER',
+        version: 'v2.5.0',
+        timestamp: new Date().toISOString(),
+        active_quests_count: activeQuests.length,
+        detectable_games_count: detectableGames.length,
+        discord_connected: liveProfile ? liveProfile.connected : false,
+        farm_duration_minutes: farmDurationMinutes,
+        logs: Array.from(telemetryLogs.querySelectorAll('.log-entry')).map((e) => e.textContent),
+      };
+      const json = JSON.stringify(report, null, 2);
+      if (window.orbshacker && window.orbshacker.copyToClipboard) {
+        await window.orbshacker.copyToClipboard(json);
+      }
+      const orig = btnExportStats.textContent;
+      btnExportStats.textContent = '✅ JSON в буфере!';
+      btnExportStats.style.color = 'var(--accent-primary)';
+      setTimeout(() => {
+        btnExportStats.textContent = orig;
+        btnExportStats.style.color = '';
+      }, 1800);
+      addLog('Отчёт телеметрии экспортирован в буфер обмена (JSON).', 'success');
+    });
+  }
+
+  // Mini-Widget Floating View Mode
+  if (btnMiniMode) {
+    btnMiniMode.addEventListener('click', async () => {
+      if (window.orbshacker && window.orbshacker.toggleMiniMode) {
+        await window.orbshacker.toggleMiniMode();
+      }
+    });
+  }
+  if (btnMiniExpand) {
+    btnMiniExpand.addEventListener('click', async () => {
+      if (window.orbshacker && window.orbshacker.toggleMiniMode) {
+        await window.orbshacker.toggleMiniMode();
+      }
+    });
+  }
+  if (btnMiniStop) {
+    btnMiniStop.addEventListener('click', () => {
+      if (isFarming) stopFarming();
+      else if (isBadgeFarming || isHoursFarming || isCustomFarming) stopBadgeFarm();
+    });
+  }
+  if (window.orbshacker && window.orbshacker.onMiniModeChange) {
+    window.orbshacker.onMiniModeChange((isMini) => {
+      document.body.classList.toggle('mini-mode', isMini);
+      if (isMini) updateMiniWidgetDisplay();
+    });
+  }
+
+  function updateMiniWidgetDisplay() {
+    if (!miniGameLabel) return;
+    if (isFarming) {
+      miniGameLabel.textContent = `⚡ Квесты Discord (${activeQuests.length})`;
+      miniTimerDisplay.textContent = timerText.textContent || '15:00';
+      miniPercentDisplay.textContent = progressText.textContent || '0%';
+      miniProgressFill.style.width = progressFill.style.width || '0%';
+    } else if (isBadgeFarming) {
+      miniGameLabel.textContent = badgeCountStatusText.textContent || 'Фарм игр';
+      const timerMatch = (badgeCountStatusText.textContent || '').match(/\(([^)]+)\)/);
+      miniTimerDisplay.textContent = timerMatch ? timerMatch[1] : '05:00';
+      miniPercentDisplay.textContent = badgeCountPercentText.textContent || '0%';
+      miniProgressFill.style.width = badgeCountProgressFill.style.width || '0%';
+    } else if (isHoursFarming) {
+      miniGameLabel.textContent = hoursStatusText.textContent || 'Фарм часов';
+      miniTimerDisplay.textContent = hoursTimerDisplay.textContent || '00:00:00';
+      miniPercentDisplay.textContent = 'AFK ∞';
+      miniProgressFill.style.width = hoursProgressFill.style.width || '100%';
+    } else if (isCustomFarming) {
+      miniGameLabel.textContent = customGameNameInput.value || 'Своя Игра';
+      miniTimerDisplay.textContent = 'ONLINE';
+      miniPercentDisplay.textContent = '100%';
+      miniProgressFill.style.width = '100%';
+    } else {
+      miniGameLabel.textContent = 'Готов к запуску';
+      miniTimerDisplay.textContent = '00:00:00';
+      miniPercentDisplay.textContent = '0%';
+      miniProgressFill.style.width = '0%';
+    }
+  }
 
   // ==========================================
   // AUTO-UPDATER ENGINE (GitHub Releases)
@@ -660,14 +931,42 @@
     });
   }
 
-  function renderDetectableGames(filterText = '') {
-    if (!detectableGamesGrid) return;
-    detectableGamesGrid.innerHTML = '';
-    const q = filterText.toLowerCase().trim();
+  let selectedCategory = 'all';
 
-    const filtered = detectableGames.filter(
-      (g) => g.name.toLowerCase().includes(q) || g.exe_name.toLowerCase().includes(q) || g.category.toLowerCase().includes(q)
-    );
+  function renderDetectableGames(filterText = '', category = null) {
+    if (!detectableGamesGrid) return;
+    if (category !== null) selectedCategory = category;
+    detectableGamesGrid.innerHTML = '';
+    const q = (filterText !== '' ? filterText : (gamesSearchInput ? gamesSearchInput.value : '')).toLowerCase().trim();
+
+    const filtered = detectableGames.filter((g) => {
+      // 1. Category check
+      if (selectedCategory === 'top2026') {
+        const topIds = ['wilds', 'stalker2', 'spacemarine2', 'wukong', 'deadlock', 'silenthill2', 'manorlords', 'helldivers2', 'dragonsdogma2', 'palworld', 'tekken8', 'persona3r', 'frostpunk2'];
+        if (!topIds.includes(g.id)) return false;
+      } else if (selectedCategory === 'shooter') {
+        const cat = (g.category || '').toLowerCase();
+        if (!cat.includes('шутер') && !cat.includes('shooter') && !['cs2', 'apex', 'pubg', 'tarkov', 'rainbow', 'tf2', 'doom', 'overwatch', 'warframe'].some((k) => g.id.includes(k))) return false;
+      } else if (selectedCategory === 'rpg') {
+        const cat = (g.category || '').toLowerCase();
+        if (!cat.includes('rpg') && !cat.includes('ролевая') && !cat.includes('souls') && !['witcher', 'cyberpunk', 'eldenring', 'skyrim', 'fallout', 'bg3', 'starfield'].some((k) => g.id.includes(k))) return false;
+      } else if (selectedCategory === 'moba') {
+        const cat = (g.category || '').toLowerCase();
+        if (!cat.includes('moba') && !cat.includes('кооп') && !cat.includes('co-op') && !['dota2', 'lol', 'rocket', 'deadlock', 'lethal'].some((k) => g.id.includes(k))) return false;
+      } else if (selectedCategory === 'survival') {
+        const cat = (g.category || '').toLowerCase();
+        if (!cat.includes('выживание') && !cat.includes('survival') && !['rust', 'ark', 'palworld', 'dayz', 'valheim', 'forest', 'terraria', 'subnautica'].some((k) => g.id.includes(k))) return false;
+      } else if (selectedCategory === 'racing') {
+        const cat = (g.category || '').toLowerCase();
+        if (!cat.includes('симулятор') && !cat.includes('гонки') && !cat.includes('racing') && !['forza', 'eurotrucks', 'assetto', 'beamng', 'f1'].some((k) => g.id.includes(k))) return false;
+      }
+
+      // 2. Search text check
+      if (q) {
+        return g.name.toLowerCase().includes(q) || g.exe_name.toLowerCase().includes(q) || (g.category && g.category.toLowerCase().includes(q));
+      }
+      return true;
+    });
 
     filtered.forEach((g) => {
       const chip = document.createElement('div');
@@ -721,6 +1020,16 @@
       catalogCountLabel.textContent = `${filtered.length} / ${detectableGames.length} игр`;
     }
   }
+
+  // Interactive Category Filter Row Handlers
+  document.querySelectorAll('#categoryFiltersRow .category-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#categoryFiltersRow .category-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      const cat = chip.getAttribute('data-cat') || 'all';
+      renderDetectableGames(gamesSearchInput ? gamesSearchInput.value : '', cat);
+    });
+  });
 
   if (gamesSearchInput) {
     gamesSearchInput.addEventListener('input', (e) => {
@@ -969,12 +1278,15 @@
       progressText.textContent = `${pct.toFixed(1)}%`;
       progressPercentSub.textContent = `${pct.toFixed(1)}%`;
       progressFill.style.width = `${pct}%`;
+      updateMiniWidgetDisplay();
     } else if (event === 'farm_completed') {
       resetFarmingState();
       playCompletionChime();
       showDesktopNotification('ORBSHACKER', `🎉 Все задания Discord выполнены! +${data.total_orbs} Orbs получено!`);
       modalCompleted.classList.add('active');
       addLog(`🎉 All quests completed! +${data.total_orbs} Orbs earned!`, 'success');
+      updateMiniWidgetDisplay();
+      triggerAutoShutdownCountdown();
     } else if (event === 'badge_tick') {
       if (data.mode === 'count' || data.mode === 'single') {
         const remaining = Math.max(0, data.target_seconds - data.elapsed_seconds);
@@ -991,6 +1303,7 @@
         hoursTimerDisplay.textContent = `${h}:${m}:${s}`;
         hoursProgressFill.style.width = `${data.progress_percent || 100}%`;
       }
+      updateMiniWidgetDisplay();
     } else if (event === 'badge_completed') {
       if (data.mode === 'count' || data.mode === 'single') {
         resetBadgeCountState();
@@ -1005,6 +1318,8 @@
         showDesktopNotification('ORBSHACKER', `🎉 Достигнута цель по времени: ${data.hours_farmed} ч!`);
         addLog(`🎉 Hours goal reached: ${data.hours_farmed} hours!`, 'success');
       }
+      updateMiniWidgetDisplay();
+      triggerAutoShutdownCountdown();
     } else if (event === 'log') {
       addLog(data.message, data.level || 'info');
     }

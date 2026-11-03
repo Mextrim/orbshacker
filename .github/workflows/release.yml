@@ -171,8 +171,14 @@ jobs:
             
             ---
             
-            ### ✨ What's New
-            - 🎮 **Discord Profile Badges Booster**: 100+ detectable games farmed in parallel with guaranteed Discord Heartbeat detection.
+            ### ✨ What's New in v2.5.0
+            - 📌 **Floating Mini-Widget Mode**: Ultra-compact glassmorphism overlay always-on-top with live countdown, progress bar, and instant pause.
+            - 🌙 **Safe Auto-Shutdown Timer**: Automatically turns off PC when quests or playtime goals finish, with a 30s cancellation countdown.
+            - 🏷️ **150+ Games Instant Category Filter**: Clean category chips for Top 2026, Shooters, RPG/Action, MOBA & Coop, Survival, and Simulators.
+            - 🔔 **Zero-Footprint Web Audio Sound Engine**: 4 rich synthesized chimes (Tokyo Cyber, 8-Bit Retro, Zen Bell, Victory Fanfare) with sound test button.
+            - 🚀 **Autostart with OS (Silent in Tray)**: Option to launch minimized to tray on Windows and Linux login.
+            - 📋 **Telemetry Copy & Export**: Instant 1-click clipboard log copy and detailed JSON farm report export.
+            - 🎮 **Discord Profile Badges Booster**: 150+ detectable games farmed in parallel with guaranteed Discord Heartbeat detection.
             - ⚡ **Zero-Download Game Spoofer**: Emulates games with real process handles and Steam manifests without downloading gigabytes.
             - 🎨 **Theme Engine & Glassmorphism UI**: 10 rich themes with minimalist clean layout.
             - 🔄 **Cross-Platform Auto-Updates**: In-app updater and lightweight native launcher for Windows and Linux.

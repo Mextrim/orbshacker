@@ -64,6 +64,7 @@
         </div>
       </div>
 
+      <button id="btnMiniMode" class="win-btn" title="Компактный плавающий мини-виджет (Overlay)">📌</button>
       <button id="btnSettings" class="win-btn" title="Настройки">&#9881;</button>
       <button id="btnMinimize" class="win-btn" title="Свернуть">&#8211;</button>
       <button id="btnMaximize" class="win-btn" title="Развернуть">&#9633;</button>
@@ -210,6 +211,17 @@
           </div>
           <span id="catalogCountLabel" class="catalog-badge">150 игр готово</span>
         </div>
+
+        <!-- Interactive Category Filters -->
+        <div class="category-filters-row" id="categoryFiltersRow">
+          <button class="category-chip active" data-cat="all">🎮 Все (150)</button>
+          <button class="category-chip" data-cat="top2026">🔥 Топ 2026</button>
+          <button class="category-chip" data-cat="shooter">🔫 Шутеры</button>
+          <button class="category-chip" data-cat="rpg">⚔️ RPG / Экшен</button>
+          <button class="category-chip" data-cat="moba">👑 MOBA & Кооп</button>
+          <button class="category-chip" data-cat="survival">🌲 Выживание</button>
+          <button class="category-chip" data-cat="racing">🏎️ Симуляторы</button>
+        </div>
         <div id="detectableGamesGrid" class="detectable-games-grid">
           <!-- Injected by app.js -->
         </div>
@@ -341,7 +353,11 @@
     <div class="telemetry-card">
       <div class="telemetry-header">
         <span data-i18n="telemetry">Логи и телеметрия</span>
-        <button id="btnClearLogs" style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 10px;" data-i18n="clear_logs">Очистить</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="btnCopyLogs" class="telemetry-action-btn" title="Скопировать все логи в буфер обмена">📋 Скопировать</button>
+          <button id="btnExportStats" class="telemetry-action-btn" title="Экспорт отчета о фарме в JSON">📊 Экспорт</button>
+          <button id="btnClearLogs" class="telemetry-action-btn" data-i18n="clear_logs">🗑️ Очистить</button>
+        </div>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
         <div class="log-entry info">[Engine] Native Core v2.5.0 initialized.</div>
@@ -362,9 +378,28 @@
           <span>Длительность фарма квестов: <b id="settingsDurationVal" style="color: var(--accent-green);">15 мин</b></span>
           <input type="range" id="settingsDurationInput" min="5" max="30" value="15" step="1" style="cursor: pointer; width: 100%;">
         </label>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="settingsSoundToggle" checked style="cursor: pointer;">
+            <span>Звуковое оповещение при завершении</span>
+          </label>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+            <select id="settingsSoundProfile" class="form-input" style="flex: 1; padding: 4px 28px 4px 10px; font-size: 11.5px;">
+              <option value="cyber">⚡ Кибер-сигнал (Tokyo 2077)</option>
+              <option value="retro">🎮 8-Bit Level Up (Ретро)</option>
+              <option value="zen">🔔 Мягкий колокольчик (Дзен)</option>
+              <option value="fanfare">🎺 Победный фанфар</option>
+            </select>
+            <button id="btnTestSound" type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">▶ Тест</button>
+          </div>
+        </div>
         <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <input type="checkbox" id="settingsSoundToggle" checked style="cursor: pointer;">
-          <span>Звуковой сигнал при завершении</span>
+          <input type="checkbox" id="settingsAutoStartToggle" style="cursor: pointer;">
+          <span>🚀 Запускать с системой (свёрнутым в трей)</span>
+        </label>
+        <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="settingsAutoShutdownToggle" style="cursor: pointer;">
+          <span>🌙 Авто-выключение ПК по завершении фарма</span>
         </label>
         <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
           <input type="checkbox" id="settingsAutoDiscordToggle" checked style="cursor: pointer;">
@@ -446,6 +481,43 @@
         <button id="btnModalDiscord" class="btn btn-primary" data-i18n="claim_reward_btn">Забрать награды в Discord</button>
         <button id="btnModalClose" class="btn btn-secondary" data-i18n="close">Закрыть</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Auto-Shutdown Countdown Modal Dialog -->
+  <div id="modalShutdown" class="modal-overlay">
+    <div class="modal-content" style="text-align: center; max-width: 380px;">
+      <span style="font-size: 38px; display: block; margin-bottom: 8px;">🌙</span>
+      <div class="modal-title" style="font-size: 17px; color: var(--accent-orange);">Фарм завершён!</div>
+      <div class="modal-desc" style="font-size: 13px; line-height: 1.5; margin: 10px 0;">
+        Все задачи выполнены. Компьютер автоматически выключится через:
+        <div style="font-size: 32px; font-weight: 800; color: var(--accent-primary); margin: 8px 0;" id="shutdownCountdownVal">30 сек</div>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 12px; margin-top: 14px;">
+        <button id="btnCancelShutdown" class="btn btn-secondary" style="padding: 8px 18px;">❌ Отменить</button>
+        <button id="btnConfirmShutdown" class="btn btn-danger" style="padding: 8px 18px;">🌙 Выключить сейчас</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini-Widget Floating View (Active when mini-mode is toggled) -->
+  <div id="miniWidgetView" class="mini-widget-view">
+    <div class="mini-widget-header">
+      <div class="mini-status-chip">
+        <span class="mini-pulse-dot"></span>
+        <span id="miniGameLabel">Фарм не запущен</span>
+      </div>
+      <div class="mini-controls">
+        <button id="btnMiniStop" class="mini-btn-stop" title="Остановить фарм">⏹</button>
+        <button id="btnMiniExpand" class="mini-btn-expand" title="Развернуть окно">🗖</button>
+      </div>
+    </div>
+    <div class="mini-widget-body">
+      <span id="miniTimerDisplay" class="mini-timer">00:00:00</span>
+      <span id="miniPercentDisplay" class="mini-percent">0%</span>
+    </div>
+    <div class="mini-progress-track">
+      <div id="miniProgressFill" class="mini-progress-fill"></div>
     </div>
   </div>
 
