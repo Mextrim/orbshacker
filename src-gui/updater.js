@@ -199,10 +199,13 @@ async function checkForUpdates(currentVersion) {
 
 async function downloadAndInstall(downloadUrl, checksumUrl, assetName, onProgress) {
   const tempDir = os.tmpdir();
-  const tempExe = path.join(tempDir, `orbshacker-update-${Date.now()}.exe`);
+  const isLinux = process.platform === 'linux';
+  const isWindows = process.platform === 'win32';
+  const ext = isLinux ? '.AppImage' : '.exe';
+  const tempExe = path.join(tempDir, `orbshacker-update-${Date.now()}${ext}`);
 
   try {
-    // 1. Download .exe
+    // 1. Download updated binary
     await downloadFile(downloadUrl, tempExe, onProgress);
 
     // 2. Verify SHA-256 if checksumUrl is provided
@@ -210,54 +213,121 @@ async function downloadAndInstall(downloadUrl, checksumUrl, assetName, onProgres
       try {
         const sumsText = await downloadText(checksumUrl);
         const sumsMap = parseSha256sums(sumsText);
-        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'];
+        const expectedHash = sumsMap[assetName] || sumsMap['orbshacker.exe'] || sumsMap['orbshacker-2.6.0.AppImage'];
         if (expectedHash) {
           const actualHash = await computeFileSha256(tempExe);
           if (actualHash !== expectedHash) {
-            throw new Error(`SHA-256 verification failed (expected ${expectedHash}, got ${actualHash})`);
+            throw new Error(`Ошибка проверки SHA-256 (ожидалось ${expectedHash.slice(0, 8)}..., получено ${actualHash.slice(0, 8)}...)`);
           }
         }
       } catch (err) {
-        console.warn('Checksum verification warning:', err.message);
+        console.warn('Предупреждение при проверке контрольной суммы:', err.message);
       }
     }
 
-    // 3. Install
-    const targetExe = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
-    const isPackaged = app.isPackaged;
-
-    if (!isPackaged) {
-      const devTarget = path.join(__dirname, '..', 'orbshacker.exe');
-      fs.copyFileSync(tempExe, devTarget);
-      try {
-        fs.unlinkSync(tempExe);
-      } catch (_) {}
-      return { success: true, message: 'Обновление сохранено в orbshacker.exe (Dev режим)' };
+    // 3. Resolve target executable path
+    let targetExe = process.env.PORTABLE_EXECUTABLE_FILE;
+    if (!targetExe) {
+      if (app.isPackaged) {
+        targetExe = process.execPath;
+      } else {
+        const rootExe = path.resolve(__dirname, '..', 'orbshacker.exe');
+        targetExe = fs.existsSync(rootExe) ? rootExe : process.execPath;
+      }
     }
 
-    // In packaged / portable mode:
-    const oldExe = targetExe + '.old';
-    if (fs.existsSync(oldExe)) {
-      try {
-        fs.unlinkSync(oldExe);
-      } catch (_) {}
+    // 4. Windows: use detached non-blocking batch updater to prevent EBUSY locks
+    if (isWindows) {
+      const targetDir = path.dirname(targetExe);
+      const updaterCmd = path.join(tempDir, `orbshacker-updater-${Date.now()}.cmd`);
+
+      const cmdScript = `@echo off
+setlocal enabledelayedexpansion
+chcp 65001 >nul
+
+set "TARGET=${targetExe}"
+set "NEW_EXE=${tempExe}"
+set "TARGET_DIR=${targetDir}"
+
+:: 1. Wait for current orbshacker process to close and release file lock
+for /l %%i in (1,1,30) do (
+    del /f /q "!TARGET!.old" >nul 2>&1
+    move /y "!TARGET!" "!TARGET!.old" >nul 2>&1
+    if not exist "!TARGET!" goto do_install
+    timeout /t 1 /nobreak >nul
+)
+
+:: 2. Force terminate if still lingering after 30 seconds
+taskkill /f /im orbshacker.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+move /y "!TARGET!" "!TARGET!.old" >nul 2>&1
+
+:do_install
+:: 3. Place new executable
+move /y "!NEW_EXE!" "!TARGET!" >nul 2>&1
+if not exist "!TARGET!" (
+    copy /y "!NEW_EXE!" "!TARGET!" >nul 2>&1
+)
+
+:: 4. Relaunch the newly updated program
+cd /d "!TARGET_DIR!"
+start "" "!TARGET!"
+
+:: 5. Cleanup
+timeout /t 2 /nobreak >nul
+del /f /q "!TARGET!.old" >nul 2>&1
+del /f /q "!NEW_EXE!" >nul 2>&1
+(goto) 2>nul & del /f /q "%~f0"
+`;
+
+      fs.writeFileSync(updaterCmd, cmdScript, 'utf8');
+
+      const child = spawn('cmd.exe', ['/c', updaterCmd], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      child.unref();
+
+      // Give child process time to initialize before closing current app
+      setTimeout(() => {
+        app.exit(0);
+      }, 400);
+
+      return { success: true, restarted: true };
     }
 
-    fs.renameSync(targetExe, oldExe);
-    fs.copyFileSync(tempExe, targetExe);
-    try {
-      fs.unlinkSync(tempExe);
-    } catch (_) {}
+    // 5. Linux: use detached shell script to swap AppImage/binary and relaunch
+    if (isLinux) {
+      const targetDir = path.dirname(targetExe);
+      const updaterSh = path.join(tempDir, `orbshacker-updater-${Date.now()}.sh`);
 
-    // Relaunch new version
-    const child = spawn(targetExe, [], {
-      detached: true,
-      stdio: 'ignore',
-      cwd: path.dirname(targetExe),
-    });
-    child.unref();
+      const shScript = `#!/bin/sh
+sleep 1
+chmod +x "${tempExe}"
+mv -f "${tempExe}" "${targetExe}"
+chmod +x "${targetExe}"
+cd "${targetDir}"
+nohup "${targetExe}" >/dev/null 2>&1 &
+rm -f "$0"
+`;
 
-    // Close current app
+      fs.writeFileSync(updaterSh, shScript, { mode: 0o755 });
+
+      const child = spawn('/bin/sh', [updaterSh], {
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+
+      setTimeout(() => {
+        app.exit(0);
+      }, 400);
+
+      return { success: true, restarted: true };
+    }
+
+    // Fallback for other platforms
     app.quit();
     return { success: true, restarted: true };
   } catch (err) {

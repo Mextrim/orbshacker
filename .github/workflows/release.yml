@@ -172,37 +172,34 @@ jobs:
           tag_name: ${{ steps.vars.outputs.tag }}
           name: Orbshacker ${{ steps.vars.outputs.tag }} - Windows & Linux
           body: |
-            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows + Linux)
+            ## 🚀 Orbshacker ${{ steps.vars.outputs.tag }} (Windows & Linux)
             
-            Multi-platform release of Orbshacker with Discord Quests & Badges Booster.
+            Официальный релиз Orbshacker с бустером квестов (Orbs) и значков профиля Discord.
             
-            ### 📥 Downloads & Launchers
-            
-            #### 🪟 Windows (x64)
-            - **`orbshacker-launcher.exe`**: Ultra-lightweight native launcher (~1.8 MB). Automatically downloads and installs the latest version from GitHub and launches the app!
-            - **`orbshacker.exe`**: Standalone single-file portable GUI app.
-            - **`orbshacker-${{ steps.vars.outputs.tag }}-win-x64.zip`**: Full portable zip archive containing all runtime dependencies (ffmpeg, d3dcompiler, etc.).
-            - **`orbshacker-core.exe`**: Native Rust CLI engine.
-            
-            #### 🐧 Linux (All Distros: Ubuntu, Debian, Arch, Fedora, openSUSE, etc.)
-            - **`orbshacker-launcher-linux-x64`**: Native Linux launcher (~1.8 MB). Automatically downloads and prepares components.
-            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.AppImage`**: Standalone Linux AppImage.
-            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.tar.gz`**: Standalone tar.gz archive.
-            - **`orbshacker-core-linux-x64`**: Native Linux CLI engine.
+            ### ✨ Что нового:
+            - 📌 **Плавающий мини-виджет (Always-on-Top)**: компактная карточка 360×130 поверх всех окон с живым таймером обратного отсчёта, процентом выполнения и кнопкой быстрой паузы.
+            - 🌙 **Безопасное авто-выключение ПК**: таймер автоматического выключения компьютера по завершении всех квестов или цели часов с 30-секундным окном отмены.
+            - 🏷️ **Интерактивные фильтры по 7 категориям**: мгновенный выбор среди 150+ игр (Топ 2026, Шутеры, RPG/Экшен, MOBA & Кооп, Выживание, Симуляторы).
+            - 🔔 **Встроенный звуковой движок Web Audio**: 4 чистых синтезированных звука (Кибер 2077, Ретро 8-Bit, Дзен, Победный фанфар) с кнопкой проверки звука прямо в настройках.
+            - 🚀 **Тихий автозапуск в трей**: опция автоматического фонового запуска при старте Windows или Linux.
+            - 📋 **Телеметрия в один клик**: мгновенное копирование логов в буфер обмена и экспорт структурированного отчёта в JSON.
+            - 🔄 **Плавное обновление без ошибок**: надёжное скачивание и автоматическая установка обновлений без блокировки файлов.
             
             ---
             
-            ### ✨ What's New in ${{ steps.vars.outputs.tag }}
-            - 📌 **Floating Mini-Widget Mode**: Ultra-compact glassmorphism overlay always-on-top with live countdown, progress bar, and instant pause.
-            - 🌙 **Safe Auto-Shutdown Timer**: Automatically turns off PC when quests or playtime goals finish, with a 30s cancellation countdown.
-            - 🏷️ **150+ Games Instant Category Filter**: Clean category chips for Top 2026, Shooters, RPG/Action, MOBA & Coop, Survival, and Simulators.
-            - 🔔 **Zero-Footprint Web Audio Sound Engine**: 4 rich synthesized chimes (Tokyo Cyber, 8-Bit Retro, Zen Bell, Victory Fanfare) with sound test button.
-            - 🚀 **Autostart with OS (Silent in Tray)**: Option to launch minimized to tray on Windows and Linux login.
-            - 📋 **Telemetry Copy & Export**: Instant 1-click clipboard log copy and detailed JSON farm report export.
-            - 🎮 **Discord Profile Badges Booster**: 150+ detectable games farmed in parallel with guaranteed Discord Heartbeat detection.
-            - ⚡ **Zero-Download Game Spoofer**: Emulates games with real process handles and Steam manifests without downloading gigabytes.
-            - 🎨 **Theme Engine & Glassmorphism UI**: 10 rich themes with minimalist clean layout.
-            - 🔄 **Cross-Platform Auto-Updates**: In-app updater and lightweight native launcher for Windows and Linux.
+            ### 📥 Файлы для загрузки:
+            
+            #### 🪟 Windows (x64):
+            - **`orbshacker-launcher.exe`**: Нативный ультралёгкий лаунчер (~1.6 МБ). Автоматически скачивает и распаковывает компоненты с GitHub.
+            - **`orbshacker.exe`**: Портативная автономная версия программы (один файл).
+            - **`orbshacker-${{ steps.vars.outputs.tag }}-win-x64.zip`**: Полный распакованный архив с библиотеками ffmpeg и runtime.
+            - **`orbshacker-core.exe`**: Нативное Rust CLI ядро.
+            
+            #### 🐧 Linux (All Distros: Ubuntu, Debian, Arch, Fedora, openSUSE, etc.):
+            - **`orbshacker-launcher-linux-x64`**: Нативный Linux-лаунчер (~2.2 МБ).
+            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.AppImage`**: Standalone Linux AppImage.
+            - **`orbshacker-${{ steps.vars.outputs.tag }}-linux-x64.tar.gz`**: Standalone tar.gz archive.
+            - **`orbshacker-core-linux-x64`**: Нативное Linux CLI ядро.
           files: release-files/*
           draft: false
           prerelease: false

@@ -685,11 +685,52 @@
     }
   }
 
+  function formatReleaseNotesRu(rawNotes, newVer) {
+    if (!rawNotes || typeof rawNotes !== 'string') {
+      return `✨ Что нового в обновлении ${newVer || ''}:
+• 📌 Плавающий мини-виджет (Always-on-Top): карточка 360×130 поверх всех окон с таймером и кнопкой паузы.
+• 🌙 Безопасный таймер авто-выключения ПК: отключение ПК по завершении фарма с 30-секундным окном отмены.
+• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 150+ игр (Топ 2026, Шутеры, RPG, MOBA, Выживание, Симуляторы).
+• 🔔 Звуковой движок Web Audio: 4 чистых синтезированных звука с проверкой прямо в настройках.
+• 🚀 Тихий автозапуск в трей: автоматический старт вместе с системой.
+• 📋 Экспорт телеметрии: копирование логов и JSON-отчёт о фарме в 1 клик.
+• 🔄 Плавное авто-обновление: надёжное скачивание и установка без ошибок блокировки файлов.`;
+    }
+
+    const hasCyrillic = /[а-яА-ЯёЁ]{4,}/.test(rawNotes);
+    if (hasCyrillic) {
+      // Clean up markdown headers if any and present clean text
+      return rawNotes
+        .replace(/^#{1,6}\s*(.*)$/gm, '$1')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    // Auto-translate English GitHub Release notes into clean Russian
+    let translated = rawNotes
+      .replace(/##?\s*🚀?\s*Orbshacker.*?(?=\n)/gi, `✨ Обновление Orbshacker ${newVer || ''}:`)
+      .replace(/Multi-platform release.*?(?=\n)/gi, 'Мультиплатформенный релиз для Windows и Linux.')
+      .replace(/###?\s*✨?\s*What's New.*?(?=\n)/gi, 'Что нового:')
+      .replace(/Floating Mini-Widget Mode/gi, 'Плавающий мини-виджет (Always-on-Top)')
+      .replace(/Safe Auto-Shutdown Timer/gi, 'Безопасный таймер авто-выключения ПК')
+      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 150+ игр')
+      .replace(/Zero-Footprint Web Audio Sound Engine/gi, 'Звуковой движок Web Audio (4 звуковых профиля)')
+      .replace(/Autostart with OS \(Silent in Tray\)/gi, 'Тихий автозапуск с системой в трей')
+      .replace(/Telemetry Copy & Export/gi, 'Копирование и экспорт логов')
+      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (150+ игр)')
+      .replace(/Zero-Download Game Spoofer/gi, 'Фарм игр без реального скачивания файлов')
+      .replace(/Theme Engine & Glassmorphism UI/gi, '10 неоновых тем оформления и чистый UI')
+      .replace(/Cross-Platform Auto-Updates/gi, 'Плавное авто-обновление без ошибок')
+      .replace(/^#{1,6}\s*(.*)$/gm, '$1');
+
+    return translated.trim();
+  }
+
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
     if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.6.0';
     if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.6.0';
-    if (updateReleaseNotes) updateReleaseNotes.textContent = info.releaseNotes || 'Улучшения производительности и исправления ошибок.';
+    if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
       btnStartDownloadUpdate.disabled = false;
@@ -738,11 +779,12 @@
       }
       isDownloadingUpdate = true;
       btnStartDownloadUpdate.disabled = true;
+      btnStartDownloadUpdate.innerHTML = '<span>⏳ Загрузка...</span>';
       if (btnPostponeUpdate) btnPostponeUpdate.disabled = true;
       if (updateProgressBox) updateProgressBox.style.display = 'flex';
       if (updateProgressFill) updateProgressFill.style.width = '0%';
       if (updateProgressPercent) updateProgressPercent.textContent = '0%';
-      if (updateProgressText) updateProgressText.textContent = 'Подключение к GitHub Releases...';
+      if (updateProgressText) updateProgressText.textContent = 'Подключение к серверам GitHub...';
 
       addLog(`Загрузка обновления ${latestUpdateInfo.latestVersion} с GitHub...`, 'info');
 
@@ -753,16 +795,30 @@
           assetName: latestUpdateInfo.assetName
         });
 
-        if (updateProgressText) updateProgressText.textContent = '✅ Обновление установлено! Перезапуск...';
+        if (updateProgressText) updateProgressText.textContent = '✅ Обновление установлено! Перезапуск программы...';
         if (updateProgressFill) updateProgressFill.style.width = '100%';
         if (updateProgressPercent) updateProgressPercent.textContent = '100%';
+        if (btnStartDownloadUpdate) btnStartDownloadUpdate.innerHTML = '<span>✅ Перезапуск...</span>';
         addLog('Обновление успешно загружено и проверено! Перезапуск программы...', 'success');
       } catch (err) {
         isDownloadingUpdate = false;
         btnStartDownloadUpdate.disabled = false;
+        btnStartDownloadUpdate.innerHTML = '<span>🔄 Повторить попытку</span>';
         if (btnPostponeUpdate) btnPostponeUpdate.disabled = false;
-        if (updateProgressText) updateProgressText.textContent = `Ошибка: ${err.message}`;
-        addLog(`Ошибка при установке обновления: ${err.message}`, 'error');
+
+        let friendlyError = (err && err.message) || 'Неизвестная ошибка';
+        if (friendlyError.includes('EBUSY') || friendlyError.includes('locked')) {
+          friendlyError = 'Файл программы занят. Закройте другие копии Orbshacker и повторите.';
+        } else if (friendlyError.includes('SHA-256')) {
+          friendlyError = 'Ошибка проверки контрольной суммы файла. Попробуйте снова.';
+        } else if (friendlyError.includes('timeout') || friendlyError.includes('ETIMEDOUT')) {
+          friendlyError = 'Таймаут соединения. Проверьте подключение к интернету и повторите.';
+        } else if (friendlyError.includes('404')) {
+          friendlyError = 'Файл обновления не найден в релизе на GitHub.';
+        }
+
+        if (updateProgressText) updateProgressText.textContent = `Ошибка: ${friendlyError}`;
+        addLog(`Ошибка при установке обновления: ${friendlyError}`, 'error');
       }
     });
   }
@@ -775,7 +831,13 @@
         updateProgressPercent.textContent = `${pct}%`;
         const mb = (p.downloadedBytes / (1024 * 1024)).toFixed(1);
         const totalMb = (p.totalBytes / (1024 * 1024)).toFixed(1);
-        updateProgressText.textContent = `Загрузка: ${mb} MB / ${totalMb} MB (${pct}%)`;
+
+        if (pct >= 100) {
+          updateProgressText.textContent = 'Проверка контрольной суммы SHA-256...';
+          if (btnStartDownloadUpdate) btnStartDownloadUpdate.innerHTML = '<span>⚙️ Установка...</span>';
+        } else {
+          updateProgressText.textContent = `Загрузка: ${mb} МБ из ${totalMb} МБ (${pct}%)`;
+        }
       }
     });
   }
