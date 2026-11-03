@@ -11,10 +11,10 @@
     <div class="titlebar-brand">
       <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
-      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.11.0</span>
+      <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v2.12.0</span>
       <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
         <span class="update-icon">🔥</span>
-        <span id="updateAvailableText">v2.11.0</span>
+        <span id="updateAvailableText">v2.12.0</span>
       </button>
     </div>
 
@@ -167,14 +167,14 @@
             <div class="badge-title-with-pill">
               <span class="badge-header-icon">🎮</span>
               <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
-              <span class="badge-counter-pill">150 игр</span>
+              <span class="badge-counter-pill">350+ игр</span>
             </div>
-            <p data-i18n="badge_games_desc">Запуск каталога из 150+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
+            <p data-i18n="badge_games_desc">Запуск каталога из 350+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
           </div>
           <div class="badge-action-bar">
             <button id="btnFarmAll100" class="btn btn-primary btn-glow">
               <span class="btn-icon">✨</span>
-              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 150 игр</span>
+              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 350+ игр</span>
             </button>
             <button id="btnFarmNext10" class="btn btn-secondary">
               <span class="btn-icon">⚡</span>
@@ -216,14 +216,14 @@
         <div class="games-filter-bar">
           <div class="search-input-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 150+ играм (CS2, GTA V, Dota 2, Rust...)" />
+            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 350+ играм (GTA VI, CS2, Dota 2, Rust...)" />
           </div>
-          <span id="catalogCountLabel" class="catalog-badge">150 игр готово</span>
+          <span id="catalogCountLabel" class="catalog-badge">350+ игр готово</span>
         </div>
 
         <!-- Interactive Category Filters -->
         <div class="category-filters-row" id="categoryFiltersRow">
-          <button class="category-chip active" data-cat="all">🎮 Все (150)</button>
+          <button class="category-chip active" data-cat="all">🎮 Все (350+)</button>
           <button class="category-chip" data-cat="top2026">🔥 Топ 2026</button>
           <button class="category-chip" data-cat="shooter">🔫 Шутеры</button>
           <button class="category-chip" data-cat="rpg">⚔️ RPG / Экшен</button>
@@ -333,6 +333,7 @@
           <div class="form-group">
             <label style="font-size: 11px; color: var(--text-muted);">Быстрые пресеты новинок (1 клик):</label>
             <div class="custom-presets-row">
+              <button type="button" class="preset-pill-btn" data-preset="gta6">🌴 Grand Theft Auto VI</button>
               <button type="button" class="preset-pill-btn" data-preset="stalker2">☢️ S.T.A.L.K.E.R. 2</button>
               <button type="button" class="preset-pill-btn" data-preset="wukong">🐒 Black Myth: Wukong</button>
               <button type="button" class="preset-pill-btn" data-preset="spacemarine2">⚔️ Space Marine 2</button>
@@ -369,7 +370,7 @@
         </div>
       </div>
       <div id="telemetryLogs" class="telemetry-logs">
-        <div class="log-entry info">[Engine] Native Core v2.11.0 initialized.</div>
+        <div class="log-entry info">[Engine] Native Core v2.12.0 initialized.</div>
         <div class="log-entry success">[Discord] Connected to local IPC named pipe \\.\pipe\discord-ipc-0.</div>
       </div>
     </div>
@@ -493,7 +494,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; flex-direction: column; gap: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Обновления с GitHub</span>
-              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.11.0</span>
+              <span id="settingsUpdateStatus" style="font-size: 11px; color: var(--text-dim);">Версия: v2.12.0</span>
             </div>
             <button id="btnCheckUpdateManual" class="btn btn-secondary" style="padding: 5px 12px; font-size: 11px; white-space: nowrap;">
               <span>🔄 Проверить</span>
@@ -519,9 +520,9 @@
       </div>
 
       <div class="update-version-badge">
-        <span>Текущая: <b id="updateCurrentVer">v2.11.0</b></span>
+        <span>Текущая: <b id="updateCurrentVer">v2.12.0</b></span>
         <span style="color: var(--accent-primary);">➔</span>
-        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.11.0</b></span>
+        <span style="color: var(--accent-green); font-weight: 800;">Новая: <b id="updateNewVer">v2.12.0</b></span>
       </div>
 
       <div class="update-notes-box">

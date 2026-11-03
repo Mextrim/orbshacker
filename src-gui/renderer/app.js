@@ -598,7 +598,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.11.0',
+        version: 'v2.12.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -709,10 +709,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.11.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.12.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.11.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.12.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -726,13 +726,13 @@
   function formatReleaseNotesRu(rawNotes, newVer) {
     if (!rawNotes || typeof rawNotes !== 'string') {
       return `✨ Что нового в обновлении ${newVer || ''}:
-• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 150+ игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
+• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 350+ игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
 • ⚡ Кнопка-индикатор RPC в шапке: мгновенное отображение статуса вещания и возможность в один клик включить или выключить трансляцию.
 • 🔒 Single-Instance Lock: надёжная защита от запуска дублирующих процессов программы.
 • 🔄 Умный установщик обновлений: фоновая замена файлов без ошибок блокировки на Windows.
 • 📌 Плавающий мини-виджет (Always-on-Top): карточка поверх всех окон с живым таймером.
 • 🌙 Безопасный таймер авто-выключения ПК: отключение ПК по завершении фарма.
-• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 150+ игр.`;
+• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 350+ игр.`;
     }
 
     const hasCyrillic = /[а-яА-ЯёЁ]{4,}/.test(rawNotes);
@@ -753,11 +753,11 @@
       .replace(/Single-Instance Lock/gi, 'Защита от повторного запуска (Single-Instance)')
       .replace(/Floating Mini-Widget Mode/gi, 'Плавающий мини-виджет (Always-on-Top)')
       .replace(/Safe Auto-Shutdown Timer/gi, 'Безопасный таймер авто-выключения ПК')
-      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 150+ игр')
+      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 350+ игр')
       .replace(/Zero-Footprint Web Audio Sound Engine/gi, 'Звуковой движок Web Audio (4 звуковых профиля)')
       .replace(/Autostart with OS \(Silent in Tray\)/gi, 'Тихий автозапуск с системой в трей')
       .replace(/Telemetry Copy & Export/gi, 'Копирование и экспорт логов')
-      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (150+ игр)')
+      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (350+ игр)')
       .replace(/Zero-Download Game Spoofer/gi, 'Фарм игр без реального скачивания файлов')
       .replace(/Theme Engine & Glassmorphism UI/gi, '10 неоновых тем оформления и чистый UI')
       .replace(/Cross-Platform Auto-Updates/gi, 'Плавное авто-обновление без ошибок')
@@ -768,8 +768,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.11.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.11.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.12.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.12.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
@@ -1044,7 +1044,7 @@
     const filtered = detectableGames.filter((g) => {
       // 1. Category check
       if (selectedCategory === 'top2026') {
-        const topIds = ['wilds', 'stalker2', 'spacemarine2', 'wukong', 'deadlock', 'silenthill2', 'manorlords', 'helldivers2', 'dragonsdogma2', 'palworld', 'tekken8', 'persona3r', 'frostpunk2'];
+        const topIds = ['gta6', 'wilds', 'stalker2', 'spacemarine2', 'wukong', 'deadlock', 'silenthill2', 'manorlords', 'helldivers2', 'dragonsdogma2', 'palworld', 'tekken8', 'persona3r', 'frostpunk2', 'kcd2', 'marvel_rivals', 'poe2', 'civ7', 'doom_dark_ages'];
         if (!topIds.includes(g.id)) return false;
       } else if (selectedCategory === 'shooter') {
         const cat = (g.category || '').toLowerCase();
@@ -1120,6 +1120,10 @@
 
     if (catalogCountLabel) {
       catalogCountLabel.textContent = `${filtered.length} / ${detectableGames.length} игр`;
+    }
+    const allChip = document.querySelector('#categoryFiltersRow .category-chip[data-cat="all"]');
+    if (allChip && detectableGames.length > 0) {
+      allChip.textContent = `🎮 Все (${detectableGames.length})`;
     }
   }
 
@@ -1231,7 +1235,7 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(150, 0));
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(detectableGames.length || 350, 0));
   btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 0));
   btnFarmNext2.addEventListener('click', () => startBadgeCount(5, 0));
 
@@ -1336,6 +1340,7 @@
 
   // Quick Presets for Custom Game Tab
   const CUSTOM_PRESETS = {
+    gta6: { name: 'Grand Theft Auto VI', exe: 'GTA6.exe', appid: '271590' },
     stalker2: { name: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl', exe: 'Stalker2-Win64-Shipping.exe', appid: '1643320' },
     wukong: { name: 'Black Myth: Wukong', exe: 'b1.exe', appid: '2358720' },
     spacemarine2: { name: 'Warhammer 40,000: Space Marine 2', exe: 'Warhammer 40000 Space Marine 2 - Retail.exe', appid: '2183900' },
