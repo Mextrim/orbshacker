@@ -111,6 +111,250 @@ impl Drop for CustomRpcClient {
     }
 }
 
+pub const ORBSHACKER_APP_ID: &str = "1567134974031962272";
+pub const ORBSHACKER_APP_KEY: &str = "79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9";
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum PresenceState {
+    Idle,
+    FarmingQuests {
+        quest_count: usize,
+        total_orbs: u32,
+        start_ts: u64,
+        end_ts: u64,
+    },
+    QuestsCompleted {
+        total_orbs: u32,
+    },
+    FarmingBadges {
+        game_name: String,
+        current_index: usize,
+        total_games: usize,
+        start_ts: u64,
+    },
+    BadgesCompleted {
+        total_games: usize,
+    },
+    FarmingHours {
+        game_name: String,
+        target_hours: u32,
+        is_infinite: bool,
+        start_ts: u64,
+    },
+    CustomGame {
+        game_name: String,
+        exe_name: String,
+        start_ts: u64,
+    },
+    Disabled,
+}
+
+impl PresenceState {
+    pub fn to_presence_data(&self) -> Option<CustomPresenceData> {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+        match self {
+            PresenceState::Idle => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some("В главном меню".to_string()),
+                state: Some("Готов к запуску (+5,600 Orbs)".to_string()),
+                start_timestamp: Some(now),
+                end_timestamp: None,
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some("Orbshacker v2.8.0 • Quests & Badges Spoofer".to_string()),
+                small_image_key: Some("online".to_string()),
+                small_image_text: Some("В сети".to_string()),
+                party_id: None,
+                party_size: None,
+                party_max: None,
+                join_secret: None,
+            }),
+            PresenceState::FarmingQuests { quest_count, total_orbs, start_ts, end_ts } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some("Фармит задания Discord (Orbs)".to_string()),
+                state: Some(format!("Квестов: {} (+{} Orbs)", quest_count, total_orbs)),
+                start_timestamp: Some(*start_ts),
+                end_timestamp: if *end_ts > *start_ts { Some(*end_ts) } else { None },
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some("Фарминг Discord Quests".to_string()),
+                small_image_key: Some("farming".to_string()),
+                small_image_text: Some("Фарм активен".to_string()),
+                party_id: Some("orbshacker_quests_party".to_string()),
+                party_size: Some(*quest_count as u32),
+                party_max: Some(*quest_count as u32),
+                join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+            }),
+            PresenceState::QuestsCompleted { total_orbs } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some("Задания Discord выполнены!".to_string()),
+                state: Some(format!("Получено +{} Orbs", total_orbs)),
+                start_timestamp: Some(now),
+                end_timestamp: None,
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some("Все задания завершены!".to_string()),
+                small_image_key: Some("verified".to_string()),
+                small_image_text: Some("Готово к получению".to_string()),
+                party_id: None,
+                party_size: None,
+                party_max: None,
+                join_secret: None,
+            }),
+            PresenceState::FarmingBadges { game_name, current_index, total_games, start_ts } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some("Фарм значков профиля (150+ игр)".to_string()),
+                state: Some(format!("{}: {}/{}", game_name, current_index, total_games)),
+                start_timestamp: Some(*start_ts),
+                end_timestamp: None,
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some(format!("Игра: {}", game_name)),
+                small_image_key: Some("badge".to_string()),
+                small_image_text: Some("Значки профиля".to_string()),
+                party_id: Some("orbshacker_badge_party".to_string()),
+                party_size: Some(*current_index as u32),
+                party_max: Some(*total_games as u32),
+                join_secret: Some("MTI4NzM0OjFpMmhuZToxMjMxMjM= ".to_string()),
+            }),
+            PresenceState::BadgesCompleted { total_games } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some("Пакет игр завершён!".to_string()),
+                state: Some(format!("Засчитано {} игр для значка", total_games)),
+                start_timestamp: Some(now),
+                end_timestamp: None,
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some("Значок профиля обновлен".to_string()),
+                small_image_key: Some("verified".to_string()),
+                small_image_text: Some("Успех".to_string()),
+                party_id: None,
+                party_size: None,
+                party_max: None,
+                join_secret: None,
+            }),
+            PresenceState::FarmingHours { game_name, target_hours, is_infinite, start_ts } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some(format!("Фармит часы: {}", game_name)),
+                state: Some(if *is_infinite {
+                    "Бесконечный AFK-фарм (онлайн)".to_string()
+                } else {
+                    format!("Цель: {} ч игрового времени", target_hours)
+                }),
+                start_timestamp: Some(*start_ts),
+                end_timestamp: if !*is_infinite && *target_hours > 0 {
+                    Some(*start_ts + (*target_hours as u64) * 3600)
+                } else {
+                    None
+                },
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some(format!("Фарм часов: {}", game_name)),
+                small_image_key: Some("online".to_string()),
+                small_image_text: Some("0% CPU".to_string()),
+                party_id: None,
+                party_size: None,
+                party_max: None,
+                join_secret: None,
+            }),
+            PresenceState::CustomGame { game_name, exe_name, start_ts } => Some(CustomPresenceData {
+                application_id: ORBSHACKER_APP_ID.to_string(),
+                app_key: Some(ORBSHACKER_APP_KEY.to_string()),
+                details: Some(format!("Фармит: {}", game_name)),
+                state: Some(format!("{} в онлайне", exe_name)),
+                start_timestamp: Some(*start_ts),
+                end_timestamp: None,
+                large_image_key: Some("orbshacker".to_string()),
+                large_image_text: Some(format!("Своя игра: {}", game_name)),
+                small_image_key: Some("online".to_string()),
+                small_image_text: Some("AFK Онлайн".to_string()),
+                party_id: None,
+                party_size: None,
+                party_max: None,
+                join_secret: None,
+            }),
+            PresenceState::Disabled => None,
+        }
+    }
+}
+
+pub struct AppPresenceManager {
+    enabled: Arc<AtomicBool>,
+    client: Arc<Mutex<Option<CustomRpcClient>>>,
+    current_state: Arc<Mutex<PresenceState>>,
+}
+
+impl AppPresenceManager {
+    pub fn new() -> Self {
+        let mgr = Self {
+            enabled: Arc::new(AtomicBool::new(true)),
+            client: Arc::new(Mutex::new(None)),
+            current_state: Arc::new(Mutex::new(PresenceState::Idle)),
+        };
+        mgr.set_state(PresenceState::Idle);
+        mgr
+    }
+
+    pub fn set_state(&self, state: PresenceState) {
+        *self.current_state.lock().unwrap() = state.clone();
+        if !self.enabled.load(Ordering::SeqCst) {
+            self.clear_presence();
+            return;
+        }
+
+        if let Some(presence_data) = state.to_presence_data() {
+            let mut client_guard = self.client.lock().unwrap();
+            if let Some(ref mut c) = *client_guard {
+                if c.is_running() {
+                    c.update(presence_data);
+                    return;
+                }
+            }
+            let mut new_c = CustomRpcClient::new(presence_data);
+            let _ = new_c.start();
+            *client_guard = Some(new_c);
+        } else {
+            self.clear_presence();
+        }
+    }
+
+    pub fn set_enabled(&self, enabled: bool) {
+        self.enabled.store(enabled, Ordering::SeqCst);
+        if enabled {
+            let cur = self.current_state.lock().unwrap().clone();
+            self.set_state(cur);
+        } else {
+            self.clear_presence();
+        }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled.load(Ordering::SeqCst)
+    }
+
+    pub fn is_connected(&self) -> bool {
+        let client_guard = self.client.lock().unwrap();
+        if let Some(ref c) = *client_guard {
+            c.is_running()
+        } else {
+            false
+        }
+    }
+
+    pub fn clear_presence(&self) {
+        let mut client_guard = self.client.lock().unwrap();
+        if let Some(mut c) = client_guard.take() {
+            c.stop();
+        }
+    }
+}
+
+impl Drop for AppPresenceManager {
+    fn drop(&mut self) {
+        self.clear_presence();
+    }
+}
+
 pub struct DiscordRpcClient {
     application_id: String,
     game_title: String,

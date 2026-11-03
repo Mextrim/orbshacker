@@ -4,11 +4,11 @@
 
 <br/>
 
-[![Release](https://img.shields.io/badge/Release-v2.7.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.8.0-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Website](https://img.shields.io/badge/Official_Site-GitHub_Pages-70e000?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mextrim.github.io/orbshacker/)
 [![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Rust Core](https://img.shields.io/badge/Rust_Engine-507_KB-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Launcher](https://img.shields.io/badge/Native_Launcher-1.6_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-launcher.exe)
+[![Launcher](https://img.shields.io/badge/Native_Launcher-1.6_MB-00f5d4?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)
 [![License](https://img.shields.io/badge/License-GPL_v3-ef4444?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
 <br/>
@@ -19,13 +19,13 @@
 
 | 🪟 **Windows (x64)** | 🐧 **Linux (x64 - Любой дистрибутив)** |
 | :---: | :---: |
-| 🚀 **[Скачать Лаунчер orbshacker-launcher.exe (1.6 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-launcher.exe)**<br/>*(Автоматически скачивает и распаковывает все файлы с GitHub)* | 🚀 **[Скачать Лаунчер orbshacker-launcher-linux-x64 (2.2 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-launcher-linux-x64)**<br/>*(Для всех дистрибутивов: Ubuntu, Arch, Fedora, Debian)* |
-| 📦 **[Скачать полный ZIP-архив (115 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-v2.7.0-win-x64.zip)** | 📦 **[Скачать AppImage (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-v2.7.0-linux-x64.AppImage)** |
-| ⚡ **[Портативный orbshacker.exe (80 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker.exe)** | 🐧 **[Скачать tar.gz архив (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-v2.7.0-linux-x64.tar.gz)** |
+| 🚀 **[Скачать Лаунчер orbshacker-launcher.exe (1.6 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)**<br/>*(Автоматически скачивает и распаковывает все файлы с GitHub)* | 🚀 **[Скачать Лаунчер orbshacker-launcher-linux-x64 (2.2 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher-linux-x64)**<br/>*(Для всех дистрибутивов: Ubuntu, Arch, Fedora, Debian)* |
+| 📦 **[Скачать полный ZIP-архив (115 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-win-x64.zip)** | 📦 **[Скачать AppImage (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-linux-x64.AppImage)** |
+| ⚡ **[Портативный orbshacker.exe (80 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker.exe)** | 🐧 **[Скачать tar.gz архив (85 МБ)](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-v2.8.0-linux-x64.tar.gz)** |
 
 <br/>
 
-**⚡ ORBSHACKER v2.7.0** — мощный комплекс для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), кастомизации **Discord Rich Presence (RPC)** с живым превью карточки профиля, плавающего мини-виджета поверх всех окон и безопасного авто-выключения ПК после завершения фарма.
+**⚡ ORBSHACKER v2.8.0** — мощный комплекс для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**150+ игр** и **5 000+ часов онлайна**), живой трансляции статуса фарма в профиль через **Discord Rich Presence (RPC)**, плавающего мини-виджета поверх всех окон и безопасного авто-выключения ПК после завершения фарма.
 
 *Поддерживаются исключительно **Windows** и **Linux**.*
 
@@ -35,19 +35,19 @@
 
 <br/>
 
-## 🌟 Новые возможности и плюшки v2.7.0
+## 🌟 Новые возможности и плюшки v2.8.0
 
-### 1. 🔮 Discord Rich Presence (RPC) Кастомизатор
-* **Прямая трансляция кастомной активности**: Подключение напрямую через IPC Named Pipe к Discord на Windows и Linux.
-* **Полный контроль над параметрами активности**:
-  - Application ID (Client ID): `1567134974031962272`
-  - Ключ приложения (Secret Key): `79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9`
-  - Строки активности: `State` ("Playing Solo") и `Details` ("Competitive")
-  - Временные метки: `Start` и `End Timestamps`
-  - Графика: `Large Image` и `Small Image` с всплывающими подсказками (Tooltips)
-  - Пати и секреты: `Party ID`, размер пати (`Party Size / Max`), `Join Secret`
-* **Живое превью профиля Discord в реальном времени**: Интерактивная карточка в стиле официального попапа профиля Discord, динамически отражающая каждое изменение.
-* **Быстрые пресеты в 1 клик**:
+### 1. 🔮 Автоматический Discord Rich Presence (RPC)
+* **Динамическая трансляция текущей активности**: Программа в реальном времени транслирует в ваш профиль Discord текущую работу Orbshacker через официальный IPC канал:
+  - **В главном меню**: `Details`: *В главном меню*, `State`: *Готов к запуску (+5,600 Orbs)*
+  - **Фарм квестов Discord**: `Details`: *Фармит задания Discord (Orbs)*, `State`: *Квестов: X (+4,900 Orbs)* с живым таймером отсчёта.
+  - **Фарм значков (150+ игр)**: `Details`: *Фарм значков профиля (150+ игр)*, `State`: *<Игра>: X/150* со временем пакета.
+  - **Фарм игровых часов**: `Details`: *Фармит часы: <Игра>*, `State`: *Бесконечный AFK-фарм* или *Цель: X ч игрового времени*.
+  - **Своя игра**: `Details`: *Фармит: <Игра>*, `State`: *<exe_name> в онлайне*.
+* **Быстрое управление трансляцией**:
+  - Кнопка-индикатор в шапке с пульсирующей точкой (показывает «RPC В сети», «RPC Поиск...» или «RPC Выкл»). В один клик включает или отключает вещание.
+  - Тумблер в настройках: «🔮 Транслировать статус фарма в профиль Discord (Rich Presence)».
+* **Application ID**: `1567134974031962272` (Key: `79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9`).
   - ⭐ *Overwatch (Numbani)* — точный пресет из спецификации
   - 🚀 *Orbshacker Elite Pro* — статус продвинутого бустера
   - 🤖 *Cyberpunk 2077* — атмосфера Найт-Сити
@@ -155,12 +155,12 @@
 ## 🛠️ Быстрый старт
 
 ### 🪟 Для Windows:
-1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-launcher.exe)**.
+1. Скачайте **[orbshacker-launcher.exe](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher.exe)**.
 2. Поместите в любую удобную папку и запустите.
 3. Лаунчер сам скачает всё необходимое с GitHub и запустит ORBSHACKER!
 
 ### 🐧 Для Linux:
-1. Скачайте **[orbshacker-launcher-linux-x64](https://github.com/Mextrim/orbshacker/releases/download/v2.7.0/orbshacker-launcher-linux-x64)**.
+1. Скачайте **[orbshacker-launcher-linux-x64](https://github.com/Mextrim/orbshacker/releases/download/v2.8.0/orbshacker-launcher-linux-x64)**.
 2. Дайте права на исполнение:
    ```bash
    chmod +x orbshacker-launcher-linux-x64
@@ -168,8 +168,8 @@
    ```
 3. Или запустите портативный AppImage:
    ```bash
-   chmod +x orbshacker-v2.7.0-linux-x64.AppImage
-   ./orbshacker-v2.7.0-linux-x64.AppImage
+   chmod +x orbshacker-v2.8.0-linux-x64.AppImage
+   ./orbshacker-v2.8.0-linux-x64.AppImage
    ```
 
 ---

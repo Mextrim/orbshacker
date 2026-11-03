@@ -236,6 +236,18 @@ pub fn run_json_rpc_service() {
                 res = Some(status);
             }
 
+            // --- Program Rich Presence Status ---
+            "set_app_presence_enabled" => {
+                let enabled = req.params.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+                let s = session.lock().unwrap();
+                s.set_presence_enabled(enabled);
+                res = Some(serde_json::json!({ "success": true, "enabled": enabled }));
+            }
+            "get_app_presence_status" => {
+                let s = session.lock().unwrap();
+                res = Some(s.get_presence_status());
+            }
+
             other => {
                 err = Some(format!("Unknown method: {}", other));
             }

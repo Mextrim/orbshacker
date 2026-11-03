@@ -2,10 +2,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::badges::{get_detectable_games_catalog, DetectableGame};
-use crate::discord_rpc::{CustomPresenceData, CustomRpcClient, DiscordRpcClient};
+use crate::discord_rpc::{AppPresenceManager, CustomPresenceData, CustomRpcClient, DiscordRpcClient, PresenceState};
 use crate::faker::FakerManager;
 use crate::quests::{get_active_quests, QuestInfo};
 use crate::steam::SteamHelper;
@@ -60,6 +60,9 @@ pub struct FarmSession {
 
     // Custom Discord RPC state
     custom_rpc: Arc<Mutex<Option<CustomRpcClient>>>,
+
+    // App Discord Rich Presence
+    app_presence: Arc<AppPresenceManager>,
 }
 
 impl FarmSession {
@@ -86,6 +89,7 @@ impl FarmSession {
             badge_ticker_handle: None,
 
             custom_rpc: Arc::new(Mutex::new(None)),
+            app_presence: Arc::new(AppPresenceManager::new()),
         }
     }
 
@@ -177,12 +181,22 @@ impl FarmSession {
 
         *self.active_quests.lock().unwrap() = target_quests.clone();
 
+        let total_orbs: u32 = target_quests.iter().map(|q| q.orbs_reward).sum();
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+        self.app_presence.set_state(PresenceState::FarmingQuests {
+            quest_count: target_quests.len(),
+            total_orbs,
+            start_ts: now,
+            end_ts: now + dur_secs,
+        });
+
         // Background ticker
         let running_flag = self.is_running.clone();
         let elapsed_counter = self.elapsed.clone();
         let total_secs_val = dur_secs;
         let quests_for_tick = target_quests.clone();
         let cb = event_callback.clone();
+        let presence_for_ticker = self.app_presence.clone();
 
         let handle = thread::spawn(move || {
             while running_flag.load(Ordering::SeqCst) {
@@ -211,6 +225,7 @@ impl FarmSession {
                 if cur_elapsed >= total_secs_val {
                     running_flag.store(false, Ordering::SeqCst);
                     let total_orbs: u32 = quests_for_tick.iter().map(|q| q.orbs_reward).sum();
+                    presence_for_ticker.set_state(PresenceState::QuestsCompleted { total_orbs });
                     cb(
                         "farm_completed",
                         serde_json::json!({
@@ -229,6 +244,7 @@ impl FarmSession {
 
     pub fn stop_farm(&mut self) {
         self.is_running.store(false, Ordering::SeqCst);
+        self.app_presence.set_state(PresenceState::Idle);
         if let Some(h) = self.ticker_handle.take() {
             let _ = h.join();
         }
@@ -327,8 +343,17 @@ impl FarmSession {
         let cur_game_mutex = self.badge_current_game.clone();
         let faker_mgr_arc = self.badge_faker_mgr.clone();
         let cb = event_callback.clone();
+        let presence_arc = self.app_presence.clone();
 
         let handle = thread::spawn(move || {
+            let now_start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+            presence_arc.set_state(PresenceState::FarmingBadges {
+                game_name: "Подготовка...".to_string(),
+                current_index: offset,
+                total_games: total_count,
+                start_ts: now_start,
+            });
+
             cb(
                 "log",
                 serde_json::json!({
@@ -347,7 +372,21 @@ impl FarmSession {
                 let game_names: Vec<String> = batch_games.iter().map(|g| g.name.clone()).collect();
                 let current_title = game_names.join(", ");
                 *cur_game_mutex.lock().unwrap() = current_title.clone();
-                cur_index_atom.store(((batch_idx * batch_size) + batch_count).min(total_count) as u64, Ordering::SeqCst);
+                let cur_idx_num = ((batch_idx * batch_size) + batch_count).min(total_count);
+                cur_index_atom.store(cur_idx_num as u64, Ordering::SeqCst);
+
+                let now_batch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+                let display_game_name = if batch_games.len() == 1 {
+                    batch_games[0].name.clone()
+                } else {
+                    format!("{} (+{})", batch_games[0].name, batch_games.len() - 1)
+                };
+                presence_arc.set_state(PresenceState::FarmingBadges {
+                    game_name: display_game_name,
+                    current_index: cur_idx_num,
+                    total_games: total_count,
+                    start_ts: now_batch,
+                });
 
                 // 1. Create Steam appmanifests for verified detection in Discord
                 let mut manifests = Vec::new();
@@ -424,6 +463,7 @@ impl FarmSession {
 
             if is_active_flag.load(Ordering::SeqCst) {
                 is_active_flag.store(false, Ordering::SeqCst);
+                presence_arc.set_state(PresenceState::BadgesCompleted { total_games: total_count });
                 cb(
                     "badge_completed",
                     serde_json::json!({
@@ -468,6 +508,14 @@ impl FarmSession {
         let elapsed_atom = self.badge_elapsed.clone();
         let faker_mgr_arc = self.badge_faker_mgr.clone();
         let cb = event_callback.clone();
+        let presence_single = self.app_presence.clone();
+
+        let now_single = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+        self.app_presence.set_state(PresenceState::CustomGame {
+            game_name: game_name.clone(),
+            exe_name: game.exe_name.clone(),
+            start_ts: now_single,
+        });
 
         // 1. Steam fake manifest
         let steam_manifest = if let Some(steam_id) = game.steam_app_id {
@@ -525,6 +573,7 @@ impl FarmSession {
 
             if is_active_flag.load(Ordering::SeqCst) {
                 is_active_flag.store(false, Ordering::SeqCst);
+                presence_single.set_state(PresenceState::Idle);
                 cb(
                     "log",
                     serde_json::json!({
@@ -586,6 +635,14 @@ impl FarmSession {
         *self.badge_current_game.lock().unwrap() = name.clone();
         self.badge_elapsed.store(0, Ordering::SeqCst);
         self.badge_target_seconds.store(target_secs, Ordering::SeqCst);
+
+        let now_hours = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+        self.app_presence.set_state(PresenceState::FarmingHours {
+            game_name: name.clone(),
+            target_hours,
+            is_infinite,
+            start_ts: now_hours,
+        });
 
         // Spawn game stub
         {
@@ -655,6 +712,7 @@ impl FarmSession {
 
     pub fn stop_badge_farm(&mut self) {
         self.badge_is_active.store(false, Ordering::SeqCst);
+        self.app_presence.set_state(PresenceState::Idle);
         if let Some(h) = self.badge_ticker_handle.take() {
             let _ = h.join();
         }
@@ -742,6 +800,21 @@ impl FarmSession {
                 "data": CustomPresenceData::default()
             })
         }
+    }
+
+    // ==========================================
+    // 5. APP DISCORD RICH PRESENCE
+    // ==========================================
+
+    pub fn set_presence_enabled(&self, enabled: bool) {
+        self.app_presence.set_enabled(enabled);
+    }
+
+    pub fn get_presence_status(&self) -> serde_json::Value {
+        serde_json::json!({
+            "enabled": self.app_presence.is_enabled(),
+            "connected": self.app_presence.is_connected()
+        })
     }
 }
 

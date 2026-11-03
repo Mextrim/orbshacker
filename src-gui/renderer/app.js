@@ -16,6 +16,7 @@
   let selectedTargetHours = 13;
   let soundEnabled = true;
   let discordPollInterval = null;
+  let rpcBroadcastEnabled = localStorage.getItem('orbshacker_rpc_enabled') !== 'false';
 
   // Theme metadata
   const THEMES = {
@@ -61,7 +62,6 @@
     quests: document.getElementById('panelQuests'),
     badges: document.getElementById('panelBadges'),
     custom: document.getElementById('panelCustom'),
-    rpc: document.getElementById('panelRpc'),
   };
 
   // Quests elements
@@ -112,39 +112,10 @@
   const btnStopCustomGame = document.getElementById('btnStopCustomGame');
   const customRunningLabel = document.getElementById('customRunningLabel');
 
-  // Discord RPC Elements
-  const rpcPresetsRow = document.getElementById('rpcPresetsRow');
-  const rpcAppId = document.getElementById('rpcAppId');
-  const rpcAppKey = document.getElementById('rpcAppKey');
-  const rpcDetails = document.getElementById('rpcDetails');
-  const rpcState = document.getElementById('rpcState');
-  const rpcStartTimestamp = document.getElementById('rpcStartTimestamp');
-  const rpcEndTimestamp = document.getElementById('rpcEndTimestamp');
-  const btnRpcTimeNow = document.getElementById('btnRpcTimeNow');
-  const btnRpcTimeClear = document.getElementById('btnRpcTimeClear');
-  const rpcLargeKey = document.getElementById('rpcLargeKey');
-  const rpcLargeText = document.getElementById('rpcLargeText');
-  const rpcSmallKey = document.getElementById('rpcSmallKey');
-  const rpcSmallText = document.getElementById('rpcSmallText');
-  const rpcPartyId = document.getElementById('rpcPartyId');
-  const rpcPartySize = document.getElementById('rpcPartySize');
-  const rpcPartyMax = document.getElementById('rpcPartyMax');
-  const rpcJoinSecret = document.getElementById('rpcJoinSecret');
-  const btnStartRpc = document.getElementById('btnStartRpc');
-  const btnUpdateRpc = document.getElementById('btnUpdateRpc');
-  const btnStopRpc = document.getElementById('btnStopRpc');
-  const rpcStatusBadge = document.getElementById('rpcStatusBadge');
-
-  // Discord RPC Preview Elements
-  const discordPreviewApp = document.getElementById('discordPreviewApp');
-  const discordPreviewDetails = document.getElementById('discordPreviewDetails');
-  const discordPreviewState = document.getElementById('discordPreviewState');
-  const discordPreviewTime = document.getElementById('discordPreviewTime');
-  const discordPreviewLargeImg = document.getElementById('discordPreviewLargeImg');
-  const discordLargeFallback = document.getElementById('discordLargeFallback');
-  const discordPreviewSmallImg = document.getElementById('discordPreviewSmallImg');
-  const discordSmallFallback = document.getElementById('discordSmallFallback');
-  const discordPreviewJoinBtn = document.getElementById('discordPreviewJoinBtn');
+  // Discord Rich Presence Broadcast Elements
+  const rpcBroadcastBadge = document.getElementById('rpcBroadcastBadge');
+  const rpcBroadcastText = document.getElementById('rpcBroadcastText');
+  const settingsRpcBroadcastToggle = document.getElementById('settingsRpcBroadcastToggle');
 
   // Logs & Modals
   const telemetryLogs = document.getElementById('telemetryLogs');
@@ -438,15 +409,19 @@
       const res = await window.orbshacker.call('check_discord_status');
       const dot = document.querySelector('.status-dot');
       const text = document.getElementById('discordStatusText');
-      const dict = I18N[currentLang];
-      if (res && res.connected) {
+      const dict = I18N[currentLang] || {};
+      const isConnected = !!(res && res.connected);
+      if (isConnected) {
         dot.style.background = 'var(--accent-green)';
         dot.style.boxShadow = '0 0 6px var(--accent-green)';
-        text.textContent = dict.status_connected;
+        text.textContent = dict.status_connected || 'Discord подключён';
       } else {
         dot.style.background = 'var(--accent-orange)';
         dot.style.boxShadow = '0 0 6px var(--accent-orange)';
-        text.textContent = dict.status_disconnected;
+        text.textContent = dict.status_disconnected || 'Discord не запущен';
+      }
+      if (typeof updateRpcBadgeUI === 'function') {
+        updateRpcBadgeUI(rpcBroadcastEnabled, isConnected);
       }
     } catch (_) {}
   }
@@ -595,7 +570,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.7.0',
+        version: 'v2.8.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -706,10 +681,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.7.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.8.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.7.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.8.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -723,7 +698,8 @@
   function formatReleaseNotesRu(rawNotes, newVer) {
     if (!rawNotes || typeof rawNotes !== 'string') {
       return `✨ Что нового в обновлении ${newVer || ''}:
-• 🔮 Discord Rich Presence (RPC) Кастомизатор: полноценная трансляция кастомной активности в профиль Discord через IPC (App ID, State, Details, Timestamps, Assets, Party, Secret) с живым предпросмотром карточки.
+• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 150+ игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
+• ⚡ Кнопка-индикатор RPC в шапке: мгновенное отображение статуса вещания и возможность в один клик включить или выключить трансляцию.
 • 🔒 Single-Instance Lock: надёжная защита от запуска дублирующих процессов программы.
 • 🔄 Умный установщик обновлений: фоновая замена файлов без ошибок блокировки на Windows.
 • 📌 Плавающий мини-виджет (Always-on-Top): карточка поверх всех окон с живым таймером.
@@ -745,7 +721,7 @@
       .replace(/##?\s*🚀?\s*Orbshacker.*?(?=\n)/gi, `✨ Обновление Orbshacker ${newVer || ''}:`)
       .replace(/Multi-platform release.*?(?=\n)/gi, 'Мультиплатформенный релиз для Windows и Linux.')
       .replace(/###?\s*✨?\s*What's New.*?(?=\n)/gi, 'Что нового:')
-      .replace(/Discord Rich Presence \(RPC\)/gi, 'Discord Rich Presence (RPC) Кастомизатор')
+      .replace(/Discord Rich Presence \(RPC\)/gi, 'Discord Rich Presence (Автоматический RPC)')
       .replace(/Single-Instance Lock/gi, 'Защита от повторного запуска (Single-Instance)')
       .replace(/Floating Mini-Widget Mode/gi, 'Плавающий мини-виджет (Always-on-Top)')
       .replace(/Safe Auto-Shutdown Timer/gi, 'Безопасный таймер авто-выключения ПК')
@@ -764,8 +740,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.7.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.7.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.8.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.8.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {
@@ -915,7 +891,7 @@
         <div class="quest-footer">
           <div class="reward-pill">
             <span class="reward-orb"></span>
-            <span>+${q.orbs_reward} Orbs</span>
+            <span>+${(q.orbs_reward || q.reward_orbs || 700).toLocaleString()} Orbs</span>
           </div>
           <button class="btn-card" data-id="${q.id}" ${btnDisabled}>
             ${btnText}
@@ -934,7 +910,7 @@
     });
 
     questsCountBadge.textContent = activeQuests.length;
-    const totalOrbs = activeQuests.reduce((sum, q) => sum + q.orbs_reward, 0);
+    const totalOrbs = activeQuests.reduce((sum, q) => sum + (q.orbs_reward || q.reward_orbs || 0), 0);
     totalOrbsText.textContent = `+${totalOrbs.toLocaleString()}`;
   }
 
@@ -1424,253 +1400,82 @@
   });
 
   // ==========================================
-  // 11. DISCORD RICH PRESENCE (RPC)
+  // 11. DISCORD RICH PRESENCE (APP BROADCAST)
   // ==========================================
-  const RPC_PRESETS = {
-    numbani: {
-      appName: 'Overwatch',
-      appId: '1567134974031962272',
-      appKey: '79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9',
-      details: 'Competitive',
-      state: 'Playing Solo',
-      start: 1507665886,
-      end: 1507665886,
-      largeKey: 'numbani',
-      largeText: 'Numbani',
-      smallKey: 'rogue',
-      smallText: 'Rogue - Level 100',
-      partyId: 'ae488379-351d-4a4f-ad32-2b9b01c91657',
-      partySize: 1,
-      partyMax: 5,
-      joinSecret: 'MTI4NzM0OjFpMmhuZToxMjMxMjM= ',
-      largeEmoji: '🏛️',
-      smallEmoji: '⚔️',
-    },
-    orbshacker: {
-      appName: 'Orbshacker Pro',
-      appId: '1305284903520534578',
-      appKey: '79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9',
-      details: 'Farming Active Quests (+4,900 Orbs)',
-      state: 'Zero-Download Spoofer v2.7.0',
-      start: Math.floor(Date.now() / 1000),
-      end: 0,
-      largeKey: 'orbshacker_badge',
-      largeText: 'Orbshacker Elite Booster',
-      smallKey: 'verified',
-      smallText: 'Verified 150+ Games',
-      partyId: 'orbshacker_party',
-      partySize: 1,
-      partyMax: 1,
-      joinSecret: 'orbshacker_secret',
-      largeEmoji: '🔮',
-      smallEmoji: '⚡',
-    },
-    cyberpunk: {
-      appName: 'Cyberpunk 2077',
-      appId: '1091567849200422912',
-      appKey: '79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9',
-      details: 'Exploring Night City',
-      state: 'Phantom Liberty DLC (Level 60)',
-      start: Math.floor(Date.now() / 1000),
-      end: 0,
-      largeKey: 'cyberpunk_main',
-      largeText: 'Cyberpunk 2077',
-      smallKey: 'samurai',
-      smallText: 'Samurai Relic',
-      partyId: 'cyberpunk_solo',
-      partySize: 1,
-      partyMax: 1,
-      joinSecret: '',
-      largeEmoji: '🤖',
-      smallEmoji: '🎸',
-    },
-    cs2: {
-      appName: 'Counter-Strike 2',
-      appId: '730',
-      appKey: '79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9',
-      details: 'Premier Mode (Rating: 24,500)',
-      state: 'Matchmaking (Mirage 12-10)',
-      start: Math.floor(Date.now() / 1000),
-      end: 0,
-      largeKey: 'de_mirage',
-      largeText: 'de_mirage',
-      smallKey: 'ct_side',
-      smallText: 'Counter-Terrorist',
-      partyId: 'cs2_party_5',
-      partySize: 5,
-      partyMax: 5,
-      joinSecret: 'cs2_secret',
-      largeEmoji: '🔫',
-      smallEmoji: '💣',
-    },
-    dota: {
-      appName: 'Dota 2',
-      appId: '570',
-      appKey: '79fdb6cf84fe50d2093ec1f9d57f3801ed461096e74216ef34113ddbbe6e67c9',
-      details: 'Ranked Match (Immortal)',
-      state: 'Playing Invoker (Score 14/2/18)',
-      start: Math.floor(Date.now() / 1000),
-      end: 0,
-      largeKey: 'hero_invoker',
-      largeText: 'Invoker',
-      smallKey: 'dire',
-      smallText: 'Dire Side',
-      partyId: 'dota_party_5',
-      partySize: 5,
-      partyMax: 5,
-      joinSecret: 'dota_secret',
-      largeEmoji: '🛡️',
-      smallEmoji: '🔥',
-    },
-  };
-
-  function updateDiscordPreview() {
-    if (!discordPreviewDetails || !rpcDetails) return;
-    const details = rpcDetails.value.trim() || 'Competitive';
-    const state = rpcState.value.trim() || 'Playing Solo';
-    const pSize = parseInt(rpcPartySize.value, 10) || 1;
-    const pMax = parseInt(rpcPartyMax.value, 10) || 5;
-    const lText = rpcLargeText.value.trim() || 'Numbani';
-    const sText = rpcSmallText.value.trim() || 'Rogue - Level 100';
-
-    discordPreviewDetails.textContent = details;
-    discordPreviewState.textContent = `${state} (${pSize} of ${pMax})`;
-    if (discordPreviewLargeImg) discordPreviewLargeImg.setAttribute('title', lText);
-    if (discordPreviewSmallImg) discordPreviewSmallImg.setAttribute('title', sText);
-    if (discordPreviewJoinBtn) {
-      discordPreviewJoinBtn.innerHTML = `<span>👥 Присоединиться к пати (${pSize}/${pMax})</span>`;
-    }
-
-    const startVal = parseInt(rpcStartTimestamp.value, 10) || 0;
-    if (startVal > 0) {
-      const now = Math.floor(Date.now() / 1000);
-      const diff = Math.max(0, now - startVal);
-      if (diff > 86400 * 365) {
-        discordPreviewTime.textContent = `Timestamp: ${startVal}`;
-      } else {
-        const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-        const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-        const s = (diff % 60).toString().padStart(2, '0');
-        discordPreviewTime.textContent = `${h}:${m}:${s} прошло`;
+  function updateRpcBadgeUI(enabled, connected) {
+    if (!rpcBroadcastBadge) return;
+    const dict = I18N[currentLang] || {};
+    if (enabled && connected) {
+      rpcBroadcastBadge.className = 'rpc-status-pill';
+      if (rpcBroadcastText) {
+        rpcBroadcastText.textContent = dict.rpc_pill_online || 'RPC В сети';
       }
+      rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: статус и ход фарма транслируются в ваш профиль Discord');
+    } else if (enabled && !connected) {
+      rpcBroadcastBadge.className = 'rpc-status-pill connecting';
+      if (rpcBroadcastText) {
+        rpcBroadcastText.textContent = dict.rpc_pill_connecting || 'RPC Поиск Discord...';
+      }
+      rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: ожидание запуска Discord IPC');
     } else {
-      discordPreviewTime.textContent = 'Без таймера';
+      rpcBroadcastBadge.className = 'rpc-status-pill inactive';
+      if (rpcBroadcastText) {
+        rpcBroadcastText.textContent = dict.rpc_pill_disabled || 'RPC Выкл';
+      }
+      rpcBroadcastBadge.setAttribute('title', 'Discord Rich Presence: трансляция выключена в настройках');
     }
   }
 
-  // Live typing updates
-  [
-    rpcAppId, rpcAppKey, rpcDetails, rpcState, rpcStartTimestamp, rpcEndTimestamp,
-    rpcLargeKey, rpcLargeText, rpcSmallKey, rpcSmallText, rpcPartyId, rpcPartySize, rpcPartyMax, rpcJoinSecret
-  ].forEach((input) => {
-    if (input) {
-      input.addEventListener('input', updateDiscordPreview);
-    }
-  });
-
-  if (btnRpcTimeNow) {
-    btnRpcTimeNow.addEventListener('click', () => {
-      const now = Math.floor(Date.now() / 1000);
-      rpcStartTimestamp.value = now;
-      rpcEndTimestamp.value = 0;
-      updateDiscordPreview();
-      addLog(`Таймер RPC установлен на текущее время.`, 'info');
-    });
-  }
-
-  if (btnRpcTimeClear) {
-    btnRpcTimeClear.addEventListener('click', () => {
-      rpcStartTimestamp.value = 0;
-      rpcEndTimestamp.value = 0;
-      updateDiscordPreview();
-      addLog(`Временные метки RPC сброшены.`, 'info');
-    });
-  }
-
-  if (rpcPresetsRow) {
-    rpcPresetsRow.querySelectorAll('.preset-pill-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        rpcPresetsRow.querySelectorAll('.preset-pill-btn').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        const key = btn.getAttribute('data-rpc-preset');
-        const p = RPC_PRESETS[key];
-        if (p) {
-          rpcAppId.value = p.appId;
-          rpcAppKey.value = p.appKey;
-          rpcDetails.value = p.details;
-          rpcState.value = p.state;
-          rpcStartTimestamp.value = p.start;
-          rpcEndTimestamp.value = p.end;
-          rpcLargeKey.value = p.largeKey;
-          rpcLargeText.value = p.largeText;
-          rpcSmallKey.value = p.smallKey;
-          rpcSmallText.value = p.smallText;
-          rpcPartyId.value = p.partyId;
-          rpcPartySize.value = p.partySize;
-          rpcPartyMax.value = p.partyMax;
-          rpcJoinSecret.value = p.joinSecret;
-          if (discordPreviewApp) discordPreviewApp.textContent = p.appName;
-          if (discordLargeFallback) discordLargeFallback.textContent = p.largeEmoji;
-          if (discordSmallFallback) discordSmallFallback.textContent = p.smallEmoji;
-          updateDiscordPreview();
-          addLog(`Применён RPC пресет: ${p.appName}`, 'info');
-        }
-      });
-    });
-  }
-
-  async function applyRpcPresence() {
-    const payload = {
-      application_id: rpcAppId.value.trim() || '1567134974031962272',
-      app_key: rpcAppKey.value.trim() || null,
-      details: rpcDetails.value.trim() || null,
-      state: rpcState.value.trim() || null,
-      start_timestamp: parseInt(rpcStartTimestamp.value, 10) || null,
-      end_timestamp: parseInt(rpcEndTimestamp.value, 10) || null,
-      large_image_key: rpcLargeKey.value.trim() || null,
-      large_image_text: rpcLargeText.value.trim() || null,
-      small_image_key: rpcSmallKey.value.trim() || null,
-      small_image_text: rpcSmallText.value.trim() || null,
-      party_id: rpcPartyId.value.trim() || null,
-      party_size: parseInt(rpcPartySize.value, 10) || null,
-      party_max: parseInt(rpcPartyMax.value, 10) || null,
-      join_secret: rpcJoinSecret.value.trim() || null,
-    };
-
+  async function syncAppPresenceStatus() {
     try {
-      addLog(`[Discord RPC] Broadcasting presence for App ID: ${payload.application_id}...`, 'info');
-      const res = await window.orbshacker.call('set_discord_rpc', payload);
-      if (res && res.success) {
-        if (rpcStatusBadge) {
-          rpcStatusBadge.className = 'rpc-status-badge active';
-          rpcStatusBadge.textContent = (I18N[currentLang] && I18N[currentLang].rpc_status_active) || '● Активен в Discord';
+      const status = await window.orbshacker.call('get_app_presence_status');
+      if (status) {
+        rpcBroadcastEnabled = !!status.enabled;
+        if (settingsRpcBroadcastToggle) {
+          settingsRpcBroadcastToggle.checked = rpcBroadcastEnabled;
         }
-        if (btnStartRpc) btnStartRpc.style.display = 'none';
-        if (btnStopRpc) btnStopRpc.style.display = 'inline-flex';
-        addLog(`[Discord RPC] Presence successfully active in Discord!`, 'success');
+        updateRpcBadgeUI(status.enabled, status.connected);
       }
-    } catch (err) {
-      addLog(`[Discord RPC] Failed to set presence: ${err.message}`, 'error');
-    }
+    } catch (_) {}
   }
 
-  if (btnStartRpc) btnStartRpc.addEventListener('click', applyRpcPresence);
-  if (btnUpdateRpc) btnUpdateRpc.addEventListener('click', applyRpcPresence);
-
-  if (btnStopRpc) {
-    btnStopRpc.addEventListener('click', async () => {
+  if (settingsRpcBroadcastToggle) {
+    settingsRpcBroadcastToggle.checked = rpcBroadcastEnabled;
+    settingsRpcBroadcastToggle.addEventListener('change', async (e) => {
+      const enabled = e.target.checked;
+      rpcBroadcastEnabled = enabled;
+      localStorage.setItem('orbshacker_rpc_enabled', enabled ? 'true' : 'false');
       try {
-        await window.orbshacker.call('stop_discord_rpc');
-        if (rpcStatusBadge) {
-          rpcStatusBadge.className = 'rpc-status-badge inactive';
-          rpcStatusBadge.textContent = (I18N[currentLang] && I18N[currentLang].rpc_status_inactive) || '○ Выключен';
-        }
-        if (btnStartRpc) btnStartRpc.style.display = 'inline-flex';
-        if (btnStopRpc) btnStopRpc.style.display = 'none';
-        addLog(`[Discord RPC] Presence stopped.`, 'info');
+        await window.orbshacker.call('set_app_presence_enabled', { enabled });
+        await syncAppPresenceStatus();
+        addLog(
+          enabled
+            ? '🔮 Discord RPC: Трансляция статуса программы включена (ID: 1567134974031962272)'
+            : '🔮 Discord RPC: Трансляция статуса программы отключена',
+          'info'
+        );
       } catch (err) {
-        addLog(`[Discord RPC] Error stopping: ${err.message}`, 'error');
+        addLog(`Не удалось переключить RPC: ${err.message}`, 'error');
       }
+    });
+  }
+
+  if (rpcBroadcastBadge) {
+    rpcBroadcastBadge.addEventListener('click', async () => {
+      const nextState = !rpcBroadcastEnabled;
+      rpcBroadcastEnabled = nextState;
+      if (settingsRpcBroadcastToggle) settingsRpcBroadcastToggle.checked = nextState;
+      localStorage.setItem('orbshacker_rpc_enabled', nextState ? 'true' : 'false');
+      try {
+        await window.orbshacker.call('set_app_presence_enabled', { enabled: nextState });
+        await syncAppPresenceStatus();
+        addLog(
+          nextState
+            ? '🔮 Discord RPC: Трансляция статуса программы включена'
+            : '🔮 Discord RPC: Трансляция статуса программы отключена',
+          'info'
+        );
+      } catch (_) {}
     });
   }
 
@@ -1732,18 +1537,13 @@
         }
       }
 
-      // 8. Discord RPC check & preview update
-      updateDiscordPreview();
+      // 8. Initialize App Discord Rich Presence
+      if (settingsRpcBroadcastToggle) {
+        settingsRpcBroadcastToggle.checked = rpcBroadcastEnabled;
+      }
       try {
-        const rpcStatus = await window.orbshacker.call('get_discord_rpc_status');
-        if (rpcStatus && rpcStatus.is_active) {
-          if (rpcStatusBadge) {
-            rpcStatusBadge.className = 'rpc-status-badge active';
-            rpcStatusBadge.textContent = (I18N[currentLang] && I18N[currentLang].rpc_status_active) || '● Активен в Discord';
-          }
-          if (btnStartRpc) btnStartRpc.style.display = 'none';
-          if (btnStopRpc) btnStopRpc.style.display = 'inline-flex';
-        }
+        await window.orbshacker.call('set_app_presence_enabled', { enabled: rpcBroadcastEnabled });
+        await syncAppPresenceStatus();
       } catch (_) {}
 
       // 9. Silently check for updates from GitHub in background
