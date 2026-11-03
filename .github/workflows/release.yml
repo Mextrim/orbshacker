@@ -1,4 +1,4 @@
-name: Multi-Platform Build & Release
+name: Windows Build & Release
 
 on:
   push:
@@ -128,7 +128,5 @@ jobs:
             - **`orbshacker-${{ steps.vars.outputs.tag }}-win-x64.zip`**: Полный распакованный архив с библиотеками ffmpeg и runtime.
             - **`orbshacker-core.exe`**: Высокопроизводительное нативное Rust CLI ядро.
           files: release-files/*
-          draft: false
-          prerelease: false
           draft: false
           prerelease: false
