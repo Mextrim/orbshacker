@@ -226,9 +226,11 @@
   document.querySelectorAll('#themeDropdownMenu .dropdown-item').forEach((item) => {
     item.addEventListener('click', () => {
       const val = item.getAttribute('data-theme-val');
-      setTheme(val);
-      themeDropdownMenu.classList.remove('active');
-      addLog(`Theme changed to: ${THEMES[val].name}`, 'info');
+      if (val && THEMES[val]) {
+        setTheme(val);
+        themeDropdownMenu.classList.remove('active');
+        addLog(`Theme changed to: ${THEMES[val].name}`, 'info');
+      }
     });
   });
 
@@ -603,7 +605,7 @@
     btnExportStats.addEventListener('click', async () => {
       const report = {
         app: 'ORBSHACKER',
-        version: 'v2.14.0',
+        version: 'v2.15.0',
         timestamp: new Date().toISOString(),
         active_quests_count: activeQuests.length,
         detectable_games_count: detectableGames.length,
@@ -714,10 +716,10 @@
         }
       } else {
         if (settingsUpdateStatus) {
-          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.14.0'}) ✓`;
+          settingsUpdateStatus.textContent = `У вас последняя версия (${info.currentVersion || 'v2.15.0'}) ✓`;
         }
         if (isManual) {
-          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.14.0'})!`, 'success');
+          addLog(`У вас установлена последняя актуальная версия (${info.currentVersion || 'v2.15.0'})!`, 'success');
         }
       }
     } catch (err) {
@@ -773,8 +775,8 @@
 
   function showUpdateModal(info) {
     if (!info || !modalUpdate) return;
-    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.14.0';
-    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.14.0';
+    if (updateCurrentVer) updateCurrentVer.textContent = info.currentVersion ? `v${info.currentVersion.replace(/^v/, '')}` : 'v2.15.0';
+    if (updateNewVer) updateNewVer.textContent = info.latestVersion || 'v2.15.0';
     if (updateReleaseNotes) updateReleaseNotes.textContent = formatReleaseNotesRu(info.releaseNotes, info.latestVersion);
     if (updateProgressBox) updateProgressBox.style.display = 'none';
     if (btnStartDownloadUpdate) {

@@ -246,7 +246,7 @@ impl PresenceState {
                     start_timestamp: Some(now),
                     end_timestamp: None,
                     large_image_key: Some(ORBSHACKER_ICON_URL.to_string()),
-                    large_image_text: Some("Orbshacker v2.14.0 • Перейти на GitHub".to_string()),
+                    large_image_text: Some(format!("Orbshacker v{} • Перейти на GitHub", env!("CARGO_PKG_VERSION"))),
                     large_url: Some(ORBSHACKER_GITHUB_URL.to_string()),
                     small_image_key: None,
                     small_image_text: None,
@@ -834,8 +834,10 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
     activity.insert("instance".to_string(), serde_json::json!(true));
 
     if let Some(ref st) = data.state {
-        if !st.trim().is_empty() {
-            activity.insert("state".to_string(), serde_json::json!(st));
+        let trimmed = st.trim();
+        if !trimmed.is_empty() {
+            let truncated: String = trimmed.chars().take(128).collect();
+            activity.insert("state".to_string(), serde_json::json!(truncated));
         }
     }
     if let Some(ref su) = data.state_url {
@@ -844,8 +846,10 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
         }
     }
     if let Some(ref dt) = data.details {
-        if !dt.trim().is_empty() {
-            activity.insert("details".to_string(), serde_json::json!(dt));
+        let trimmed = dt.trim();
+        if !trimmed.is_empty() {
+            let truncated: String = trimmed.chars().take(128).collect();
+            activity.insert("details".to_string(), serde_json::json!(truncated));
         }
     }
     if let Some(ref du) = data.details_url {
@@ -878,8 +882,10 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
         }
     }
     if let Some(ref lt) = data.large_image_text {
-        if !lt.trim().is_empty() {
-            assets.insert("large_text".to_string(), serde_json::json!(lt));
+        let trimmed = lt.trim();
+        if !trimmed.is_empty() {
+            let truncated: String = trimmed.chars().take(128).collect();
+            assets.insert("large_text".to_string(), serde_json::json!(truncated));
         }
     }
     if let Some(ref lu) = data.large_url {
@@ -893,8 +899,10 @@ fn build_activity_payload(pid: u32, data: &CustomPresenceData) -> String {
         }
     }
     if let Some(ref st) = data.small_image_text {
-        if !st.trim().is_empty() {
-            assets.insert("small_text".to_string(), serde_json::json!(st));
+        let trimmed = st.trim();
+        if !trimmed.is_empty() {
+            let truncated: String = trimmed.chars().take(128).collect();
+            assets.insert("small_text".to_string(), serde_json::json!(truncated));
         }
     }
     if let Some(ref su) = data.small_url {

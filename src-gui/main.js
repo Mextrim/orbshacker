@@ -134,10 +134,10 @@ function createTray() {
   }
 
   tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
-  tray.setToolTip('ORBSHACKER v2.5.0 — Discord Quests & Badges Spoofer');
+  tray.setToolTip(`ORBSHACKER v${pkg.version} — Discord Quests & Badges Spoofer`);
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: '⚡ ORBSHACKER v2.5.0', enabled: false },
+    { label: `⚡ ORBSHACKER v${pkg.version}`, enabled: false },
     { type: 'separator' },
     {
       label: '⚡ Показать окно',
@@ -225,7 +225,7 @@ function createWindow() {
       if (!hasShownTrayNotice && tray && process.platform === 'win32') {
         hasShownTrayNotice = true;
         tray.displayBalloon({
-          title: 'ORBSHACKER v2.5.0',
+          title: `ORBSHACKER v${pkg.version}`,
           content: 'Приложение свёрнуто в системный трей и продолжает работу в фоне.',
         });
       }
@@ -363,6 +363,7 @@ ipcMain.handle('system:shutdown', async () => {
     if (rustProcess) {
       try {
         rustProcess.stdin.write(JSON.stringify({ method: 'stop_farm' }) + '\n');
+        rustProcess.stdin.write(JSON.stringify({ method: 'stop_badge_farm' }) + '\n');
         rustProcess.kill();
       } catch (_) {}
     }
@@ -420,6 +421,7 @@ app.on('window-all-closed', () => {
   if (rustProcess) {
     try {
       rustProcess.stdin.write(JSON.stringify({ method: 'stop_farm' }) + '\n');
+      rustProcess.stdin.write(JSON.stringify({ method: 'stop_badge_farm' }) + '\n');
     } catch (_) {}
     rustProcess.kill();
     rustProcess = null;

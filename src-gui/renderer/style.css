@@ -1873,9 +1873,8 @@ select:focus, select.form-input:focus {
 }
 
 select option {
-  color-scheme: dark !important;
-  background-color: #0d121c !important;
-  color: #f8fafc !important;
+  background-color: var(--bg-card);
+  color: var(--text-main);
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 500;
@@ -1883,8 +1882,8 @@ select option {
 
 select option:checked,
 select option:hover {
-  background-color: #00f2fe !important;
-  color: #040905 !important;
+  background-color: var(--accent-primary) !important;
+  color: #ffffff !important;
   font-weight: 700;
 }
 

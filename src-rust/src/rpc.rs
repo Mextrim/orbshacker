@@ -201,10 +201,7 @@ pub fn run_json_rpc_service() {
 
             // --- Custom Discord Rich Presence (RPC) ---
             "set_discord_rpc" => {
-                let data: crate::discord_rpc::CustomPresenceData = match serde_json::from_value(req.params.clone()) {
-                    Ok(d) => d,
-                    Err(_) => crate::discord_rpc::CustomPresenceData::default(),
-                };
+                let data: crate::discord_rpc::CustomPresenceData = serde_json::from_value(req.params.clone()).unwrap_or_default();
                 let mut s = session.lock().unwrap();
                 match s.set_custom_rpc(data) {
                     Ok(_) => res = Some(serde_json::json!({ "success": true })),
@@ -237,10 +234,7 @@ pub fn run_json_rpc_service() {
             }
 
             "set_app_presence_meme_config" => {
-                let config: crate::discord_rpc::PresenceMemeConfig = match serde_json::from_value(req.params.clone()) {
-                    Ok(c) => c,
-                    Err(_) => crate::discord_rpc::PresenceMemeConfig::default(),
-                };
+                let config: crate::discord_rpc::PresenceMemeConfig = serde_json::from_value(req.params.clone()).unwrap_or_default();
                 let s = session.lock().unwrap();
                 s.set_presence_meme_config(config);
                 res = Some(serde_json::json!({ "success": true }));

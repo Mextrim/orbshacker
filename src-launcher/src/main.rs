@@ -10,11 +10,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-
 const GITHUB_REPO: &str = "Mextrim/orbshacker";
-const DEFAULT_VERSION: &str = "v2.11.0";
+const DEFAULT_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
 
 #[derive(Clone, Default)]
 struct ProgressState {
@@ -82,15 +79,6 @@ fn create_desktop_shortcut(exe: &Path) {
 fn spawn_executable(exe: &Path, args: &[String]) -> Result<(), String> {
     #[cfg(windows)]
     create_desktop_shortcut(exe);
-
-    #[cfg(unix)]
-    {
-        if let Ok(meta) = fs::metadata(exe) {
-            let mut perms = meta.permissions();
-            perms.set_mode(0o755);
-            let _ = fs::set_permissions(exe, perms);
-        }
-    }
 
     let mut cmd = Command::new(exe);
     if let Some(parent) = exe.parent() {
@@ -276,15 +264,6 @@ fn extract_zip(
             }
             let mut outfile = File::create(&outpath).map_err(|e| format!("Не удалось распаковать: {}", e))?;
             let _ = std::io::copy(&mut entry, &mut outfile);
-
-            #[cfg(unix)]
-            {
-                if let Some(mode) = entry.unix_mode() {
-                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(mode));
-                } else if outpath.file_name().map_or(false, |n| n == "orbshacker" || n == "orbshacker-core") {
-                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(0o755));
-                }
-            }
         }
 
         if i % 10 == 0 || i == total_files - 1 {
@@ -362,14 +341,14 @@ mod win_gui {
     }
 
     #[repr(C)]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
     struct INITCOMMONCONTROLSEX {
         dwSize: u32,
         dwICC: u32,
     }
 
     #[repr(C)]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
     struct WNDCLASSW {
         style: u32,
         lpfnWndProc: unsafe extern "system" fn(*mut std::ffi::c_void, u32, usize, isize) -> isize,
@@ -384,13 +363,14 @@ mod win_gui {
     }
 
     #[repr(C)]
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
     struct POINT {
         x: i32,
         y: i32,
     }
 
     #[repr(C)]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
     struct MSG {
         hwnd: *mut std::ffi::c_void,
         message: u32,

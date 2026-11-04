@@ -53,7 +53,7 @@ jobs:
           }
           Copy-Item src-rust/target/release/orbshacker-core.exe artifacts/orbshacker-core.exe
           $tag = $env:GITHUB_REF_NAME
-          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v2.14.0" }
+          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v2.15.0" }
           if (Test-Path dist/win-unpacked) {
             Compress-Archive -Path dist/win-unpacked/* -DestinationPath "artifacts/orbshacker-$tag-win-x64.zip" -Force
             Copy-Item "artifacts/orbshacker-$tag-win-x64.zip" artifacts/orbshacker-win-x64.zip
@@ -91,7 +91,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [[ ! "$TAG" =~ ^v[0-9] ]]; then
-            TAG="v2.14.0"
+            TAG="v2.15.0"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
