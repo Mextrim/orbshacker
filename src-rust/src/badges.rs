@@ -1,3 +1,4 @@
+use std::sync::OnceLock;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,7 +17,12 @@ pub struct BadgeTier {
     pub threshold: u32,
 }
 
-pub fn get_game_count_badge_tiers() -> Vec<BadgeTier> {
+static GAME_COUNT_TIERS: OnceLock<Vec<BadgeTier>> = OnceLock::new();
+static HOURS_TIERS: OnceLock<Vec<BadgeTier>> = OnceLock::new();
+static CATALOG: OnceLock<Vec<DetectableGame>> = OnceLock::new();
+
+pub fn get_game_count_badge_tiers() -> &'static [BadgeTier] {
+    GAME_COUNT_TIERS.get_or_init(|| {
     vec![
         BadgeTier { level: 1, title: "Пробующий".to_string(), threshold: 2 },
         BadgeTier { level: 2, title: "Интересующийся".to_string(), threshold: 5 },
@@ -29,9 +35,11 @@ pub fn get_game_count_badge_tiers() -> Vec<BadgeTier> {
         BadgeTier { level: 9, title: "Многосторонняя личность".to_string(), threshold: 80 },
         BadgeTier { level: 10, title: "Универсал".to_string(), threshold: 100 },
     ]
+    })
 }
 
-pub fn get_hours_badge_tiers() -> Vec<BadgeTier> {
+pub fn get_hours_badge_tiers() -> &'static [BadgeTier] {
+    HOURS_TIERS.get_or_init(|| {
     vec![
         BadgeTier { level: 1, title: "Любитель".to_string(), threshold: 1 },
         BadgeTier { level: 2, title: "Энтузиаст".to_string(), threshold: 5 },
@@ -44,10 +52,12 @@ pub fn get_hours_badge_tiers() -> Vec<BadgeTier> {
         BadgeTier { level: 9, title: "Неостановимый игрок".to_string(), threshold: 2000 },
         BadgeTier { level: 10, title: "Вечный игрок".to_string(), threshold: 5000 },
     ]
+    })
 }
 
 /// Catalog of 353 detectable games verified in Discord's RunningGameStore
-pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
+pub fn get_detectable_games_catalog() -> &'static [DetectableGame] {
+    CATALOG.get_or_init(|| {
     vec![
         DetectableGame { id: "gta6".into(), name: "Grand Theft Auto VI".into(), exe_name: "GTA6.exe".into(), steam_app_id: Some(271590), category: "Action".into() },
         DetectableGame { id: "stalker2".into(), name: "S.T.A.L.K.E.R. 2: Heart of Chornobyl".into(), exe_name: "Stalker2-Win64-Shipping.exe".into(), steam_app_id: Some(1643320), category: "Survival Shooter".into() },
@@ -403,4 +413,5 @@ pub fn get_detectable_games_catalog() -> Vec<DetectableGame> {
         DetectableGame { id: "seaofthieves".into(), name: "Sea of Thieves".into(), exe_name: "SoTGame.exe".into(), steam_app_id: Some(1172620), category: "Pirate Adventure".into() },
         DetectableGame { id: "skull_and_bones".into(), name: "Skull and Bones".into(), exe_name: "skullandbones.exe".into(), steam_app_id: Some(2853730), category: "Naval Action".into() },
     ]
+    })
 }

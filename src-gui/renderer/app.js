@@ -736,13 +736,13 @@
   function formatReleaseNotesRu(rawNotes, newVer) {
     if (!rawNotes || typeof rawNotes !== 'string') {
       return `✨ Что нового в обновлении ${newVer || ''}:
-• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 350+ игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
+• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 353 игры для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
 • ⚡ Кнопка-индикатор RPC в шапке: мгновенное отображение статуса вещания и возможность в один клик включить или выключить трансляцию.
 • 🔒 Single-Instance Lock: надёжная защита от запуска дублирующих процессов программы.
 • 🔄 Умный установщик обновлений: фоновая замена файлов без ошибок блокировки на Windows.
 • 📌 Плавающий мини-виджет (Always-on-Top): карточка поверх всех окон с живым таймером.
 • 🌙 Безопасный таймер авто-выключения ПК: отключение ПК по завершении фарма.
-• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 350+ игр.`;
+• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 353 игры.`;
     }
 
     const hasCyrillic = /[а-яА-ЯёЁ]{4,}/.test(rawNotes);
@@ -763,11 +763,11 @@
       .replace(/Single-Instance Lock/gi, 'Защита от повторного запуска (Single-Instance)')
       .replace(/Floating Mini-Widget Mode/gi, 'Плавающий мини-виджет (Always-on-Top)')
       .replace(/Safe Auto-Shutdown Timer/gi, 'Безопасный таймер авто-выключения ПК')
-      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 350+ игр')
+      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 353 игры')
       .replace(/Zero-Footprint Web Audio Sound Engine/gi, 'Звуковой движок Web Audio (4 звуковых профиля)')
       .replace(/Autostart with OS \(Silent in Tray\)/gi, 'Тихий автозапуск с системой в трей')
       .replace(/Telemetry Copy & Export/gi, 'Копирование и экспорт логов')
-      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (350+ игр)')
+      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (353 игры)')
       .replace(/Zero-Download Game Spoofer/gi, 'Фарм игр без реального скачивания файлов')
       .replace(/Theme Engine & Glassmorphism UI/gi, '20 дизайнерских тем (Win 98, XP, macOS Big Sur, MS-DOS, Discord)')
       .replace(/Cross-Platform Auto-Updates/gi, 'Плавное авто-обновление без ошибок')
@@ -898,6 +898,7 @@
   function renderQuests() {
     questsGrid.innerHTML = '';
     const dict = I18N[currentLang];
+    const fragment = document.createDocumentFragment();
 
     activeQuests.forEach((q) => {
       const card = document.createElement('div');
@@ -917,12 +918,19 @@
 
       const btnText = isFarming ? (dict.farming.slice(0, 10) + '...') : dict.single_farm;
       const btnDisabled = isFarming ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
+      const color = q.icon_color || '#3b82f6';
+      const initial = (q.game_title || q.title || 'Q').charAt(0).toUpperCase();
 
       card.innerHTML = `
         <div class="quest-header">
-          <div class="quest-title-block">
-            <span class="quest-title">${q.title || q.name}</span>
-            <span class="quest-publisher">${q.publisher || ''}</span>
+          <div class="quest-header-left">
+            <div class="quest-icon-badge" style="background: ${color}22; border-color: ${color}55; color: ${color}; box-shadow: 0 0 10px ${color}25;">
+              <span>${initial}</span>
+            </div>
+            <div class="quest-title-block">
+              <span class="quest-title">${q.title || q.name}</span>
+              <span class="quest-publisher">${q.publisher || ''}</span>
+            </div>
           </div>
           <span class="${badgeClass}">${badgeText}</span>
         </div>
@@ -944,10 +952,12 @@
         });
       }
 
-      questsGrid.appendChild(card);
+      fragment.appendChild(card);
     });
 
-    questsCountBadge.textContent = activeQuests.length;
+    questsGrid.appendChild(fragment);
+
+    if (questsCountBadge) questsCountBadge.textContent = activeQuests.length;
     const totalOrbs = activeQuests.reduce((sum, q) => sum + (q.orbs_reward || q.reward_orbs || 0), 0);
     totalOrbsText.textContent = `+${totalOrbs.toLocaleString()}`;
   }
@@ -1043,6 +1053,21 @@
     });
   }
 
+  function getCategoryIcon(cat, name) {
+    const c = (cat || '').toLowerCase();
+    const n = (name || '').toLowerCase();
+    if (c.includes('shoot') || c.includes('шутер') || c.includes('fps')) return '🔫';
+    if (c.includes('rpg') || c.includes('ролев') || c.includes('souls') || c.includes('arpg')) return '⚔️';
+    if (c.includes('moba') || c.includes('hero') || c.includes('кооп') || c.includes('co-op')) return '👑';
+    if (c.includes('survival') || c.includes('выживан') || c.includes('sandbox')) return '🌲';
+    if (c.includes('racing') || c.includes('симулятор') || c.includes('гонк') || c.includes('sim')) return '🏎️';
+    if (c.includes('horror') || c.includes('хоррор')) return '👻';
+    if (c.includes('strat') || c.includes('стратег') || c.includes('rts') || c.includes('4x')) return '🏰';
+    if (c.includes('fight') || c.includes('файтинг')) return '🥊';
+    if (c.includes('platform') || c.includes('платформер')) return '🏃';
+    return '🎮';
+  }
+
   let selectedCategory = 'all';
 
   function renderDetectableGames(filterText = '', category = null) {
@@ -1080,13 +1105,19 @@
       return true;
     });
 
+    const fragment = document.createDocumentFragment();
+
     filtered.forEach((g) => {
       const chip = document.createElement('div');
       chip.className = 'game-item-chip';
+      const catIcon = getCategoryIcon(g.category, g.name);
       chip.innerHTML = `
         <div class="game-chip-info">
-          <span class="game-item-name" title="${g.name}">${g.name}</span>
-          <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
+          <div class="game-chip-icon-badge">${catIcon}</div>
+          <div class="game-chip-text">
+            <span class="game-item-name" title="${g.name}">${g.name}</span>
+            <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
+          </div>
         </div>
         <div class="game-chip-actions">
           <button class="btn-chip-launch" title="Запустить игру на значок в Discord">▶ +1 игра</button>
@@ -1125,8 +1156,10 @@
         startSingleGame(g.id, g.name, badgeSpeedDuration);
       });
 
-      detectableGamesGrid.appendChild(chip);
+      fragment.appendChild(chip);
     });
+
+    detectableGamesGrid.appendChild(fragment);
 
     if (catalogCountLabel) {
       catalogCountLabel.textContent = `${filtered.length} / ${detectableGames.length} игр`;
@@ -1245,7 +1278,7 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(detectableGames.length || 350, 0));
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(detectableGames.length || 353, 0));
   btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 0));
   btnFarmNext2.addEventListener('click', () => startBadgeCount(5, 0));
 

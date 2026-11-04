@@ -107,11 +107,12 @@ impl FarmSession {
 
         let all_quests = get_active_quests();
         let target_quests: Vec<QuestInfo> = if selected_ids.is_empty() || selected_ids.contains(&"all".to_string()) {
-            all_quests
+            all_quests.to_vec()
         } else {
             all_quests
-                .into_iter()
+                .iter()
                 .filter(|q| selected_ids.contains(&q.id))
+                .cloned()
                 .collect()
         };
 
@@ -314,9 +315,10 @@ impl FarmSession {
         let total_available = catalog.len();
         let offset = start_offset.min(total_available.saturating_sub(1));
         let games_to_run: Vec<DetectableGame> = catalog
-            .into_iter()
+            .iter()
             .skip(offset)
             .take(target_count.max(1))
+            .cloned()
             .collect();
         let total_count = games_to_run.len();
 
@@ -489,7 +491,7 @@ impl FarmSession {
 
         let catalog = get_detectable_games_catalog();
         let game = catalog
-            .into_iter()
+            .iter()
             .find(|g| g.id == game_id_or_exe || g.exe_name.eq_ignore_ascii_case(game_id_or_exe))
             .ok_or_else(|| format!("Игра '{}' не найдена в каталоге", game_id_or_exe))?;
 

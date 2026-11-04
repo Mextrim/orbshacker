@@ -1,4 +1,5 @@
 use std::fs;
+use std::sync::OnceLock;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -6,6 +7,13 @@ pub struct SteamHelper;
 
 impl SteamHelper {
     pub fn find_steam_path() -> Option<PathBuf> {
+        static CACHED_STEAM_PATH: OnceLock<Option<PathBuf>> = OnceLock::new();
+        CACHED_STEAM_PATH.get_or_init(|| {
+            Self::find_steam_path_impl()
+        }).clone()
+    }
+
+    fn find_steam_path_impl() -> Option<PathBuf> {
         #[cfg(windows)]
         {
             // 1. Try registry query

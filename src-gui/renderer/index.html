@@ -9,7 +9,7 @@
   <!-- Custom Titlebar -->
   <div class="titlebar">
     <div class="titlebar-brand">
-      <img src="../assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
+      <img src="assets/icon.png" class="titlebar-app-icon" alt="Orbshacker" />
       <span data-i18n="app_title">ORBSHACKER</span>
       <span id="appVersionBadge" style="font-size: 10px; color: var(--accent-green); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">v3.0.0</span>
       <button id="btnUpdateAvailable" class="update-badge-pill" style="display: none;" title="Доступна новая версия!">
@@ -20,10 +20,17 @@
 
     <div class="titlebar-center">
       <div class="discord-badge">
+        <svg class="discord-svg-icon" width="14" height="11" viewBox="0 0 127.14 96.36" fill="currentColor">
+          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
         <span class="status-dot"></span>
         <span id="discordStatusText" data-i18n="status_connected">Discord подключён</span>
       </div>
       <div id="rpcBroadcastBadge" class="rpc-status-pill" title="Discord Rich Presence: статус и ход фарма автоматически транслируются в ваш профиль Discord">
+        <svg class="rpc-antenna-icon" width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="8" cy="8" r="2.5"/>
+          <path d="M4.93 4.93a4.34 4.34 0 0 0 0 6.14M11.07 4.93a4.34 4.34 0 0 1 0 6.14M2.81 2.81a7.34 7.34 0 0 0 0 10.38M13.19 2.81a7.34 7.34 0 0 1 0 10.38" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
         <span class="rpc-pulse-dot"></span>
         <span id="rpcBroadcastText">RPC В сети</span>
       </div>
@@ -35,7 +42,7 @@
         <button id="themeDropdownBtn" class="dropdown-btn" title="Сменить тему оформления">
           <span>🎨</span>
           <span id="currentThemeLabel">Кибер Неон</span>
-          <span style="font-size: 9px; opacity: 0.7;">▾</span>
+          <svg class="dropdown-chevron" width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M1 1L4 4L7 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div id="themeDropdownMenu" class="dropdown-menu">
           <button class="dropdown-item selected" data-theme-val="cyber"><span>⚡ Кибер Неон</span><span class="check">✓</span></button>
@@ -66,7 +73,7 @@
         <button id="langDropdownBtn" class="dropdown-btn" title="Выбрать язык интерфейса">
           <span id="currentLangFlag">🇷🇺</span>
           <span id="currentLangLabel">Русский</span>
-          <span style="font-size: 9px; opacity: 0.7;">▾</span>
+          <svg class="dropdown-chevron" width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M1 1L4 4L7 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div id="langDropdownMenu" class="dropdown-menu">
           <button class="dropdown-item selected" data-lang-val="ru"><span>🇷🇺 Русский</span><span class="check">✓</span></button>
@@ -78,27 +85,50 @@
         </div>
       </div>
 
-      <button id="btnMiniMode" class="win-btn" title="Компактный плавающий мини-виджет (Overlay)">📌</button>
-      <button id="btnSettings" class="win-btn" title="Настройки">&#9881;</button>
-      <button id="btnMinimize" class="win-btn" title="Свернуть">&#8211;</button>
-      <button id="btnMaximize" class="win-btn" title="Развернуть">&#9633;</button>
-      <button id="btnClose" class="win-btn close" title="Закрыть">&#10005;</button>
+            <button id="btnMiniMode" class="win-btn" title="Компактный плавающий мини-виджет (Overlay)">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.9-1.414.704-.195-.195.51-1.22.704-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146z"/>
+        </svg>
+      </button>
+      <button id="btnSettings" class="win-btn" title="Настройки">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 4.75a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5zM9.46 1.5H6.54l-.4 1.59a5.94 5.94 0 0 0-1.43.83l-1.57-.45-1.46 2.53 1.17 1.15c-.07.45-.11.91-.11 1.38 0 .47.04.93.11 1.38l-1.17 1.15 1.46 2.53 1.57-.45c.44.33.92.61 1.43.83l.4 1.59h2.92l.4-1.59c.51-.22.99-.5 1.43-.83l1.57.45 1.46-2.53-1.17-1.15c.07-.45.11-.91.11-1.38 0-.47-.04-.93-.11-1.38l1.17-1.15-1.46-2.53-1.57.45a5.94 5.94 0 0 0-1.43-.83l-.4-1.59z"/>
+        </svg>
+      </button>
+      <button id="btnMinimize" class="win-btn" title="Свернуть">
+        <svg width="11" height="11" viewBox="0 0 12 12">
+          <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button id="btnMaximize" class="win-btn" title="Развернуть">
+        <svg width="11" height="11" viewBox="0 0 12 12">
+          <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/>
+        </svg>
+      </button>
+      <button id="btnClose" class="win-btn close" title="Закрыть">
+        <svg width="11" height="11" viewBox="0 0 12 12">
+          <path d="M2.2 2.2L9.8 9.8M9.8 2.2L2.2 9.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
   </div>
 
   <!-- Navigation Tabs -->
-  <div class="tabs-nav">
+    <div class="tabs-nav">
     <button class="tab-btn active" data-tab="quests">
       <span>🔥</span>
       <span data-i18n="tab_quests">Задания (Orbs)</span>
+      <span class="tab-counter-badge" id="questsCountBadge">8</span>
     </button>
     <button class="tab-btn" data-tab="badges">
       <span>🏆</span>
       <span data-i18n="tab_badges">Значки Профиля</span>
+      <span class="tab-counter-badge">353</span>
     </button>
     <button class="tab-btn" data-tab="custom">
       <span>🎮</span>
       <span data-i18n="tab_custom">Своя Игра</span>
+      <span class="tab-counter-badge tab-badge-pro">PRO</span>
     </button>
   </div>
 
@@ -172,14 +202,14 @@
             <div class="badge-title-with-pill">
               <span class="badge-header-icon">🎮</span>
               <h3 data-i18n="badge_games_title">Сыграйте в другие обнаруживаемые игры на ПК</h3>
-              <span class="badge-counter-pill">350+ игр</span>
+              <span class="badge-counter-pill">353 игры</span>
             </div>
-            <p data-i18n="badge_games_desc">Запуск каталога из 350+ игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
+            <p data-i18n="badge_games_desc">Запуск каталога из 353 игр для повышения уровня значка (вплоть до «Универсал: 100+ игр»)</p>
           </div>
           <div class="badge-action-bar">
             <button id="btnFarmAll100" class="btn btn-primary btn-glow">
               <span class="btn-icon">✨</span>
-              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 350+ игр</span>
+              <span data-i18n="farm_all_100_btn">Фармить ВСЕ 353 игры</span>
             </button>
             <button id="btnFarmNext10" class="btn btn-secondary">
               <span class="btn-icon">⚡</span>
@@ -221,14 +251,14 @@
         <div class="games-filter-bar">
           <div class="search-input-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 350+ играм (GTA VI, CS2, Dota 2, Rust...)" />
+            <input type="text" id="gamesSearchInput" class="search-input" placeholder="Поиск по 353 играм (GTA VI, CS2, Dota 2, Rust...)" />
           </div>
-          <span id="catalogCountLabel" class="catalog-badge">350+ игр готово</span>
+          <span id="catalogCountLabel" class="catalog-badge">353 игры готово</span>
         </div>
 
         <!-- Interactive Category Filters -->
         <div class="category-filters-row" id="categoryFiltersRow">
-          <button class="category-chip active" data-cat="all">🎮 Все (350+)</button>
+          <button class="category-chip active" data-cat="all">🎮 Все (353)</button>
           <button class="category-chip" data-cat="top2026">🔥 Топ 2026</button>
           <button class="category-chip" data-cat="shooter">🔫 Шутеры</button>
           <button class="category-chip" data-cat="rpg">⚔️ RPG / Экшен</button>
@@ -386,7 +416,7 @@
     <div class="modal-content" style="text-align: left; max-width: 420px; max-height: 90vh; overflow-y: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div class="modal-title" style="font-size: 16px;" data-i18n="settings_title">Параметры программы</div>
-        <button id="btnSettingsClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
+        <button id="btnSettingsClose" class="win-btn close" title="Закрыть"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2.2 2.2L9.8 9.8M9.8 2.2L2.2 9.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
         <label style="font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;">
@@ -518,7 +548,7 @@
 
             <!-- Live Card Preview -->
             <div class="rpc-live-preview" style="background: rgba(0,0,0,0.35); border: 1px dashed rgba(255,255,255,0.18); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 10px;">
-              <img src="../assets/icon.png" style="width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;" />
+              <img src="assets/icon.png" style="width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;" />
               <div style="display: flex; flex-direction: column; overflow: hidden; width: 100%;">
                 <span style="font-size: 10.5px; font-weight: 700; color: #fff;">ORBSHACKER</span>
                 <span id="previewMemeDetails" style="font-size: 10px; color: var(--accent-green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">Мастурбирует на фурри</span>
@@ -555,7 +585,7 @@
           <span style="font-size: 20px;">🚀</span>
           <div class="modal-title" style="font-size: 16px;">Доступно обновление Orbshacker!</div>
         </div>
-        <button id="btnUpdateModalClose" class="win-btn close" style="font-size: 12px;">&#10005;</button>
+        <button id="btnUpdateModalClose" class="win-btn close" title="Закрыть"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2.2 2.2L9.8 9.8M9.8 2.2L2.2 9.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
       </div>
 
       <div class="update-version-badge">

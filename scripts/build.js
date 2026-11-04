@@ -28,9 +28,31 @@ if (cargoResult.status !== 0) {
   process.exit(1);
 }
 
-// Copy to root and dist
-fs.copyFileSync(rustBin, path.join(distDir, 'orbshacker.exe'));
-fs.copyFileSync(rustBin, path.join(rootDir, 'orbshacker.exe'));
+// Copy to root and dist with safe retry
+function safeCopy(src, dest) {
+  try {
+    if (fs.existsSync(dest)) {
+      try { fs.unlinkSync(dest); } catch (_) {}
+    }
+    fs.copyFileSync(src, dest);
+  } catch (err) {
+    if (err.code === 'EBUSY') {
+      const oldName = dest + '.old';
+      try { if (fs.existsSync(oldName)) fs.unlinkSync(oldName); } catch (_) {}
+      try {
+        fs.renameSync(dest, oldName);
+        fs.copyFileSync(src, dest);
+      } catch (e) {
+        console.warn('Warning: Could not overwrite ' + dest + ': ' + e.message);
+      }
+    } else {
+      throw err;
+    }
+  }
+}
+
+safeCopy(rustBin, path.join(distDir, 'orbshacker.exe'));
+safeCopy(rustBin, path.join(rootDir, 'orbshacker.exe'));
 console.log('✅ [2/3] Copied standalone native executable to dist/orbshacker.exe & root orbshacker.exe');
 
 // Create standalone zip package

@@ -1,3 +1,4 @@
+use std::sync::OnceLock;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,8 +17,11 @@ pub struct QuestInfo {
     pub needs_rpc: bool,
 }
 
-pub fn get_active_quests() -> Vec<QuestInfo> {
-    vec![
+static ACTIVE_QUESTS: OnceLock<Vec<QuestInfo>> = OnceLock::new();
+
+pub fn get_active_quests() -> &'static [QuestInfo] {
+    ACTIVE_QUESTS.get_or_init(|| {
+        vec![
         QuestInfo {
             id: "fc27".to_string(),
             title: "EA SPORTS FC™ 27".to_string(),
@@ -131,6 +135,7 @@ pub fn get_active_quests() -> Vec<QuestInfo> {
             needs_rpc: false,
         },
     ]
+    })
 }
 
 
@@ -152,7 +157,7 @@ mod tests {
     fn test_all_quests_reward_orbs() {
         let quests = get_active_quests();
         assert!(quests.len() >= 6);
-        for q in &quests {
+        for q in quests {
             assert_eq!(q.orbs_reward, 700);
             assert_eq!(q.required_minutes, 15);
         }
