@@ -425,7 +425,10 @@
   }
 
   // Telemetry Logging
-  function addLog(message, level = 'info') {
+    function addLog(message, level = 'info') {
+    if (telemetryLogs && telemetryLogs.children.length > 200) {
+      telemetryLogs.removeChild(telemetryLogs.firstChild);
+    }
     const entry = document.createElement('div');
     entry.className = `log-entry ${level}`;
     const time = new Date().toLocaleTimeString();
