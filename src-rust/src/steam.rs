@@ -93,7 +93,8 @@ impl SteamHelper {
             }
         }
 
-        let clean_name = game_name.replace('"', "");
+        let clean_name = game_name
+            .replace(['"', '\\', '/', '\0', '\r', '\n'], "");
         let acf_content = format!(
             r#""AppState"
 {{

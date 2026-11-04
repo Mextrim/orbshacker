@@ -229,12 +229,53 @@ fn set_clipboard_text(text: &str) {
     }
 }
 
+#[cfg(windows)]
 fn open_external_url(url: &str) {
-    if url.starts_with("http://") || url.starts_with("https://") || url.starts_with("discord://") {
-        let _ = std::process::Command::new("cmd")
-            .args(["/c", "start", "", url])
-            .spawn();
+    if !url.starts_with("https://") && !url.starts_with("http://") && !url.starts_with("discord://") {
+        return;
     }
+    // Security check: block control characters, newlines, null bytes
+    if url.chars().any(|c| c.is_control() || c == '\0') {
+        return;
+    }
+
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    unsafe {
+        #[link(name = "shell32")]
+        extern "system" {
+            fn ShellExecuteW(
+                hwnd: *mut std::ffi::c_void,
+                lpOperation: *const u16,
+                lpFile: *const u16,
+                lpParameters: *const u16,
+                lpDirectory: *const u16,
+                nShowCmd: i32,
+            ) -> *mut std::ffi::c_void;
+        }
+
+        let op: Vec<u16> = OsStr::new("open").encode_wide().chain(Some(0)).collect();
+        let target: Vec<u16> = OsStr::new(url).encode_wide().chain(Some(0)).collect();
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            op.as_ptr(),
+            target.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            1, // SW_SHOWNORMAL
+        );
+    }
+}
+
+#[cfg(not(windows))]
+fn open_external_url(url: &str) {
+    if !url.starts_with("https://") && !url.starts_with("http://") && !url.starts_with("discord://") {
+        return;
+    }
+    if url.chars().any(|c| c.is_control() || c == '\0' || c == '"' || c == '\'') {
+        return;
+    }
+    let _ = std::process::Command::new("xdg-open").arg(url).spawn();
 }
 
 fn check_github_updates(current_ver: &str) -> serde_json::Value {
@@ -415,6 +456,26 @@ pub fn run_gui_app() {
                         let script = format!("window.__orbshacker_dispatch_response({}, {}, null);", id, info);
                         let _ = proxy_clone.send_event(AppEvent::EvalScript(script));
                     });
+                }
+                "download_update" => {
+                    let id = parsed.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
+                    let download_url = parsed
+                        .get("params")
+                        .and_then(|p| p.get("downloadUrl"))
+                        .and_then(|u| u.as_str())
+                        .unwrap_or("https://github.com/Mextrim/orbshacker/releases/latest");
+
+                    let safe_url = if download_url.starts_with("https://github.com/Mextrim/orbshacker/")
+                        || download_url.starts_with("https://objects.githubusercontent.com/")
+                    {
+                        download_url
+                    } else {
+                        "https://github.com/Mextrim/orbshacker/releases/latest"
+                    };
+
+                    open_external_url(safe_url);
+                    let script = format!("window.__orbshacker_dispatch_response({}, true, null);", id);
+                    let _ = proxy_for_ipc.send_event(AppEvent::EvalScript(script));
                 }
                 "get_live_profile" => {
                     let id = parsed.get("id").and_then(|v| v.as_u64()).unwrap_or(0);

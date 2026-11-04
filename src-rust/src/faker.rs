@@ -43,7 +43,23 @@ impl FakerManager {
         steam_app_id: Option<u64>,
     ) -> Result<PathBuf, String> {
         let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
-        let target_exe = self.target_dir.join(exe_name);
+
+        // Security check: strip directory components and dangerous characters to prevent path traversal
+        let raw_name = std::path::Path::new(exe_name)
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or("game.exe");
+
+        let mut safe_name = raw_name
+            .replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'], "");
+        if safe_name.is_empty() {
+            safe_name = "game.exe".to_string();
+        }
+        if !safe_name.to_lowercase().ends_with(".exe") {
+            safe_name.push_str(".exe");
+        }
+
+        let target_exe = self.target_dir.join(&safe_name);
 
         if let Some(parent) = target_exe.parent() {
             let _ = fs::create_dir_all(parent);
