@@ -77,177 +77,7 @@ pub fn run_json_rpc_service() {
             }
         };
 
-        let mut res: Option<Value> = None;
-        let mut err: Option<String> = None;
-
-        match req.method.as_str() {
-            "ping" => {
-                res = Some(serde_json::json!({ "pong": true }));
-            }
-            "check_discord_status" => {
-                let connected = crate::discord_rpc::is_discord_available();
-                res = Some(serde_json::json!({ "connected": connected }));
-            }
-            "get_quests" => {
-                let quests = get_active_quests();
-                res = Some(serde_json::to_value(quests).unwrap());
-            }
-            "start_farm" => {
-                let quest_ids: Vec<String> = req
-                    .params
-                    .get("quests")
-                    .and_then(|v| v.as_array())
-                    .map(|arr| {
-                        arr.iter()
-                            .filter_map(|x| x.as_str().map(|s| s.to_string()))
-                            .collect()
-                    })
-                    .unwrap_or_else(|| vec!["all".to_string()]);
-
-                let minutes = req
-                    .params
-                    .get("minutes")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(15) as u32;
-
-                let mut s = session.lock().unwrap();
-                match s.start_farm(quest_ids, minutes, event_callback.clone()) {
-                    Ok(count) => {
-                        res = Some(serde_json::json!({ "started": true, "launched_count": count }));
-                    }
-                    Err(e) => {
-                        err = Some(e);
-                    }
-                }
-            }
-            "stop_farm" => {
-                let mut s = session.lock().unwrap();
-                s.stop_farm();
-                res = Some(serde_json::json!({ "stopped": true }));
-            }
-            "get_status" => {
-                let s = session.lock().unwrap();
-                let st = s.get_status();
-                res = Some(serde_json::to_value(st).unwrap());
-            }
-
-            // --- Badges & Custom Games ---
-            "get_detectable_games" => {
-                let games = get_detectable_games_catalog();
-                res = Some(serde_json::to_value(games).unwrap());
-            }
-            "get_badge_tiers" => {
-                let game_count_tiers = get_game_count_badge_tiers();
-                let hours_tiers = get_hours_badge_tiers();
-                res = Some(serde_json::json!({
-                    "game_count_tiers": game_count_tiers,
-                    "hours_tiers": hours_tiers
-                }));
-            }
-            "start_badge_count" => {
-                let count = req.params.get("target_count").and_then(|v| v.as_u64()).unwrap_or(100) as usize;
-                let offset = req.params.get("start_offset").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-                let secs_per_game = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
-
-                let mut s = session.lock().unwrap();
-                match s.start_badge_count_farm(count, offset, secs_per_game, event_callback.clone()) {
-                    Ok(total) => res = Some(serde_json::json!({ "started": true, "total_games": total })),
-                    Err(e) => err = Some(e),
-                }
-            }
-            "start_single_game" => {
-                let game_id = req.params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
-                let secs = req.params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
-
-                let mut s = session.lock().unwrap();
-                match s.start_single_game_farm(game_id, secs, event_callback.clone()) {
-                    Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
-                    Err(e) => err = Some(e),
-                }
-            }
-            "start_badge_hours" => {
-                let game = req.params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
-                let game_name = req.params.get("game_name").and_then(|v| v.as_str());
-                let hours = req.params.get("hours").and_then(|v| v.as_u64()).unwrap_or(1) as u32;
-                let is_infinite = req.params.get("is_infinite").and_then(|v| v.as_bool()).unwrap_or(false);
-
-                let mut s = session.lock().unwrap();
-                match s.start_hours_farm(game, game_name, hours, is_infinite, event_callback.clone()) {
-                    Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
-                    Err(e) => err = Some(e),
-                }
-            }
-            "stop_badge_farm" => {
-                let mut s = session.lock().unwrap();
-                s.stop_badge_farm();
-                res = Some(serde_json::json!({ "stopped": true }));
-            }
-            "get_badge_status" => {
-                let s = session.lock().unwrap();
-                let st = s.get_badge_status();
-                res = Some(serde_json::to_value(st).unwrap());
-            }
-
-            "open_discord_quests" => {
-                #[cfg(windows)]
-                {
-                    // Open Discord deep link directly to Quest Home, fallback to Web
-                    let _ = Command::new("cmd")
-                        .args(["/c", "start discord:///quest-home || start https://discord.com/quest-home"])
-                        .spawn();
-                }
-                res = Some(serde_json::json!({ "opened": true }));
-            }
-
-            // --- Custom Discord Rich Presence (RPC) ---
-            "set_discord_rpc" => {
-                let data: crate::discord_rpc::CustomPresenceData = serde_json::from_value(req.params.clone()).unwrap_or_default();
-                let mut s = session.lock().unwrap();
-                match s.set_custom_rpc(data) {
-                    Ok(_) => res = Some(serde_json::json!({ "success": true })),
-                    Err(e) => err = Some(e),
-                }
-            }
-            "stop_discord_rpc" => {
-                let mut s = session.lock().unwrap();
-                match s.stop_custom_rpc() {
-                    Ok(_) => res = Some(serde_json::json!({ "stopped": true })),
-                    Err(e) => err = Some(e),
-                }
-            }
-            "get_discord_rpc_status" => {
-                let s = session.lock().unwrap();
-                let status = s.get_custom_rpc_status();
-                res = Some(status);
-            }
-
-            // --- Program Rich Presence Status ---
-            "set_app_presence_enabled" => {
-                let enabled = req.params.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
-                let s = session.lock().unwrap();
-                s.set_presence_enabled(enabled);
-                res = Some(serde_json::json!({ "success": true, "enabled": enabled }));
-            }
-            "get_app_presence_status" => {
-                let s = session.lock().unwrap();
-                res = Some(s.get_presence_status());
-            }
-
-            "set_app_presence_meme_config" => {
-                let config: crate::discord_rpc::PresenceMemeConfig = serde_json::from_value(req.params.clone()).unwrap_or_default();
-                let s = session.lock().unwrap();
-                s.set_presence_meme_config(config);
-                res = Some(serde_json::json!({ "success": true }));
-            }
-            "get_app_presence_meme_config" => {
-                let s = session.lock().unwrap();
-                res = Some(serde_json::to_value(s.get_presence_meme_config()).unwrap_or_default());
-            }
-
-            other => {
-                err = Some(format!("Unknown method: {}", other));
-            }
-        }
+        let (res, err) = dispatch_rpc_call(req.method.as_str(), &req.params, &session, event_callback.clone());
 
         let resp = RpcResponse {
             id: req.id,
@@ -259,4 +89,182 @@ pub fn run_json_rpc_service() {
         let _ = writeln!(out, "{}", serde_json::to_string(&resp).unwrap());
         let _ = out.flush();
     }
+}
+
+pub fn dispatch_rpc_call(
+    method: &str,
+    params: &Value,
+    session: &Arc<Mutex<FarmSession>>,
+    event_callback: EventCallback,
+) -> (Option<Value>, Option<String>) {
+    let mut res: Option<Value> = None;
+    let mut err: Option<String> = None;
+
+    match method {
+        "ping" => {
+            res = Some(serde_json::json!({ "pong": true }));
+        }
+        "check_discord_status" => {
+            let connected = crate::discord_rpc::is_discord_available();
+            res = Some(serde_json::json!({ "connected": connected }));
+        }
+        "get_quests" => {
+            let quests = get_active_quests();
+            res = Some(serde_json::to_value(quests).unwrap());
+        }
+        "start_farm" => {
+            let quest_ids: Vec<String> = params
+                .get("quests")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|x| x.as_str().map(|s| s.to_string()))
+                        .collect()
+                })
+                .unwrap_or_else(|| vec!["all".to_string()]);
+
+            let minutes = params
+                .get("minutes")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(15) as u32;
+
+            let mut s = session.lock().unwrap();
+            match s.start_farm(quest_ids, minutes, event_callback) {
+                Ok(count) => {
+                    res = Some(serde_json::json!({ "started": true, "launched_count": count }));
+                }
+                Err(e) => {
+                    err = Some(e);
+                }
+            }
+        }
+        "stop_farm" => {
+            let mut s = session.lock().unwrap();
+            s.stop_farm();
+            res = Some(serde_json::json!({ "stopped": true }));
+        }
+        "get_status" => {
+            let s = session.lock().unwrap();
+            let st = s.get_status();
+            res = Some(serde_json::to_value(st).unwrap());
+        }
+
+        // --- Badges & Custom Games ---
+        "get_detectable_games" => {
+            let games = get_detectable_games_catalog();
+            res = Some(serde_json::to_value(games).unwrap());
+        }
+        "get_badge_tiers" => {
+            let game_count_tiers = get_game_count_badge_tiers();
+            let hours_tiers = get_hours_badge_tiers();
+            res = Some(serde_json::json!({
+                "game_count_tiers": game_count_tiers,
+                "hours_tiers": hours_tiers
+            }));
+        }
+        "start_badge_count" => {
+            let count = params.get("target_count").and_then(|v| v.as_u64()).unwrap_or(100) as usize;
+            let offset = params.get("start_offset").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+            let secs_per_game = params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
+
+            let mut s = session.lock().unwrap();
+            match s.start_badge_count_farm(count, offset, secs_per_game, event_callback) {
+                Ok(total) => res = Some(serde_json::json!({ "started": true, "total_games": total })),
+                Err(e) => err = Some(e),
+            }
+        }
+        "start_single_game" => {
+            let game_id = params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
+            let secs = params.get("duration_secs").and_then(|v| v.as_u64()).unwrap_or(15);
+
+            let mut s = session.lock().unwrap();
+            match s.start_single_game_farm(game_id, secs, event_callback) {
+                Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
+                Err(e) => err = Some(e),
+            }
+        }
+        "start_badge_hours" => {
+            let game = params.get("game_id").and_then(|v| v.as_str()).unwrap_or("cs2");
+            let game_name = params.get("game_name").and_then(|v| v.as_str());
+            let hours = params.get("hours").and_then(|v| v.as_u64()).unwrap_or(1) as u32;
+            let is_infinite = params.get("is_infinite").and_then(|v| v.as_bool()).unwrap_or(false);
+
+            let mut s = session.lock().unwrap();
+            match s.start_hours_farm(game, game_name, hours, is_infinite, event_callback) {
+                Ok(name) => res = Some(serde_json::json!({ "started": true, "game_name": name })),
+                Err(e) => err = Some(e),
+            }
+        }
+        "stop_badge_farm" => {
+            let mut s = session.lock().unwrap();
+            s.stop_badge_farm();
+            res = Some(serde_json::json!({ "stopped": true }));
+        }
+        "get_badge_status" => {
+            let s = session.lock().unwrap();
+            let st = s.get_badge_status();
+            res = Some(serde_json::to_value(st).unwrap());
+        }
+
+        "open_discord_quests" => {
+            #[cfg(windows)]
+            {
+                let _ = Command::new("cmd")
+                    .args(["/c", "start discord:///quest-home || start https://discord.com/quest-home"])
+                    .spawn();
+            }
+            res = Some(serde_json::json!({ "opened": true }));
+        }
+
+        // --- Custom Discord Rich Presence (RPC) ---
+        "set_discord_rpc" => {
+            let data: crate::discord_rpc::CustomPresenceData = serde_json::from_value(params.clone()).unwrap_or_default();
+            let mut s = session.lock().unwrap();
+            match s.set_custom_rpc(data) {
+                Ok(_) => res = Some(serde_json::json!({ "success": true })),
+                Err(e) => err = Some(e),
+            }
+        }
+        "stop_discord_rpc" => {
+            let mut s = session.lock().unwrap();
+            match s.stop_custom_rpc() {
+                Ok(_) => res = Some(serde_json::json!({ "stopped": true })),
+                Err(e) => err = Some(e),
+            }
+        }
+        "get_discord_rpc_status" => {
+            let s = session.lock().unwrap();
+            let status = s.get_custom_rpc_status();
+            res = Some(status);
+        }
+
+        // --- Program Rich Presence Status ---
+        "set_app_presence_enabled" => {
+            let enabled = params.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+            let s = session.lock().unwrap();
+            s.set_presence_enabled(enabled);
+            res = Some(serde_json::json!({ "success": true, "enabled": enabled }));
+        }
+        "get_app_presence_status" => {
+            let s = session.lock().unwrap();
+            res = Some(s.get_presence_status());
+        }
+
+        "set_app_presence_meme_config" => {
+            let config: crate::discord_rpc::PresenceMemeConfig = serde_json::from_value(params.clone()).unwrap_or_default();
+            let s = session.lock().unwrap();
+            s.set_presence_meme_config(config);
+            res = Some(serde_json::json!({ "success": true }));
+        }
+        "get_app_presence_meme_config" => {
+            let s = session.lock().unwrap();
+            res = Some(serde_json::to_value(s.get_presence_meme_config()).unwrap_or_default());
+        }
+
+        other => {
+            err = Some(format!("Unknown method: {}", other));
+        }
+    }
+
+    (res, err)
 }

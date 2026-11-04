@@ -2,7 +2,7 @@
 mod tests {
     #[test]
     fn test_active_quests_catalog() {
-        let output = std::process::Command::new(env!("CARGO_BIN_EXE_orbshacker-core"))
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_orbshacker"))
             .arg("--help")
             .output();
 

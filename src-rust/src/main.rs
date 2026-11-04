@@ -1,6 +1,9 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod badges;
 mod discord_rpc;
 mod faker;
+mod gui;
 mod quests;
 mod rpc;
 mod session;
@@ -202,6 +205,27 @@ fn main() {
         return;
     }
 
-    // 3. Default: Run JSON-RPC IPC Server over stdin/stdout
-    rpc::run_json_rpc_service();
+    // 3. Stdin/stdout JSON-RPC server mode: orbshacker --cli-rpc
+    if args.contains(&"--cli-rpc".to_string()) {
+        rpc::run_json_rpc_service();
+        return;
+    }
+
+    // 4. CLI Help / Version
+    if args.contains(&"--help".to_string()) || args.contains(&"-h".to_string()) {
+        println!("ORBSHACKER v{} - 100% Native Rust Discord Quests & Profile Badges Spoofer", env!("CARGO_PKG_VERSION"));
+        println!("Usage:");
+        println!("  orbshacker                Launch native GUI desktop application");
+        println!("  orbshacker --farm-all     Launch headless 15-minute Discord Quests farm");
+        println!("  orbshacker --cli-rpc      Run stdin/stdout JSON-RPC service");
+        println!("  orbshacker --version      Print version information");
+        return;
+    }
+    if args.contains(&"--version".to_string()) || args.contains(&"-V".to_string()) {
+        println!("orbshacker {}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+
+    // 5. Default: Run 100% Native Rust GUI Desktop Application
+    gui::run_gui_app();
 }

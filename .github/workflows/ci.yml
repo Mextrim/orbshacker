@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  check-rust:
+  test-rust:
     strategy:
       matrix:
         os: [windows-latest]
@@ -18,7 +18,11 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Check Rust Core & Launcher
-        run: |
-          cargo check --manifest-path src-rust/Cargo.toml
-          cargo check --manifest-path src-launcher/Cargo.toml
+      - name: Check Rust Application
+        run: cargo check --manifest-path src-rust/Cargo.toml
+
+      - name: Run Tests
+        run: cargo test --manifest-path src-rust/Cargo.toml
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path src-rust/Cargo.toml -- -D warnings

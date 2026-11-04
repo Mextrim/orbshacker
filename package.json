@@ -1,12 +1,11 @@
 {
   "name": "orbshacker",
-  "version": "2.15.0",
-  "description": "Discord Quests & Profile Badges Spoofer rewritten in Rust + Electron",
+  "version": "3.0.0",
+  "description": "100% Native Rust Discord Quests & Profile Badges Spoofer",
   "author": "Mextrim",
   "license": "GPL-3.0",
   "scripts": {
-    "start": "node scripts/start.js",
-    "build:rust": "cargo build --release --manifest-path src-rust/Cargo.toml",
-    "build": "node scripts/build.js"
+    "start": "cargo run --release --manifest-path src-rust/Cargo.toml",
+    "build": "cargo build --release --manifest-path src-rust/Cargo.toml"
   }
 }

@@ -20,6 +20,9 @@ yarn-error.log*
 !build/icon.ico
 
 # Temporary & Local files
+*.WebView2/
+EBWebView/
+orbshacker.exe.WebView2/
 scratch/
 .env
 .venv/
