@@ -9,13 +9,13 @@ fn main() {
         res.set("LegalCopyright", "Copyright (C) 2026 Mextrim. All rights reserved.");
         res.set("OriginalFilename", "orbshacker.exe");
         res.set("InternalName", "orbshacker");
-        res.set("ProductVersion", "3.0.0");
-        res.set("FileVersion", "3.0.0.0");
+        res.set("ProductVersion", "3.1.0");
+        res.set("FileVersion", "3.1.0.0");
         res.set("Comments", "Open-source Discord activity and quest assistant.");
 
         let manifest = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity version="3.0.0.0" processorArchitecture="*" name="Mextrim.Orbshacker" type="win32"/>
+  <assemblyIdentity version="3.1.0.0" processorArchitecture="*" name="Mextrim.Orbshacker" type="win32"/>
   <description>Orbshacker Discord Activity Companion</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>

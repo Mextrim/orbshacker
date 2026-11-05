@@ -29,7 +29,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path artifacts
           Copy-Item src-rust/target/release/orbshacker.exe artifacts/orbshacker.exe
           $tag = $env:GITHUB_REF_NAME
-          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v3.0.0" }
+          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v3.1.0" }
           
           New-Item -ItemType Directory -Force -Path temp_pack
           Copy-Item src-rust/target/release/orbshacker.exe temp_pack/orbshacker.exe
@@ -69,7 +69,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [[ ! "$TAG" =~ ^v[0-9] ]]; then
-            TAG="v3.0.0"
+            TAG="v3.1.0"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 

@@ -10,13 +10,13 @@ We actively maintain and provide security patches for the current major release 
 
 | Version | Supported | Architecture | Security Maintenance Status |
 |:-------:|:---------:|:------------:|:----------------------------|
-| **3.0.x** | :white_check_mark: **Active** | 100% Native Safe Rust (`orbshacker.exe`) | **Current Production Release**. Full security updates, memory safety guarantees, and automated SHA-256 release checksums. |
+| **3.1.x** / **3.0.x** | :white_check_mark: **Active** | 100% Native Safe Rust (`orbshacker.exe`) | **Current Production Release**. Full security updates, memory safety guarantees, and automated SHA-256 release checksums. |
 | **2.x** | :x: **End of Life** | Legacy Electron Runtime | **Deprecated**. No longer maintained. All users are advised to upgrade to v3.0+. |
 | **1.x** | :x: **End of Life** | Legacy Prototype | **Deprecated**. Unsupported legacy build. |
 | **< 1.0** | :x: **End of Life** | Early Proof of Concept | **Deprecated**. |
 
 > [!IMPORTANT]
-> If you are using any legacy `v2.x` (Electron) or earlier build, please update immediately to the native **v3.0.0+** release. The modern Rust architecture uses 8x less RAM, eliminates Node.js attack surfaces, and features hardened local IPC communication.
+> If you are using any legacy `v2.x` (Electron) or earlier build, please update immediately to the native **v3.1.0+** release. The modern Rust architecture uses 8x less RAM, eliminates Node.js attack surfaces, and features hardened local IPC communication.
 
 ---
 

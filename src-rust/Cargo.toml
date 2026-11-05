@@ -1,6 +1,6 @@
 [package]
 name = "orbshacker"
-version = "3.0.0"
+version = "3.1.0"
 edition = "2021"
 authors = ["Mextrim"]
 description = "100% Native Rust Discord Quests & Game Activity Companion"
