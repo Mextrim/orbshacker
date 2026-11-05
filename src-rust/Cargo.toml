@@ -3,7 +3,7 @@ name = "orbshacker"
 version = "3.0.0"
 edition = "2021"
 authors = ["Mextrim"]
-description = "100% Native Rust Discord Quests & Profile Badges Spoofer"
+description = "100% Native Rust Discord Quests & Game Activity Companion"
 
 [build-dependencies]
 winres = "0.1"
@@ -17,8 +17,8 @@ minreq = { version = "2.11", features = ["https"] }
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
 
 [profile.release]
-opt-level = "z"
-lto = true
+opt-level = 2
+lto = "thin"
 codegen-units = 1
-panic = "abort"
-strip = true
+panic = "unwind"
+strip = "debuginfo"

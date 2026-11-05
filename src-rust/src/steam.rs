@@ -76,7 +76,7 @@ impl SteamHelper {
         }
     }
 
-    pub fn create_fake_manifest(app_id: u64, game_name: &str) -> Result<PathBuf, String> {
+    pub fn register_steam_manifest(app_id: u64, game_name: &str) -> Result<PathBuf, String> {
         let steamapps = Self::get_steamapps_dir()
             .ok_or_else(|| "Could not locate Steam installation or steamapps folder.".to_string())?;
 

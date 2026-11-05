@@ -2,31 +2,41 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{Child, Command};
 
-pub struct FakerProcess {
+pub struct LaunchedProcess {
     #[allow(dead_code)]
     pub exe_path: PathBuf,
     pub child: Child,
 }
 
-pub struct FakerManager {
+pub struct GameProcessManager {
     target_dir: PathBuf,
-    processes: Vec<FakerProcess>,
+    processes: Vec<LaunchedProcess>,
     created_files: Vec<PathBuf>,
 }
 
-impl FakerManager {
+impl GameProcessManager {
     pub fn new(target_dir: Option<PathBuf>) -> Self {
         let dir = target_dir.unwrap_or_else(|| {
-            if let Ok(userprofile) = std::env::var("USERPROFILE") {
-                PathBuf::from(userprofile).join("Desktop").join("Win64")
+            if let Ok(local) = std::env::var("LOCALAPPDATA") {
+                PathBuf::from(local).join("Orbshacker").join("stubs")
+            } else if let Ok(appdata) = std::env::var("APPDATA") {
+                PathBuf::from(appdata).join("Orbshacker").join("stubs")
             } else if let Ok(home) = std::env::var("HOME") {
-                PathBuf::from(home).join(".orbshacker").join("bin")
+                PathBuf::from(home).join(".orbshacker").join("stubs")
             } else {
-                std::env::temp_dir().join("orbshacker")
+                std::env::temp_dir().join("orbshacker").join("stubs")
             }
         });
 
         let _ = fs::create_dir_all(&dir);
+
+        // Clean up any legacy Desktop/Win64 folder from earlier builds
+        if let Ok(userprofile) = std::env::var("USERPROFILE") {
+            let legacy_dir = PathBuf::from(userprofile).join("Desktop").join("Win64");
+            if legacy_dir.exists() {
+                let _ = fs::remove_dir_all(&legacy_dir);
+            }
+        }
 
         Self {
             target_dir: dir,
@@ -71,16 +81,19 @@ impl FakerManager {
         }
 
         if !target_exe.exists() {
-            if let Err(e) = fs::copy(&current_exe, &target_exe) {
-                if !target_exe.exists() {
-                    return Err(format!("Could not create stub file {}: {}", target_exe.display(), e));
+            // Try hard link first (instant, 0 extra disk bytes, highly efficient)
+            if std::fs::hard_link(&current_exe, &target_exe).is_err() {
+                // Fallback to copy if cross-volume
+                if let Err(e) = fs::copy(&current_exe, &target_exe) {
+                    if !target_exe.exists() {
+                        return Err(format!("Could not create helper file {}: {}", target_exe.display(), e));
+                    }
                 }
-            } else {
-                self.created_files.push(target_exe.clone());
             }
         }
+        self.created_files.push(target_exe.clone());
 
-        // Spawn child process with --stub mode in completely silent background
+        // Spawn helper process with --stub mode in background
         let mut cmd = Command::new(&target_exe);
         cmd.arg("--stub")
             .arg("--title")
@@ -96,10 +109,10 @@ impl FakerManager {
         }
 
         let child = cmd.spawn().map_err(|e| {
-            format!("Failed to spawn stub process for {}: {}", exe_name, e)
+            format!("Failed to spawn helper process for {}: {}", exe_name, e)
         })?;
 
-        self.processes.push(FakerProcess {
+        self.processes.push(LaunchedProcess {
             exe_path: target_exe.clone(),
             child,
         });
@@ -113,6 +126,9 @@ impl FakerManager {
             let _ = p.child.wait();
         }
 
+        // Wait brief instant for OS handles to close before deleting files
+        std::thread::sleep(std::time::Duration::from_millis(50));
+
         for file in self.created_files.drain(..) {
             if file.exists() {
                 let _ = fs::remove_file(&file);
@@ -121,7 +137,7 @@ impl FakerManager {
     }
 }
 
-impl Drop for FakerManager {
+impl Drop for GameProcessManager {
     fn drop(&mut self) {
         self.stop_all();
     }

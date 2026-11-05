@@ -2,7 +2,7 @@
 
 mod badges;
 mod discord_rpc;
-mod faker;
+mod launcher;
 mod gui;
 mod quests;
 mod rpc;
@@ -15,6 +15,18 @@ use std::time::Duration;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    #[cfg(windows)]
+    if args.iter().any(|a| a == "--help" || a == "-h" || a == "--version" || a == "-V" || a == "--farm-all" || a == "--cli-rpc") {
+        unsafe {
+            #[link(name = "kernel32")]
+            extern "system" {
+                fn AttachConsole(dwProcessId: u32) -> i32;
+            }
+            const ATTACH_PARENT_PROCESS: u32 = 0xFFFFFFFF;
+            let _ = AttachConsole(ATTACH_PARENT_PROCESS);
+        }
+    }
 
     // 1. Stub Mode: orbshacker-core --stub --title "Game Title" --duration 900
     if args.contains(&"--stub".to_string()) {

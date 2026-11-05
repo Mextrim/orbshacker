@@ -55,6 +55,16 @@ safeCopy(rustBin, path.join(distDir, 'orbshacker.exe'));
 safeCopy(rustBin, path.join(rootDir, 'orbshacker.exe'));
 console.log('✅ [2/3] Copied standalone native executable to dist/orbshacker.exe & root orbshacker.exe');
 
+// Sign on Windows with Authenticode
+if (isWin) {
+  const signScript = path.join(__dirname, 'sign.ps1');
+  if (fs.existsSync(signScript)) {
+    console.log('🔏 Applying Authenticode digital code signature...');
+    spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', signScript, '-FilePath', path.join(distDir, 'orbshacker.exe')], { stdio: 'inherit' });
+    spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', signScript, '-FilePath', path.join(rootDir, 'orbshacker.exe')], { stdio: 'inherit' });
+  }
+}
+
 // Create standalone zip package
 console.log('🗜️  [3/3] Creating standalone distribution ZIP...');
 if (fs.existsSync(zipOut)) {
@@ -70,6 +80,9 @@ fs.copyFileSync(path.join(distDir, 'orbshacker.exe'), path.join(tempPackDir, 'or
 if (fs.existsSync(path.join(rootDir, 'README.md'))) {
   fs.copyFileSync(path.join(rootDir, 'README.md'), path.join(tempPackDir, 'README.md'));
 }
+if (fs.existsSync(path.join(rootDir, 'SECURITY.md'))) {
+  fs.copyFileSync(path.join(rootDir, 'SECURITY.md'), path.join(tempPackDir, 'SECURITY.md'));
+}
 
 const psScript = `Compress-Archive -Path "${tempPackDir}\\*" -DestinationPath "${zipOut}" -Force`;
 const zipResult = spawnSync('powershell.exe', ['-NoProfile', '-Command', psScript], {
@@ -81,20 +94,22 @@ if (zipResult.status !== 0) {
 }
 fs.rmSync(tempPackDir, { recursive: true, force: true });
 
-// Generate SHA256SUMS
-function sha256File(filePath) {
+// Compute SHA256 checksums
+function getFileSha256(filePath) {
   const data = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(data).digest('hex');
 }
 
-const zipHash = fs.existsSync(zipOut) ? sha256File(zipOut) : '';
-const exeHash = sha256File(path.join(distDir, 'orbshacker.exe'));
-const shaSums = `${zipHash} *orbshacker-${currentVersion}-win-x64.zip\n${exeHash} *orbshacker.exe\n`;
-fs.writeFileSync(path.join(distDir, 'SHA256SUMS'), shaSums, 'utf8');
+const exeSha = getFileSha256(path.join(distDir, 'orbshacker.exe'));
+const zipSha = getFileSha256(zipOut);
+
+const shaContent = `${exeSha}  orbshacker.exe\n${zipSha}  orbshacker-${currentVersion}-win-x64.zip\n`;
+fs.writeFileSync(path.join(distDir, 'SHA256SUMS'), shaContent, 'utf8');
+
+const exeSizeMb = (fs.statSync(path.join(distDir, 'orbshacker.exe')).size / (1024 * 1024)).toFixed(2);
+const zipSizeMb = (fs.statSync(zipOut).size / (1024 * 1024)).toFixed(2);
 
 console.log(`\n🎉 Native Windows distribution ready in: ${distDir}`);
-console.log(`   - orbshacker.exe (${(fs.statSync(path.join(distDir, 'orbshacker.exe')).size / 1024 / 1024).toFixed(2)} MB, SHA: ${exeHash.slice(0, 16)}...)`);
-if (fs.existsSync(zipOut)) {
-  console.log(`   - orbshacker-${currentVersion}-win-x64.zip (${(fs.statSync(zipOut).size / 1024 / 1024).toFixed(2)} MB, SHA: ${zipHash.slice(0, 16)}...)`);
-}
-console.log('   - SHA256SUMS generated.');
+console.log(`   - orbshacker.exe (${exeSizeMb} MB, SHA: ${exeSha.slice(0, 16)}...)`);
+console.log(`   - orbshacker-${currentVersion}-win-x64.zip (${zipSizeMb} MB, SHA: ${zipSha.slice(0, 16)}...)`);
+console.log(`   - SHA256SUMS generated.`);

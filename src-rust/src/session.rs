@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::badges::{get_detectable_games_catalog, DetectableGame};
 use crate::discord_rpc::{AppPresenceManager, CustomPresenceData, CustomRpcClient, DiscordRpcClient, PresenceMemeConfig, PresenceState};
-use crate::faker::FakerManager;
+use crate::launcher::GameProcessManager;
 use crate::quests::{get_active_quests, QuestInfo};
 use crate::steam::SteamHelper;
 
@@ -42,7 +42,7 @@ pub struct FarmSession {
     total_seconds: Arc<AtomicU64>,
     active_quests: Arc<Mutex<Vec<QuestInfo>>>,
     rpc_clients: Arc<Mutex<Vec<DiscordRpcClient>>>,
-    faker_mgr: Arc<Mutex<FakerManager>>,
+    faker_mgr: Arc<Mutex<GameProcessManager>>,
     manifest_paths: Arc<Mutex<Vec<PathBuf>>>,
     ticker_handle: Option<thread::JoinHandle<()>>,
 
@@ -54,7 +54,7 @@ pub struct FarmSession {
     badge_total_games: Arc<AtomicU64>,
     badge_elapsed: Arc<AtomicU64>,
     badge_target_seconds: Arc<AtomicU64>,
-    badge_faker_mgr: Arc<Mutex<FakerManager>>,
+    badge_faker_mgr: Arc<Mutex<GameProcessManager>>,
     badge_rpc_clients: Arc<Mutex<Vec<DiscordRpcClient>>>,
     badge_ticker_handle: Option<thread::JoinHandle<()>>,
 
@@ -73,7 +73,7 @@ impl FarmSession {
             total_seconds: Arc::new(AtomicU64::new(900)),
             active_quests: Arc::new(Mutex::new(Vec::new())),
             rpc_clients: Arc::new(Mutex::new(Vec::new())),
-            faker_mgr: Arc::new(Mutex::new(FakerManager::new(None))),
+            faker_mgr: Arc::new(Mutex::new(GameProcessManager::new(None))),
             manifest_paths: Arc::new(Mutex::new(Vec::new())),
             ticker_handle: None,
 
@@ -84,7 +84,7 @@ impl FarmSession {
             badge_total_games: Arc::new(AtomicU64::new(0)),
             badge_elapsed: Arc::new(AtomicU64::new(0)),
             badge_target_seconds: Arc::new(AtomicU64::new(0)),
-            badge_faker_mgr: Arc::new(Mutex::new(FakerManager::new(None))),
+            badge_faker_mgr: Arc::new(Mutex::new(GameProcessManager::new(None))),
             badge_rpc_clients: Arc::new(Mutex::new(Vec::new())),
             badge_ticker_handle: None,
 
@@ -133,7 +133,7 @@ impl FarmSession {
         for quest in &target_quests {
             // 1. Steam manifest
             if let Some(steam_id) = quest.steam_app_id {
-                if let Ok(manifest) = SteamHelper::create_fake_manifest(steam_id, &quest.game_title) {
+                if let Ok(manifest) = SteamHelper::register_steam_manifest(steam_id, &quest.game_title) {
                     manifest_list.push(manifest);
                     event_callback(
                         "log",
@@ -394,7 +394,7 @@ impl FarmSession {
                 let mut manifests = Vec::new();
                 for game in batch_games {
                     if let Some(steam_id) = game.steam_app_id {
-                        if let Ok(m) = SteamHelper::create_fake_manifest(steam_id, &game.name) {
+                        if let Ok(m) = SteamHelper::register_steam_manifest(steam_id, &game.name) {
                             manifests.push(m);
                         }
                     }
@@ -521,7 +521,7 @@ impl FarmSession {
 
         // 1. Steam fake manifest
         let steam_manifest = if let Some(steam_id) = game.steam_app_id {
-            SteamHelper::create_fake_manifest(steam_id, &game.name).ok()
+            SteamHelper::register_steam_manifest(steam_id, &game.name).ok()
         } else {
             None
         };

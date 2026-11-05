@@ -72,7 +72,7 @@ Orbshacker is designed with a **Security-First & Privacy-First** philosophy:
 ### 5. 🛡️ Safe Subprocess Hygiene & Anti-Path Traversal
 - **Non-Invasive Emulation:** Process spoofing is performed by running clean, non-invasive stub helper instances with `--stub` parameters.
 - **Zero Kernel / Driver Hooks:** Orbshacker does not install kernel-mode drivers, does not perform DLL injection, and does not attach debuggers to Discord or running games.
-- **Path Traversal Defense:** Executable names provided to the process spoofer or custom game tab are strictly sanitized with `Path::file_name()` and illegal character filtering (`/`, `\`, `:`, `*`, `?`, `"`, `<`, `>`, `|`, `\0`), ensuring helper stubs can never escape the designated sandbox directory.
+- **Path Traversal Defense:** Executable names provided to the process spoofer or custom game tab are strictly sanitized with `Path::file_name()` and illegal character filtering (`/`, `\`, `:`, `*`, `?`, `"`, `<`, `>`, `|`, `\0`), ensuring helper stubs can never escape the designated sandbox directory (`%LOCALAPPDATA%\Orbshacker\stubs`). Any legacy desktop folders are automatically detected and purged on launch.
 - **Automated Process Cleanup:** Every spawned stub process is tracked by PID. When farming completes or when Orbshacker is closed, all child stub processes and temporary Steam ACF manifests are terminated and removed cleanly.
 
 ### 6. 🔍 Cryptographic Verification & Reproducible Builds
