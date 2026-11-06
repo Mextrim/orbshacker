@@ -1,6 +1,6 @@
 {
   "name": "orbshacker",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "100% Native Rust Discord Quests & Game Activity Companion",
   "author": "Mextrim",
   "license": "GPL-3.0",
