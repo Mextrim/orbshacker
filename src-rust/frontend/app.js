@@ -1053,22 +1053,120 @@
     });
   }
 
-  function getCategoryIcon(cat, name) {
+  const TOP_2026_IDS = [
+    'gta6', 'wilds', 'stalker2', 'spacemarine2', 'wukong', 'deadlock', 'silenthill2',
+    'manorlords', 'helldivers2', 'dragonsdogma2', 'palworld', 'tekken8', 'persona3r',
+    'frostpunk2', 'kcd2', 'marvel_rivals', 'poe2', 'civ7', 'doom_dark_ages'
+  ];
+
+  function getCategoryMeta(cat, name, id) {
     const c = (cat || '').toLowerCase();
     const n = (name || '').toLowerCase();
-    if (c.includes('shoot') || c.includes('шутер') || c.includes('fps')) return '🔫';
-    if (c.includes('rpg') || c.includes('ролев') || c.includes('souls') || c.includes('arpg')) return '⚔️';
-    if (c.includes('moba') || c.includes('hero') || c.includes('кооп') || c.includes('co-op')) return '👑';
-    if (c.includes('survival') || c.includes('выживан') || c.includes('sandbox')) return '🌲';
-    if (c.includes('racing') || c.includes('симулятор') || c.includes('гонк') || c.includes('sim')) return '🏎️';
-    if (c.includes('horror') || c.includes('хоррор')) return '👻';
-    if (c.includes('strat') || c.includes('стратег') || c.includes('rts') || c.includes('4x')) return '🏰';
-    if (c.includes('fight') || c.includes('файтинг')) return '🥊';
-    if (c.includes('platform') || c.includes('платформер')) return '🏃';
-    return '🎮';
+    const i = (id || '').toLowerCase();
+
+    // 1. Horror
+    if (c.includes('horror') || c.includes('хоррор') || ['silenthill', 'residentevil', 'deadspace', 'outlast', 'phasmophobia', 'fnaf', 'amnesia', 'alanwake', 'lethal'].some(k => i.includes(k) || n.includes(k))) {
+      return { icon: '👻', cls: 'cat-horror', label: 'Хоррор' };
+    }
+
+    // 2. Shooters (FPS, TPS, Tactical, Arena, Battle Royale, Military)
+    if (c.includes('shoot') || c.includes('fps') || c.includes('шутер') || c.includes('tps') || c.includes('looter') || c.includes('extraction') || c.includes('military') || c.includes('tactical') ||
+        ['cs2', 'apex', 'pubg', 'tarkov', 'rainbow', 'tf2', 'doom', 'overwatch', 'warframe', 'valorant', 'crossfire', 'stalcraft', 'stalker', 'deltaforce', 'payday', 'helldivers', 'squad', 'arma', 'metro', 'gungeon', 'isaac', 'brotato', 'warthunder', 'wot', 'wows'].some(k => i.includes(k))) {
+      return { icon: '🎯', cls: 'cat-shooter', label: 'Шутер' };
+    }
+
+    // 3. MOBA & Co-op / Party / Social
+    if (c.includes('moba') || c.includes('hero') || c.includes('кооп') || c.includes('co-op') || c.includes('party') || c.includes('social') || c.includes('deduction') ||
+        ['dota2', 'lol', 'rocket', 'deadlock', 'brawl', 'smite', 'paladins', 'amongus', 'fallguys', 'partyanimals', 'gangbeasts', 'goosegoose', 'crabgame', 'tabletop'].some(k => i.includes(k))) {
+      return { icon: '👑', cls: 'cat-moba', label: 'MOBA / Кооп' };
+    }
+
+    // 4. Survival & Sandbox
+    if (c.includes('survival') || c.includes('выживан') || c.includes('sandbox') ||
+        ['rust', 'ark', 'palworld', 'dayz', 'valheim', 'forest', 'terraria', 'subnautica', 'minecraft', 'raft', '7dtd', 'enshrouded', 'projectzomboid', 'dontstarve'].some(k => i.includes(k))) {
+      return { icon: '🌲', cls: 'cat-survival', label: 'Выживание' };
+    }
+
+    // 5. Racing & Simulators / Sports
+    if (c.includes('racing') || c.includes('симулятор') || c.includes('гонк') || c.includes('sim') || c.includes('flight') || c.includes('truck') || c.includes('sport') || c.includes('golf') || c.includes('derby') || c.includes('mechanic') ||
+        ['forza', 'eurotruck', 'assetto', 'beamng', 'f1', 'needforspeed', 'crew', 'granturismo', 'dirt', 'wrc', 'snowrunner', 'msfs', 'fifa', 'ea_fc', 'nba', 'wreckfest', 'mudrunner', 'mysummercar'].some(k => i.includes(k))) {
+      return { icon: '🏎️', cls: 'cat-racing', label: 'Симулятор' };
+    }
+
+    // 6. Strategy, 4X, Colony & Builders
+    if (c.includes('strat') || c.includes('стратег') || c.includes('rts') || c.includes('4x') || c.includes('colony') || c.includes('factory') || c.includes('automation') || c.includes('builder') || c.includes('management') || c.includes('deckbuilding') || c.includes('roguelike') ||
+        ['civ', 'starcraft', 'totalwar', 'hearts', 'crusader', 'stellaris', 'manorlords', 'factorio', 'satisfactory', 'rimworld', 'frostpunk', 'ageofempires', 'warcraft', 'balatro', 'slaythespire', 'monstertrain', 'wildfrost', 'backpack'].some(k => i.includes(k))) {
+      return { icon: '🏰', cls: 'cat-strategy', label: 'Стратегия' };
+    }
+
+    // 7. Fighting
+    if (c.includes('fight') || c.includes('файтинг') || c.includes('brawler') ||
+        ['tekken', 'streetfighter', 'mortal', 'guilty', 'brawlhalla', 'smash', 'stickfight'].some(k => i.includes(k))) {
+      return { icon: '🥊', cls: 'cat-fighting', label: 'Файтинг' };
+    }
+
+    // 8. RPG, ARPG & Souls-like
+    if (c.includes('rpg') || c.includes('ролев') || c.includes('souls') || c.includes('arpg') || c.includes('jrpg') ||
+        ['witcher', 'cyberpunk', 'eldenring', 'skyrim', 'fallout', 'bg3', 'starfield', 'wukong', 'dragonsdogma', 'persona', 'kcd', 'poe', 'diablo', 'genshin', 'honkai', 'zelda', 'finalfantasy', 'chivalry', 'mordhau'].some(k => i.includes(k))) {
+      return { icon: '⚔️', cls: 'cat-rpg', label: 'RPG' };
+    }
+
+    // 9. Action, Adventure, Metroidvania & Platformer
+    if (c.includes('action') || c.includes('экшен') || c.includes('adventure') || c.includes('open world') || c.includes('metroidvania') || c.includes('thriller') || c.includes('puzzle') || c.includes('platformer') ||
+        ['gta', 'rdr', 'assassin', 'batman', 'spiderman', 'godofwar', 'horizon', 'uncharted', 'tomb', 'silksong', 'portal', 'heavyrain', 'beyond', 'celeste', 'pizzatower', 'geometrydash', 'cuphead', 'speedrunners'].some(k => i.includes(k))) {
+      return { icon: '⚡', cls: 'cat-action', label: 'Экшен' };
+    }
+
+    return { icon: '🎮', cls: 'cat-default', label: 'Игры' };
   }
 
   let selectedCategory = 'all';
+
+  function updateCategoryCounts() {
+    if (!detectableGames || detectableGames.length === 0) return;
+    const counts = {
+      all: detectableGames.length,
+      top2026: 0,
+      shooter: 0,
+      rpg: 0,
+      moba: 0,
+      survival: 0,
+      racing: 0,
+      horror: 0,
+      strategy: 0
+    };
+
+    detectableGames.forEach((g) => {
+      if (TOP_2026_IDS.includes(g.id)) counts.top2026++;
+      const meta = getCategoryMeta(g.category, g.name, g.id);
+      if (meta.cls === 'cat-shooter') counts.shooter++;
+      else if (meta.cls === 'cat-rpg' || meta.cls === 'cat-action') counts.rpg++;
+      else if (meta.cls === 'cat-moba') counts.moba++;
+      else if (meta.cls === 'cat-survival') counts.survival++;
+      else if (meta.cls === 'cat-racing') counts.racing++;
+      else if (meta.cls === 'cat-horror') counts.horror++;
+      else if (meta.cls === 'cat-strategy') counts.strategy++;
+    });
+
+    const mapping = {
+      all: 'catCountAll',
+      top2026: 'catCountTop2026',
+      shooter: 'catCountShooter',
+      rpg: 'catCountRpg',
+      moba: 'catCountMoba',
+      survival: 'catCountSurvival',
+      racing: 'catCountRacing',
+      horror: 'catCountHorror',
+      strategy: 'catCountStrategy'
+    };
+
+    Object.entries(mapping).forEach(([catKey, elId]) => {
+      const el = document.getElementById(elId);
+      if (el && counts[catKey] !== undefined) {
+        el.textContent = counts[catKey];
+      }
+    });
+  }
 
   function renderDetectableGames(filterText = '', category = null) {
     if (!detectableGamesGrid) return;
@@ -1079,28 +1177,37 @@
     const filtered = detectableGames.filter((g) => {
       // 1. Category check
       if (selectedCategory === 'top2026') {
-        const topIds = ['gta6', 'wilds', 'stalker2', 'spacemarine2', 'wukong', 'deadlock', 'silenthill2', 'manorlords', 'helldivers2', 'dragonsdogma2', 'palworld', 'tekken8', 'persona3r', 'frostpunk2', 'kcd2', 'marvel_rivals', 'poe2', 'civ7', 'doom_dark_ages'];
-        if (!topIds.includes(g.id)) return false;
+        if (!TOP_2026_IDS.includes(g.id)) return false;
       } else if (selectedCategory === 'shooter') {
-        const cat = (g.category || '').toLowerCase();
-        if (!cat.includes('шутер') && !cat.includes('shooter') && !['cs2', 'apex', 'pubg', 'tarkov', 'rainbow', 'tf2', 'doom', 'overwatch', 'warframe'].some((k) => g.id.includes(k))) return false;
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-shooter') return false;
       } else if (selectedCategory === 'rpg') {
-        const cat = (g.category || '').toLowerCase();
-        if (!cat.includes('rpg') && !cat.includes('ролевая') && !cat.includes('souls') && !['witcher', 'cyberpunk', 'eldenring', 'skyrim', 'fallout', 'bg3', 'starfield'].some((k) => g.id.includes(k))) return false;
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-rpg' && meta.cls !== 'cat-action') return false;
       } else if (selectedCategory === 'moba') {
-        const cat = (g.category || '').toLowerCase();
-        if (!cat.includes('moba') && !cat.includes('кооп') && !cat.includes('co-op') && !['dota2', 'lol', 'rocket', 'deadlock', 'lethal'].some((k) => g.id.includes(k))) return false;
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-moba') return false;
       } else if (selectedCategory === 'survival') {
-        const cat = (g.category || '').toLowerCase();
-        if (!cat.includes('выживание') && !cat.includes('survival') && !['rust', 'ark', 'palworld', 'dayz', 'valheim', 'forest', 'terraria', 'subnautica'].some((k) => g.id.includes(k))) return false;
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-survival') return false;
       } else if (selectedCategory === 'racing') {
-        const cat = (g.category || '').toLowerCase();
-        if (!cat.includes('симулятор') && !cat.includes('гонки') && !cat.includes('racing') && !['forza', 'eurotrucks', 'assetto', 'beamng', 'f1'].some((k) => g.id.includes(k))) return false;
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-racing') return false;
+      } else if (selectedCategory === 'horror') {
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-horror') return false;
+      } else if (selectedCategory === 'strategy') {
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        if (meta.cls !== 'cat-strategy') return false;
       }
 
       // 2. Search text check
       if (q) {
-        return g.name.toLowerCase().includes(q) || g.exe_name.toLowerCase().includes(q) || (g.category && g.category.toLowerCase().includes(q));
+        const meta = getCategoryMeta(g.category, g.name, g.id);
+        return g.name.toLowerCase().includes(q) ||
+               g.exe_name.toLowerCase().includes(q) ||
+               (g.category && g.category.toLowerCase().includes(q)) ||
+               meta.label.toLowerCase().includes(q);
       }
       return true;
     });
@@ -1110,13 +1217,13 @@
     filtered.forEach((g) => {
       const chip = document.createElement('div');
       chip.className = 'game-item-chip';
-      const catIcon = getCategoryIcon(g.category, g.name);
+      const meta = getCategoryMeta(g.category, g.name, g.id);
       chip.innerHTML = `
         <div class="game-chip-info">
-          <div class="game-chip-icon-badge">${catIcon}</div>
+          <div class="game-chip-icon-badge ${meta.cls}" title="${meta.label}">${meta.icon}</div>
           <div class="game-chip-text">
-            <span class="game-item-name" title="${g.name}">${g.name}</span>
-            <span class="game-item-sub">${g.exe_name} • ${g.category}</span>
+            <span class="game-item-name" title="${escapeHtml(g.name)}">${escapeHtml(g.name)}</span>
+            <span class="game-item-sub">${escapeHtml(g.exe_name)} • ${escapeHtml(g.category || meta.label)}</span>
           </div>
         </div>
         <div class="game-chip-actions">
@@ -1164,10 +1271,8 @@
     if (catalogCountLabel) {
       catalogCountLabel.textContent = `${filtered.length} / ${detectableGames.length} игр`;
     }
-    const allChip = document.querySelector('#categoryFiltersRow .category-chip[data-cat="all"]');
-    if (allChip && detectableGames.length > 0) {
-      allChip.textContent = `🎮 Все (${detectableGames.length})`;
-    }
+
+    updateCategoryCounts();
   }
 
   // Interactive Category Filter Row Handlers

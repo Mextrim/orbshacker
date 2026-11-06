@@ -258,13 +258,51 @@
 
         <!-- Interactive Category Filters -->
         <div class="category-filters-row" id="categoryFiltersRow">
-          <button class="category-chip active" data-cat="all">🎮 Все (353)</button>
-          <button class="category-chip" data-cat="top2026">🔥 Топ 2026</button>
-          <button class="category-chip" data-cat="shooter">🔫 Шутеры</button>
-          <button class="category-chip" data-cat="rpg">⚔️ RPG / Экшен</button>
-          <button class="category-chip" data-cat="moba">👑 MOBA & Кооп</button>
-          <button class="category-chip" data-cat="survival">🌲 Выживание</button>
-          <button class="category-chip" data-cat="racing">🏎️ Симуляторы</button>
+          <button class="category-chip active" data-cat="all">
+            <span class="cat-emoji">🎮</span>
+            <span class="cat-label">Все</span>
+            <span class="cat-count" id="catCountAll">353</span>
+          </button>
+          <button class="category-chip" data-cat="top2026">
+            <span class="cat-emoji">🔥</span>
+            <span class="cat-label">Топ 2026</span>
+            <span class="cat-count" id="catCountTop2026">19</span>
+          </button>
+          <button class="category-chip" data-cat="shooter">
+            <span class="cat-emoji">🎯</span>
+            <span class="cat-label">Шутеры</span>
+            <span class="cat-count" id="catCountShooter">65</span>
+          </button>
+          <button class="category-chip" data-cat="rpg">
+            <span class="cat-emoji">⚔️</span>
+            <span class="cat-label">RPG / Экшен</span>
+            <span class="cat-count" id="catCountRpg">67</span>
+          </button>
+          <button class="category-chip" data-cat="moba">
+            <span class="cat-emoji">👑</span>
+            <span class="cat-label">MOBA & Кооп</span>
+            <span class="cat-count" id="catCountMoba">29</span>
+          </button>
+          <button class="category-chip" data-cat="survival">
+            <span class="cat-emoji">🌲</span>
+            <span class="cat-label">Выживание</span>
+            <span class="cat-count" id="catCountSurvival">46</span>
+          </button>
+          <button class="category-chip" data-cat="racing">
+            <span class="cat-emoji">🏎️</span>
+            <span class="cat-label">Симуляторы</span>
+            <span class="cat-count" id="catCountRacing">39</span>
+          </button>
+          <button class="category-chip" data-cat="horror">
+            <span class="cat-emoji">👻</span>
+            <span class="cat-label">Хорроры</span>
+            <span class="cat-count" id="catCountHorror">16</span>
+          </button>
+          <button class="category-chip" data-cat="strategy">
+            <span class="cat-emoji">🏰</span>
+            <span class="cat-label">Стратегии</span>
+            <span class="cat-count" id="catCountStrategy">20</span>
+          </button>
         </div>
         <div id="detectableGamesGrid" class="detectable-games-grid">
           <!-- Injected by app.js -->

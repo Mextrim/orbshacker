@@ -2033,8 +2033,9 @@ body {
 
 .game-chip-info {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
   flex: 1;
   cursor: pointer;
@@ -2394,7 +2395,7 @@ select option:hover {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 4px 0 6px 0;
+  padding: 4px 0 8px 0;
 }
 
 .category-chip {
@@ -2402,29 +2403,156 @@ select option:hover {
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   border-radius: 20px;
-  padding: 5px 12px;
+  padding: 6px 12px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  user-select: none;
+  font-family: inherit;
+}
+
+.category-chip .cat-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.category-chip .cat-label {
+  letter-spacing: -0.1px;
+}
+
+.category-chip .cat-count {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .category-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--text-main);
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
 }
 
+.category-chip:hover .cat-emoji {
+  transform: scale(1.15);
+}
+
+.category-chip:hover .cat-count {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-main);
+}
+
 .category-chip.active {
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(16, 185, 129, 0.22));
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.22), rgba(88, 101, 242, 0.22));
   color: var(--accent-primary);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px var(--accent-primary-glow);
+  box-shadow: 0 0 12px var(--accent-primary-glow);
   font-weight: 700;
+}
+
+.category-chip.active .cat-count {
+  background: rgba(0, 242, 254, 0.25);
+  color: #ffffff;
+}
+
+/* Category-specific active & hover accents */
+.category-chip[data-cat="top2026"].active {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
+  border-color: #f59e0b;
+  color: #fbbf24;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}
+.category-chip[data-cat="top2026"].active .cat-count {
+  background: rgba(245, 158, 11, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="shooter"].active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(14, 165, 233, 0.25));
+  border-color: #06b6d4;
+  color: #38bdf8;
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.45);
+}
+.category-chip[data-cat="shooter"].active .cat-count {
+  background: rgba(6, 182, 212, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="rpg"].active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(217, 70, 239, 0.25));
+  border-color: #a855f7;
+  color: #c084fc;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
+}
+.category-chip[data-cat="rpg"].active .cat-count {
+  background: rgba(168, 85, 247, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="moba"].active {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(245, 158, 11, 0.25));
+  border-color: #eab308;
+  color: #fde047;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.45);
+}
+.category-chip[data-cat="moba"].active .cat-count {
+  background: rgba(234, 179, 8, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="survival"].active {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.25));
+  border-color: #22c55e;
+  color: #4ade80;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45);
+}
+.category-chip[data-cat="survival"].active .cat-count {
+  background: rgba(34, 197, 94, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="racing"].active {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(244, 63, 94, 0.25));
+  border-color: #ef4444;
+  color: #f87171;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+}
+.category-chip[data-cat="racing"].active .cat-count {
+  background: rgba(239, 68, 68, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="horror"].active {
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.25), rgba(159, 18, 57, 0.25));
+  border-color: #e11d48;
+  color: #fb7185;
+  box-shadow: 0 0 14px rgba(225, 29, 72, 0.45);
+}
+.category-chip[data-cat="horror"].active .cat-count {
+  background: rgba(225, 29, 72, 0.35);
+  color: #fff;
+}
+
+.category-chip[data-cat="strategy"].active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(79, 70, 229, 0.25));
+  border-color: #6366f1;
+  color: #818cf8;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
+}
+.category-chip[data-cat="strategy"].active .cat-count {
+  background: rgba(99, 102, 241, 0.35);
+  color: #fff;
 }
 
 /* Telemetry Action Buttons */
@@ -3064,23 +3192,79 @@ body.mini-mode .mini-widget-view {
 }
 
 .game-chip-icon-badge {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 19px;
+  line-height: 1;
   flex-shrink: 0;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
+  user-select: none;
 }
 
 .game-item-chip:hover .game-chip-icon-badge {
-  transform: scale(1.12);
-  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.12) rotate(-3deg);
   border-color: var(--accent-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 10px var(--accent-primary-glow);
+}
+
+/* Category Specific Glows and Gradients */
+.game-chip-icon-badge.cat-shooter {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(14, 165, 233, 0.08));
+  border-color: rgba(6, 182, 212, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(6, 182, 212, 0.25);
+}
+.game-chip-icon-badge.cat-rpg {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(192, 132, 252, 0.08));
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(168, 85, 247, 0.25);
+}
+.game-chip-icon-badge.cat-moba {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.22), rgba(245, 158, 11, 0.08));
+  border-color: rgba(234, 179, 8, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(234, 179, 8, 0.25);
+}
+.game-chip-icon-badge.cat-survival {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(16, 185, 129, 0.08));
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(34, 197, 94, 0.25);
+}
+.game-chip-icon-badge.cat-racing {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(244, 63, 94, 0.08));
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+.game-chip-icon-badge.cat-horror {
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.25), rgba(159, 18, 57, 0.15));
+  border-color: rgba(225, 29, 72, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(225, 29, 72, 0.3);
+}
+.game-chip-icon-badge.cat-strategy {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(79, 70, 229, 0.08));
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+.game-chip-icon-badge.cat-fighting {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(234, 88, 12, 0.08));
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(249, 115, 22, 0.25);
+}
+.game-chip-icon-badge.cat-action {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.1));
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+.game-chip-icon-badge.cat-default {
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.2), rgba(0, 242, 254, 0.08));
+  border-color: rgba(88, 101, 242, 0.38);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(88, 101, 242, 0.25);
 }
 
 .game-chip-text {
