@@ -736,13 +736,13 @@
   function formatReleaseNotesRu(rawNotes, newVer) {
     if (!rawNotes || typeof rawNotes !== 'string') {
       return `✨ Что нового в обновлении ${newVer || ''}:
-• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 353 игры для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
+• 🔮 Автоматический Discord Rich Presence: программа напрямую транслирует в ваш профиль Discord текущее действие (квесты Orbs, 355 игр для значков, фарм часов AFK, свою игру) с живым отсчётом времени через Application ID 1567134974031962272.
 • ⚡ Кнопка-индикатор RPC в шапке: мгновенное отображение статуса вещания и возможность в один клик включить или выключить трансляцию.
 • 🔒 Single-Instance Lock: надёжная защита от запуска дублирующих процессов программы.
 • 🔄 Умный установщик обновлений: фоновая замена файлов без ошибок блокировки на Windows.
 • 📌 Плавающий мини-виджет (Always-on-Top): карточка поверх всех окон с живым таймером.
 • 🌙 Безопасный таймер авто-выключения ПК: отключение ПК по завершении фарма.
-• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 353 игры.`;
+• 🏷️ Интерактивные фильтры по 7 категориям: быстрый выбор среди 355 игр.`;
     }
 
     const hasCyrillic = /[а-яА-ЯёЁ]{4,}/.test(rawNotes);
@@ -763,11 +763,11 @@
       .replace(/Single-Instance Lock/gi, 'Защита от повторного запуска (Single-Instance)')
       .replace(/Floating Mini-Widget Mode/gi, 'Плавающий мини-виджет (Always-on-Top)')
       .replace(/Safe Auto-Shutdown Timer/gi, 'Безопасный таймер авто-выключения ПК')
-      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 353 игры')
+      .replace(/150\+\s*Games Instant Category Filter/gi, 'Интерактивные фильтры по категориям для 355 игр')
       .replace(/Zero-Footprint Web Audio Sound Engine/gi, 'Звуковой движок Web Audio (4 звуковых профиля)')
       .replace(/Autostart with OS \(Silent in Tray\)/gi, 'Тихий автозапуск с системой в трей')
       .replace(/Telemetry Copy & Export/gi, 'Копирование и экспорт логов')
-      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (353 игры)')
+      .replace(/Discord Profile Badges Booster/gi, 'Бустер значков профиля Discord (355 игр)')
       .replace(/Zero-Download Game Spoofer/gi, 'Фарм игр без реального скачивания файлов')
       .replace(/Theme Engine & Glassmorphism UI/gi, '20 дизайнерских тем (Win 98, XP, macOS Big Sur, MS-DOS, Discord)')
       .replace(/Cross-Platform Auto-Updates/gi, 'Плавное авто-обновление без ошибок')
@@ -1383,7 +1383,7 @@
     }
   }
 
-  btnFarmAll100.addEventListener('click', () => startBadgeCount(detectableGames.length || 353, 0));
+  btnFarmAll100.addEventListener('click', () => startBadgeCount(detectableGames.length || 355, 0));
   btnFarmNext10.addEventListener('click', () => startBadgeCount(10, 0));
   btnFarmNext2.addEventListener('click', () => startBadgeCount(5, 0));
 

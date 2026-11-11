@@ -134,6 +134,20 @@ pub fn get_active_quests() -> &'static [QuestInfo] {
             badge: "Steam Verified".to_string(),
             needs_rpc: false,
         },
+        QuestInfo {
+            id: "maplestory".to_string(),
+            title: "MapleStory".to_string(),
+            game_title: "MapleStory".to_string(),
+            publisher: "Nexon".to_string(),
+            application_id: "359510095811444736".to_string(),
+            exe_name: "MapleStory.exe".to_string(),
+            steam_app_id: Some(216150),
+            orbs_reward: 700,
+            required_minutes: 15,
+            icon_color: "#f97316".to_string(),
+            badge: "Steam Verified".to_string(),
+            needs_rpc: false,
+        },
     ]
     })
 }
@@ -142,6 +156,16 @@ pub fn get_active_quests() -> &'static [QuestInfo] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_maplestory_quest_configured() {
+        let quests = get_active_quests();
+        let ms = quests.iter().find(|q| q.id == "maplestory").expect("maplestory quest missing");
+        assert_eq!(ms.application_id, "359510095811444736");
+        assert_eq!(ms.steam_app_id, Some(216150));
+        assert_eq!(ms.exe_name, "MapleStory.exe");
+        assert_eq!(ms.orbs_reward, 700);
+    }
 
     #[test]
     fn test_fc27_quest_configured() {

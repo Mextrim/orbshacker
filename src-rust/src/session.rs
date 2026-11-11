@@ -178,6 +178,12 @@ impl FarmSession {
                 let _ = faker.launch_stub("ea sports fc 27/fc27.exe", &quest.game_title, dur_secs, quest.steam_app_id);
                 let _ = faker.launch_stub("fc27_trial.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
+
+            // For MapleStory (Classic World / Worlds), launch common client variants for guaranteed Discord detection
+            if quest.id == "maplestory" {
+                let _ = faker.launch_stub("MSCW.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("MapleStoryWorlds.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+            }
         }
 
         *self.active_quests.lock().unwrap() = target_quests.clone();

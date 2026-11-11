@@ -412,6 +412,7 @@ pub fn get_detectable_games_catalog() -> &'static [DetectableGame] {
         DetectableGame { id: "mordhau".into(), name: "MORDHAU".into(), exe_name: "Mordhau-Win64-Shipping.exe".into(), steam_app_id: Some(629760), category: "Medieval Slasher".into() },
         DetectableGame { id: "seaofthieves".into(), name: "Sea of Thieves".into(), exe_name: "SoTGame.exe".into(), steam_app_id: Some(1172620), category: "Pirate Adventure".into() },
         DetectableGame { id: "skull_and_bones".into(), name: "Skull and Bones".into(), exe_name: "skullandbones.exe".into(), steam_app_id: Some(2853730), category: "Naval Action".into() },
+        DetectableGame { id: "maplestory".into(), name: "MapleStory".into(), exe_name: "MapleStory.exe".into(), steam_app_id: Some(216150), category: "2D MMORPG".into() },
     ]
     })
 }
