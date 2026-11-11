@@ -4,7 +4,7 @@
 
 <br/>
 
-[![Release](https://img.shields.io/badge/Release-v3.1.1-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v3.1.2-00f2fe?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Website](https://img.shields.io/badge/Official_Site-GitHub_Pages-70e000?style=for-the-badge&logo=googlechrome&logoColor=white)](https://mextrim.github.io/orbshacker/)
 [![Platform](https://img.shields.io/badge/Platform-Windows_10_%2F_11_x64-0078d4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Mextrim/orbshacker/releases/latest)
 [![Rust Architecture](https://img.shields.io/badge/100%25_Pure_Rust-1.9_MB-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
@@ -20,7 +20,7 @@
 
 | ⚡ Автономная версия (1 файл) | 📦 Полный ZIP-архив |
 | :---: | :---: |
-| **[orbshacker.exe](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(**~1.9 МБ**, 100% чистый Rust, запуск в 1 клик без установки)* | **[orbshacker-v3.1.1-win-x64.zip](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(**~1.0 МБ**, портативный архив с программой и документацией)* |
+| **[orbshacker.exe](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(**~1.9 МБ**, 100% чистый Rust, запуск в 1 клик без установки)* | **[orbshacker-v3.1.2-win-x64.zip](https://github.com/Mextrim/orbshacker/releases/latest)**<br/>*(**~1.0 МБ**, портативный архив с программой и документацией)* |
 
 <br/>
 
@@ -28,7 +28,7 @@
 
 <br/><br/>
 
-**⚡ ORBSHACKER v3.1.1** — ультрабыстрый автономный комплекс для Windows (10/11 x64), полностью переписанный на **100% чистый нативный Rust**. Предназначен для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**353 игры** и **5 000+ часов онлайна**), живой трансляции статуса через **Discord Rich Presence (RPC)**, 100% фонового запуска игр без засорения панели задач и безопасного авто-выключения ПК.
+**⚡ ORBSHACKER v3.1.2** — ультрабыстрый автономный комплекс для Windows (10/11 x64), полностью переписанный на **100% чистый нативный Rust**. Предназначен для автоматического выполнения заданий **Discord Quests (Orbs)**, прокачки значков профиля Discord (**356 игр** и **5 000+ часов онлайна**), живой трансляции статуса через **Discord Rich Presence (RPC)**, 100% фонового запуска игр без засорения панели задач и безопасного авто-выключения ПК.
 
 ---
 
@@ -38,17 +38,17 @@
 
 ## ⚡ Революция производительности: 100% чистый Rust
 
-В версии **v3.1.1** программа полностью избавилась от Electron, Node.js runtime, Chromium и сопутствующих фоновых процессов. Приложение теперь представляет собой **единый ультралёгкий исполняемый файл**:
+В версии **v3.1.2** программа полностью избавилась от Electron, Node.js runtime, Chromium и сопутствующих фоновых процессов. Приложение теперь представляет собой **единый ультралёгкий исполняемый файл**:
 
 ```
                        Сравнение архитектур:
   ┌──────────────────────────────────────────────────────────────┐
   │ СТАРЫЙ ELECTRON (v2.x) : ~115 МБ, 6 процессов, 280 МБ RAM     │
-  │ ЧИСТЫЙ RUST (v3.1.1)   :  1.9 МБ, 1 процесс,   35 МБ RAM 🚀  │
+  │ ЧИСТЫЙ RUST (v3.1.2)   :  1.9 МБ, 1 процесс,   35 МБ RAM 🚀  │
   └──────────────────────────────────────────────────────────────┘
 ```
 
-| Характеристика | Electron (v2.x) | Чистый Rust (v3.1.1) | Выигрыш |
+| Характеристика | Electron (v2.x) | Чистый Rust (v3.1.2) | Выигрыш |
 | :--- | :---: | :---: | :---: |
 | 📉 **Размер исполняемого файла** | ~110–120 МБ | **1.90 МБ** | **В 60 раз меньше!** |
 | 🗜️ **Размер ZIP-дистрибутива** | ~95 МБ | **1.00 МБ** | **В 95 раз компактнее** |
@@ -174,7 +174,7 @@ Orbshacker можно запускать как с графическим инт
 | `orbshacker.exe` | Запуск полнофункционального нативного GUI приложения (по умолчанию). |
 | `orbshacker.exe --farm-all` | Запуск 15-минутного безголового фарма квестов прямо в терминале. |
 | `orbshacker.exe --cli-rpc` | Запуск внутреннего сервера JSON-RPC (stdin/stdout). |
-| `orbshacker.exe --version` | Вывод текущей версии программы (`3.1.1`). |
+| `orbshacker.exe --version` | Вывод текущей версии программы (`3.1.2`). |
 | `orbshacker.exe --help` | Справка по доступным параметрам командной строки. |
 
 ---
@@ -190,7 +190,7 @@ Orbshacker можно запускать как с графическим инт
 </details>
 
 <details>
-<summary><b>2. Нужно ли скачивать 353 игры на компьютер?</b></summary>
+<summary><b>2. Нужно ли скачивать 356 игр на компьютер?</b></summary>
 <br/>
 <b>Нет, скачивать гигабайты файлов не требуется.</b> Программа создаёт легковесные системные дескрипторы и скрытые окна процессов с официальными идентификаторами и именами исполняемых файлов (<code>cs2.exe</code>, <code>dota2.exe</code>, <code>GTA5.exe</code> и др.). Discord мгновенно распознаёт игру и засчитывает игровое время.
 </details>

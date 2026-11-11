@@ -29,7 +29,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path artifacts
           Copy-Item src-rust/target/release/orbshacker.exe artifacts/orbshacker.exe
           $tag = $env:GITHUB_REF_NAME
-          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v3.1.1" }
+          if (-not $tag -or $tag -notmatch '^v\d') { $tag = "v3.1.2" }
           
           New-Item -ItemType Directory -Force -Path temp_pack
           Copy-Item src-rust/target/release/orbshacker.exe temp_pack/orbshacker.exe
@@ -69,7 +69,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [[ ! "$TAG" =~ ^v[0-9] ]]; then
-            TAG="v3.1.1"
+            TAG="v3.1.2"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -91,7 +91,7 @@ jobs:
             
             ### ✨ Возможности и функционал (сохранено 100%):
             - 🔮 **Discord Quests Spoofer**: автоматический фарм всех активных квестов с наградами Orbs.
-            - 🏆 **353 игры для значков и онлайна**: фарм значков профиля Discord («Универсал: 100+ игр», значки шутеров, RPG, симуляторов) с таймерами на выбор (5 мин, 7 мин, 10 мин) и авто-остановкой.
+            - 🏆 **356 игр для значков и онлайна**: фарм значков профиля Discord («Универсал: 100+ игр», значки шутеров, RPG, симуляторов) с таймерами на выбор (5 мин, 7 мин, 10 мин) и авто-остановкой.
             - 🎮 **Кастомная игра (Своя игра)**: запуск любой игры по выбору с готовыми быстрыми пресетами (GTA 6, S.T.A.L.K.E.R. 2, Black Myth: Wukong, Space Marine 2, Monster Hunter Wilds, Deadlock, Helldivers 2, Silent Hill 2).
             - 🎨 **20 уникальных тем интерфейса**: Windows 98 Classic, Windows XP Luna, macOS Big Sur / Sonoma, MS-DOS Terminal, Discord Dark Theme, Bootstrap 5 UI, Modern Tables, Flat Browser, Apple Liquid Glass, Кибер Неон, Cyberpunk 2077, Midnight Purple, Matrix Hacker, Sunset Coral, AMOLED Deep Dark, Retro 80s Synthwave, Dracula Dark, Nord Arctic, Clean Light, Forest Moss.
             - 🎭 **Забавные и мемные RPC статусы**: «Фармит значки как боженька», «Наматывает часы в CS2», «Ловит фуррей в VR», «Сидит в DOS и ждёт GTA 6» и многие другие.
