@@ -750,6 +750,12 @@ fn rpc_worker_loop(application_id: &str, game_title: &str, stop: Arc<AtomicBool>
             continue;
         }
 
+        let (details_str, state_str) = if game_title.contains("FC") {
+            ("Playing Match", "Ultimate Team")
+        } else {
+            ("In Game", "Online")
+        };
+
         // 2. Initial SET_ACTIVITY (opcode 1) with type 0 (Playing) and unix start timestamp
         let activity_json = serde_json::json!({
             "cmd": "SET_ACTIVITY",
@@ -759,8 +765,8 @@ fn rpc_worker_loop(application_id: &str, game_title: &str, stop: Arc<AtomicBool>
                     "name": game_title,
                     "type": 0,
                     "application_id": application_id,
-                    "details": "Playing Match",
-                    "state": "Ultimate Team",
+                    "details": details_str,
+                    "state": state_str,
                     "timestamps": {
                         "start": start_timestamp
                     },
@@ -798,8 +804,8 @@ fn rpc_worker_loop(application_id: &str, game_title: &str, stop: Arc<AtomicBool>
                         "name": game_title,
                         "type": 0,
                         "application_id": application_id,
-                        "details": "Playing Match",
-                        "state": "Ultimate Team",
+                        "details": details_str,
+                        "state": state_str,
                         "timestamps": {
                             "start": start_timestamp
                         },

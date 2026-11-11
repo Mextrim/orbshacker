@@ -136,30 +136,30 @@ pub fn get_active_quests() -> &'static [QuestInfo] {
         },
         QuestInfo {
             id: "maplestory".to_string(),
-            title: "MapleStory".to_string(),
-            game_title: "MapleStory".to_string(),
+            title: "MapleStory Classic World".to_string(),
+            game_title: "MapleStory Classic World".to_string(),
             publisher: "Nexon".to_string(),
-            application_id: "359510095811444736".to_string(),
-            exe_name: "MapleStory.exe".to_string(),
+            application_id: "1565580212664795249".to_string(),
+            exe_name: "mscw/maplestory.exe".to_string(),
             steam_app_id: Some(216150),
             orbs_reward: 700,
             required_minutes: 15,
             icon_color: "#f97316".to_string(),
-            badge: "Steam Verified".to_string(),
-            needs_rpc: false,
+            badge: "Steam & Local RPC".to_string(),
+            needs_rpc: true,
         },
         QuestInfo {
             id: "wow_forever".to_string(),
             title: "World of Warcraft: Forever".to_string(),
-            game_title: "World of Warcraft".to_string(),
+            game_title: "World of Warcraft: Forever".to_string(),
             publisher: "Blizzard Entertainment".to_string(),
-            application_id: "356875762940379136".to_string(),
-            exe_name: "Wow.exe".to_string(),
+            application_id: "1553234742529364018".to_string(),
+            exe_name: "_forever_/wow.exe".to_string(),
             steam_app_id: None,
             orbs_reward: 700,
             required_minutes: 15,
             icon_color: "#eab308".to_string(),
-            badge: "Direct Process".to_string(),
+            badge: "Direct Process & RPC".to_string(),
             needs_rpc: true,
         },
         QuestInfo {
@@ -189,8 +189,8 @@ mod tests {
     fn test_wow_forever_quest_configured() {
         let quests = get_active_quests();
         let wow = quests.iter().find(|q| q.id == "wow_forever").expect("wow_forever quest missing");
-        assert_eq!(wow.application_id, "356875762940379136");
-        assert_eq!(wow.exe_name, "Wow.exe");
+        assert_eq!(wow.application_id, "1553234742529364018");
+        assert_eq!(wow.exe_name, "_forever_/wow.exe");
         assert_eq!(wow.orbs_reward, 700);
     }
 
@@ -207,9 +207,9 @@ mod tests {
     fn test_maplestory_quest_configured() {
         let quests = get_active_quests();
         let ms = quests.iter().find(|q| q.id == "maplestory").expect("maplestory quest missing");
-        assert_eq!(ms.application_id, "359510095811444736");
+        assert_eq!(ms.application_id, "1565580212664795249");
         assert_eq!(ms.steam_app_id, Some(216150));
-        assert_eq!(ms.exe_name, "MapleStory.exe");
+        assert_eq!(ms.exe_name, "mscw/maplestory.exe");
         assert_eq!(ms.orbs_reward, 700);
     }
 

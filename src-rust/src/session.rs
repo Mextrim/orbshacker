@@ -179,16 +179,20 @@ impl FarmSession {
                 let _ = faker.launch_stub("fc27_trial.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
 
-            // For MapleStory (Classic World / Worlds), launch common client variants for guaranteed Discord detection
+            // For MapleStory Classic World, launch all recognized paths for Discord detection
             if quest.id == "maplestory" {
+                let _ = faker.launch_stub("mscw/maplestory.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("maplestorycw/appdata/maplestory.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("MapleStory.exe", &quest.game_title, dur_secs, quest.steam_app_id);
                 let _ = faker.launch_stub("MSCW.exe", &quest.game_title, dur_secs, quest.steam_app_id);
-                let _ = faker.launch_stub("MapleStoryWorlds.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
 
             // For World of Warcraft: Forever, launch common WoW client variants
             if quest.id == "wow_forever" {
+                let _ = faker.launch_stub("_forever_/wow.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("wowb.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("Wow.exe", &quest.game_title, dur_secs, quest.steam_app_id);
                 let _ = faker.launch_stub("WowClassic.exe", &quest.game_title, dur_secs, quest.steam_app_id);
-                let _ = faker.launch_stub("World of Warcraft/_forever_/Wow.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
 
             // For Honkai: Star Rail, launch common launcher/game paths

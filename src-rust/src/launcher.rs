@@ -54,22 +54,27 @@ impl GameProcessManager {
     ) -> Result<PathBuf, String> {
         let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
 
-        // Security check: strip directory components and dangerous characters to prevent path traversal
-        let raw_name = std::path::Path::new(exe_name)
-            .file_name()
-            .and_then(|f| f.to_str())
-            .unwrap_or("game.exe");
+        // Normalize path and safely preserve allowed subdirectories (e.g. mscw/maplestory.exe)
+        // while strictly preventing path traversal ('..', drive letters, absolute paths)
+        let normalized = exe_name.replace('\\', "/");
+        let parts: Vec<&str> = normalized
+            .split('/')
+            .map(|p| p.trim())
+            .filter(|p| !p.is_empty() && *p != "." && *p != "..")
+            .collect();
 
-        let mut safe_name = raw_name
-            .replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'], "");
-        if safe_name.is_empty() {
-            safe_name = "game.exe".to_string();
+        let mut target_exe = self.target_dir.clone();
+        for (idx, part) in parts.iter().enumerate() {
+            let mut safe_part = part.replace([':', '*', '?', '"', '<', '>', '|', '\0'], "");
+            if idx == parts.len() - 1 {
+                if !safe_part.to_lowercase().ends_with(".exe") {
+                    safe_part.push_str(".exe");
+                }
+            }
+            if !safe_part.is_empty() {
+                target_exe.push(safe_part);
+            }
         }
-        if !safe_name.to_lowercase().ends_with(".exe") {
-            safe_name.push_str(".exe");
-        }
-
-        let target_exe = self.target_dir.join(&safe_name);
 
         if let Some(parent) = target_exe.parent() {
             let _ = fs::create_dir_all(parent);
