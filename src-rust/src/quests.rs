@@ -148,6 +148,34 @@ pub fn get_active_quests() -> &'static [QuestInfo] {
             badge: "Steam Verified".to_string(),
             needs_rpc: false,
         },
+        QuestInfo {
+            id: "wow_forever".to_string(),
+            title: "World of Warcraft: Forever".to_string(),
+            game_title: "World of Warcraft".to_string(),
+            publisher: "Blizzard Entertainment".to_string(),
+            application_id: "356875762940379136".to_string(),
+            exe_name: "Wow.exe".to_string(),
+            steam_app_id: None,
+            orbs_reward: 700,
+            required_minutes: 15,
+            icon_color: "#eab308".to_string(),
+            badge: "Direct Process".to_string(),
+            needs_rpc: true,
+        },
+        QuestInfo {
+            id: "honkai_star_rail".to_string(),
+            title: "Honkai: Star Rail".to_string(),
+            game_title: "Honkai: Star Rail".to_string(),
+            publisher: "HoYoverse".to_string(),
+            application_id: "1432798014786764871".to_string(),
+            exe_name: "StarRail.exe".to_string(),
+            steam_app_id: None,
+            orbs_reward: 700,
+            required_minutes: 15,
+            icon_color: "#6366f1".to_string(),
+            badge: "Direct Process".to_string(),
+            needs_rpc: true,
+        },
     ]
     })
 }
@@ -156,6 +184,24 @@ pub fn get_active_quests() -> &'static [QuestInfo] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_wow_forever_quest_configured() {
+        let quests = get_active_quests();
+        let wow = quests.iter().find(|q| q.id == "wow_forever").expect("wow_forever quest missing");
+        assert_eq!(wow.application_id, "356875762940379136");
+        assert_eq!(wow.exe_name, "Wow.exe");
+        assert_eq!(wow.orbs_reward, 700);
+    }
+
+    #[test]
+    fn test_honkai_star_rail_quest_configured() {
+        let quests = get_active_quests();
+        let hsr = quests.iter().find(|q| q.id == "honkai_star_rail").expect("honkai_star_rail quest missing");
+        assert_eq!(hsr.application_id, "1432798014786764871");
+        assert_eq!(hsr.exe_name, "StarRail.exe");
+        assert_eq!(hsr.orbs_reward, 700);
+    }
 
     #[test]
     fn test_maplestory_quest_configured() {

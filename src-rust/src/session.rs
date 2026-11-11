@@ -184,6 +184,17 @@ impl FarmSession {
                 let _ = faker.launch_stub("MSCW.exe", &quest.game_title, dur_secs, quest.steam_app_id);
                 let _ = faker.launch_stub("MapleStoryWorlds.exe", &quest.game_title, dur_secs, quest.steam_app_id);
             }
+
+            // For World of Warcraft: Forever, launch common WoW client variants
+            if quest.id == "wow_forever" {
+                let _ = faker.launch_stub("WowClassic.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+                let _ = faker.launch_stub("World of Warcraft/_forever_/Wow.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+            }
+
+            // For Honkai: Star Rail, launch common launcher/game paths
+            if quest.id == "honkai_star_rail" {
+                let _ = faker.launch_stub("Games/StarRail.exe", &quest.game_title, dur_secs, quest.steam_app_id);
+            }
         }
 
         *self.active_quests.lock().unwrap() = target_quests.clone();
